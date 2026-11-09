@@ -21,7 +21,7 @@
 PYTHON = .venv/bin/python
 NAME ?=
 
-.PHONY: help setup run test test-one pyflakes pep8 loose-strings hooks clean
+.PHONY: help setup run test test-one pyflakes pep8 loose-strings balance hooks clean
 
 help:
 	@echo "make setup          make .venv and install microsponge into it"
@@ -31,6 +31,7 @@ help:
 	@echo "make pyflakes       unused imports, undefined names and names defined twice (the test suite runs this too)"
 	@echo "make pep8           what pycodestyle says, less what setup.cfg ignores: a look, not a rule, see .claude/STYLE.md"
 	@echo "make loose-strings  string literals inside functions under src/, which should be constants"
+	@echo "make balance        how the units of a theme stand against each other: THEME=caveman, or classic, SciFi, fantasy or PlanetWars"
 	@echo "make hooks          install the git pre-commit hook, which runs every test before a commit goes in"
 	@echo "make clean          remove Python caches"
 
@@ -55,6 +56,9 @@ pep8:
 
 loose-strings:
 	$(PYTHON) tools/loose_strings.py src
+
+balance:
+	$(PYTHON) tools/balance.py $(THEME)
 
 hooks:
 	ln -sf ../../tools/pre_commit.sh .git/hooks/pre-commit

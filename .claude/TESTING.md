@@ -53,13 +53,25 @@ import, an undefined name or a name defined twice fails the tests; `pyflakes` is
   logical and good. What "good" means for such a game is the user's to say, and Claude asks.
 - **The tests have a theme of their own, called caveman.** Caveman is a tiny, silly theme that
   exists for the tests, so that the engine is tested without making up anything in classic or
-  SPACE. It does as little as possible: a small world, settler and warrior units, a technology
-  that allows the warrior, a technology called wheel that requires stone, which comes from
-  mountains, and the world wonders great cave painting and arrangement of rocks, with bonuses.
+  SciFi. It has all the relationships and features it needs to be complete, simple and
+  testable, and no more: a small world, settler and warrior units, a technology
+  that allows the warrior, a building called granary that requires a technology called agriculture
+  (the granary gives 1 more food from each worked grassland tile and lets its city grow a
+  citizen 1 turn sooner), a worker that builds a farm on grassland once agriculture is known,
+  cities that are called villages, stone, which comes from
+  mountains, wood, which comes from forest, the world wonders great cave painting and
+  arrangement of rocks, with bonuses, a unit that requires a building, a building that requires
+  water beside the city center, a naval unit, an air unit, a terrain of its own that land
+  units cannot cross, and a worker's job that changes the terrain. `.claude/THEMES_CAVEMAN.md` holds what the user has said about caveman and the numbers.
   Claude may make up the rest of caveman's kinds and choose its numbers, to see what the user
-  thinks of them. Caveman lives with the other themes, because the screens may later be allowed
-  to play it. The eventual goal is that the computer players play a game of caveman in the tests
+  thinks of them. Caveman may be made more silly, and more idiomatic of the neolithic era,
+  later. Caveman lives with the other themes, because the screens may later be allowed
+  to play it, and caveman can help to build the early text UI. The eventual goal is that the computer players play a game of caveman in the tests
   and produce a convincing log of the game, before any screen exists.
+- **A test may end a game that has stalled.** When nothing has been built and no unit has been
+  produced in 200 turns, test code is allowed to end the game. That never happens to a game a
+  person plays. With the rule that a game ends after 50 turns of bankruptcy in a row (the model,
+  "Resources"), the guardrail keeps a test from getting stuck, and both may be removed later.
 - **A shortcut needs tests of both paths.** Any condition-specific optimization, like skipping
   work that would do nothing, is only acceptable with good tests of the case it skips and the
   case it doesn't (`.claude/STYLE.md`, "Performance matters").
@@ -103,8 +115,25 @@ without one. Tests are split by feature, each a file of its own, and shared help
 beside them:
 
 - **The program.** `test/test_cli.py` (the command line) and `test/test_version.py` (the
-  version). Tests of the model objects join them as the model objects are derived from the
-  model, `GAME_RULES.md`.
+  version).
+- **The model objects.** `test/test_kinds.py` (kinds and the catalog), `test/test_world.py`,
+  `test/test_units.py`, `test/test_unit_control.py`, `test/test_cities.py` (building a city and
+  the units inside), `test/test_harvest.py` (what citizens collect), `test/test_civilization.py`,
+  `test/test_game.py`, `test/test_turns.py` (starting a game, the turn order and ending a
+  turn), `test/test_orders.py` (what a civilization may do on its turn), `test/test_work.py` (a
+  worker building an improvement), `test/test_production.py` (what a city builds),
+  `test/test_research.py` (what a civilization researches), `test/test_strategic.py`
+  (strategic resources and borders), `test/test_combat.py` (attacks, taking a city and
+  losing), `test/test_terrain_bonuses.py` (special tiles that give
+  more), `test/test_saving.py` (the saved game, also loaded into later
+  versions of a theme) and `test/test_themes.py` (what each theme holds). More join them as the model objects
+  are derived from the model, `GAME_RULES.md`.
+- **Shared helpers.** `test/caveman_game.py` builds the small game of caveman the tests play
+  with and compares two games, and `test/later_caveman.py` has caveman as later versions might
+  change it. `test/refusals.py` gives a test class `refused()`, which returns the message the
+  program refuses something with, so that no test file writes that out again.
+- **The tools.** `test/test_balance.py` (the tool that shows how the units of a theme stand
+  against each other).
 - **The rules.** `test/test_slots.py`, `test/test_keyword_only.py`,
   `test/test_message_constants.py`, `test/test_pyflakes.py`, `test/test_doc_paths.py` and
   `test/test_license_headers.py`.

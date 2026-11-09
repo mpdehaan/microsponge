@@ -14,12 +14,26 @@ apart from the rules for the code (`.claude/STYLE.md`) so that they can be revie
   word is kept for those, which is why what the game does is called the model and not the rules.
 - AI, about the game, is the computer players: algorithms that the user and Claude choose and
   write by hand in this project. It never means machine learning, a language model or Claude.
+- A worker is a unit on the map that builds improvements, like roads. A citizen is one of the
+  people of a city, and citizens are who collect resources. Claude never writes "worker" for a
+  citizen.
+- Currency is the primary resource, which the user first called gold. Claude doesn't write "the
+  stock" for what a civilization holds of its resources: the user doesn't know the word. The
+  user's own word for what a civilization holds is the bank of the civilization.
+- A strategic resource is a resource like iron that is not collected and not consumed: a
+  civilization with the resource within its borders can build the units that require the
+  resource. Claude first called these controlled resources, and the user's word is strategic.
+- AP is short for action points. The user may write AP, and the screens may write AP too.
+- A city is always called a city when Claude talks to the user, even where a test plays a theme
+  that has another word for a city. For caveman, Claude may write City("village") where the
+  theme's word matters.
 - Classic is the theme of historic earth in the style of a civilization game, the first one
-  being developed. The user says "in classic" or, for another theme, something like "in space",
+  being developed. The user says "in classic" or, for another theme, something like "in scifi",
   to say which theme they're working on, and is talking about classic unless they say otherwise.
   What the user decides about one theme is kept in that theme's file, `.claude/THEMES_CLASSIC.md`
-  for classic and `.claude/THEMES_SPACE.md` for SPACE, the theme inspired by Stargate, and what holds
-  for every theme is kept in the model.
+  for classic, `.claude/THEMES_SCIFI.md` for SciFi, the theme inspired by Stargate, which was
+  first called SPACE, `.claude/THEMES_FANTASY.md` for fantasy, `.claude/THEMES_PLANETWARS.md` for PlanetWars and
+  `.claude/THEMES_CAVEMAN.md` for caveman, and what holds for every theme is kept in the model.
 
 ## Who decides what
 
@@ -38,6 +52,14 @@ apart from the rules for the code (`.claude/STYLE.md`) so that they can be revie
   Claude through how each screen works before it's built.
 - microsponge is not FreeCiv and is not a clone of FreeCiv, which the user doesn't play. Claude
   may occasionally look at what features FreeCiv has, and never copies FreeCiv's design.
+- The user establishes the balance of units in conversation, as rough comparisons like "a
+  legion is about 4 times stronger than a warrior", and Claude is to get used to that and still
+  be able to control the numbers. Claude helps to turn the comparisons into numbers, may use
+  FreeCiv's data to help while bearing in mind that the mechanics here are different, and
+  checks the result with `tools/balance.py`. The balance conversations are kept in each theme's
+  file, which the guide for that theme is later written from.
+- Eventually the user will ask Claude to suggest units from FreeCiv to flesh out classic.
+  Caveman comes first, so that the engine has complete tests.
 - Claude always asks the user before incorporating any idea Claude has read about from another
   game, whichever game that is, and says which game the idea comes from. Nothing from another
   game goes into the model, a theme's file, `IDEAS.md` or the code until the user has said yes to
@@ -95,8 +117,20 @@ apart from the rules for the code (`.claude/STYLE.md`) so that they can be revie
   harder to read than a longer one that doesn't. When a question is asked again, or an earlier
   one is referred to by number, the original question is reposted in full, updated with what has
   been learnt since, never shortened to a phrase: the user doesn't scroll up, so a number with a
-  few words after it is unreadable. The same goes for a list of what's open at the end of a
-  reply: each number carries at least a summary of its question.
+  few words after it is unreadable. The same goes for the list of what's open at the end of a
+  reply: that list restates every open question in full, as a complete question the user can
+  answer from the list alone, never as a number with a phrase after it. The user has asked for
+  this twice, and it is required.
+- Claude writes in complete sentences, with the context a reader needs, the way an educated
+  person talks, and not in shorthand. A list of nouns with no verb, like "Refused: an empty
+  tile, an own unit, a kind the attacker cannot hit", is not a sentence and is not written;
+  the same content reads "An attack is refused when the tile is empty, when the unit on the
+  tile belongs to the attacker's own civilization, and when the attacker's kind cannot hit the
+  kind of unit on the tile."
+- What Claude says about a theme's unit is said of that theme: "in caveman, the angry bird
+  cannot take a city" is about caveman's angry bird, and never a statement about angry birds
+  in every theme. A property, like a unit that cannot take cities, is what the engine
+  generalizes; the units that have the property are each theme's own.
 - Usability and interface points are explained in terms of what the user would see and press, in
   the words the game uses on screen, naming the existing feature they build on. Code names come
   after, if they're needed at all.

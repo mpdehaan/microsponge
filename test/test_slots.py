@@ -25,9 +25,10 @@ subclasses of classes from outside microsponge, such as Textual's screens, enums
 whose bases already give every object a dictionary. A base from outside that declares its own
 empty slots, like abc.ABC, doesn't excuse a class.
 
-The program has no classes yet, so the last test makes classes of each kind and checks that the
-rule tells them apart. When the first model class arrives, a test that one of its objects cannot
-be given a new member belongs here too.
+A theme's kinds are classes that only hold constants, and a kind that changes nothing about its
+base, like a resource that is only a name, holds only the constants it inherits. So a class
+counts as holding only constants when it and every class it builds on define nothing but
+constants, and at least one constant between them.
 """
 
 import importlib
@@ -36,17 +37,24 @@ import pkgutil
 import unittest
 
 import microsponge
+from microsponge.engine.civilizations.civilization import Civilization
 
 PACKAGE = 'microsponge'
 # A __main__ module starts the program when it's imported, so it's left out. It defines no classes.
 STARTS_THE_PROGRAM = '__main__'
 SLOTS = '__slots__'
+SPECIAL_EDGES = '__'
 # The classes the last test makes, and what it gives them.
 PLAIN_CLASS = 'Plain'
 CONSTANTS_CLASS = 'Constants'
+INHERITS_CONSTANTS_CLASS = 'InheritsConstants'
+ADDS_A_METHOD_CLASS = 'AddsAMethod'
+A_METHOD = 'method'
 OUTSIDE_CLASS = 'Outside'
 A_CONSTANT = 'LIMIT'
 A_VALUE = 1
+A_NAME = 'Atlantis'
+A_MISSPELLED_MEMBER = '_nmae'
 
 
 def every_module():
@@ -73,10 +81,15 @@ def extends_an_outside_class(kind):
     )
 
 
+def defined_names(kind):
+    """Return the names a class and the classes it builds on define, leaving out Python's own like __doc__."""
+    return [name for base in kind.__mro__ if base is not object for name in vars(base) if not name.startswith(SPECIAL_EDGES)]
+
+
 def only_holds_constants(kind):
-    """Return whether a class is just a group of named constants, which nothing makes objects of."""
-    own = [name for name in vars(kind) if not name.startswith('__')]
-    return bool(own) and all(name.isupper() for name in own)
+    """Return whether a class is just a group of named constants, its own or inherited, which nothing makes objects of."""
+    names = defined_names(kind)
+    return bool(names) and all(name.isupper() for name in names)
 
 
 def needs_slots(kind):
@@ -96,9 +109,18 @@ class TestSlots(unittest.TestCase):
         plain = type(PLAIN_CLASS, (), {})
         constants = type(CONSTANTS_CLASS, (), {A_CONSTANT: A_VALUE})
         outside = type(OUTSIDE_CLASS, (Exception,), {})
+        inherits_constants = type(INHERITS_CONSTANTS_CLASS, (constants,), {})
+        adds_a_method = type(ADDS_A_METHOD_CLASS, (constants,), {A_METHOD: len})
         self.assertTrue(needs_slots(plain))
         self.assertFalse(needs_slots(constants))
         self.assertFalse(needs_slots(outside))
+        self.assertTrue(only_holds_constants(inherits_constants))
+        self.assertFalse(only_holds_constants(adds_a_method))
+
+    def test_an_object_cannot_be_given_a_member_its_class_does_not_declare(self):
+        civilization = Civilization(A_NAME)
+        with self.assertRaises(AttributeError):
+            setattr(civilization, A_MISSPELLED_MEMBER, A_NAME)
 
 
 if __name__ == '__main__':

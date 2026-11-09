@@ -3,7 +3,8 @@
 microsponge is a turn based strategy game of the kind called 4X, written in Python and played in
 a text UI.
 
-The project is at the very start: there is nothing to play yet.
+**microsponge is in a very early state. Do not expect to play it yet.** The first parts of the
+engine exist, and there is nothing to play.
 
 ## Setup
 

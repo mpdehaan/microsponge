@@ -10,7 +10,7 @@ kept by reading.
 
 | Rule | Enforced by |
 | --- | --- |
-| Every class declares `__slots__`, each class in a hierarchy its own, even `()`. Dataclasses are `@dataclass(slots=True, kw_only=True)`. Exceptions: classes that only hold constants, and subclasses of classes from outside microsponge. | `test/test_slots.py` |
+| Every class declares `__slots__`, each class in a hierarchy its own, even `()`. Dataclasses are `@dataclass(slots=True, kw_only=True)`. Exceptions: classes that only hold constants, their own or inherited, like a theme's kinds, and subclasses of classes from outside microsponge. | `test/test_slots.py` |
 | Every function and method takes its arguments by keyword where a call passes more than one or any optional one: a bare `*` before the parameters. In `src/`, `test/` and `tools/`. Exceptions are listed in the test: Python's special methods, methods Textual or `unittest` call positionally, forwarders and nested functions. | `test/test_keyword_only.py` |
 | Every string the program shows or raises is a constant: `ERR_` in `src/microsponge/err_messages.py`, `MSG_` in `src/microsponge/ui_strings.py`, and nowhere else. No module defines a `HELP_` constant until the module of help text arrives with the first screen. | `test/test_message_constants.py` |
 | No unused import, undefined name or name defined twice, in `src/`, `test/` or `tools/`. | `test/test_pyflakes.py` |
@@ -35,7 +35,8 @@ creative with. Inside a theme, subclassing is allowed. What goes into a theme is
 choose: no sample unit, civilization or anything else in a theme is written without asking
 (`.claude/COMMUNICATION.md`, "Who decides what").
 
-**Packages say what each part is for.** So far there is `support/`, the plumbing, beside the top
+**Packages say what each part is for.** So far there is `engine/`, the model objects every theme
+shares, `themes/`, a package for each theme, and `support/`, the plumbing, beside the top
 level's entry points (`cli.py`, `__main__.py`) and the two text modules, `err_messages.py` and
 `ui_strings.py`. New modules go in the package that says what they're for, and a new group of them
 gets a package of its own, whose `__init__.py` docstring says what the package is for. Files that
@@ -134,6 +135,11 @@ line on the screen and a blank line is a blank line, so that help can be edited 
 touching code. Strings that aren't text for people, like key names, file modes and a data
 format's names, keep their own descriptive names in their own modules. Text only for people, like
 docstrings and comments, stays where it is.
+
+**A theme's own words stay in the theme.** What a theme calls something, like village for a
+city, is a naming override of that theme: a constant on the theme's own class, in the theme's
+subpackage, and never in `ui_strings.py`. The engine's default word, like city, is an `MSG_`
+constant like any other text.
 
 **A line whose purpose isn't obvious gets a name.** A regular expression or a long expression is
 given a function or method whose name says what it means. That includes list and dictionary

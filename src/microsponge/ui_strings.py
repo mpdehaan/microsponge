@@ -22,6 +22,10 @@ module that uses them, in the order of the modules' names.
 """
 
 
+# city_spec.py
+MSG_CITIES = 'cities'
+MSG_CITY = 'city'
+
 # cli.py
 MSG_CLI_DESCRIPTION = 'A turn based strategy game played in a text UI.'
 MSG_HELP_VERSION = 'show the version and stop'

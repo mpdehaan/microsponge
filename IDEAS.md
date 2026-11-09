@@ -49,18 +49,77 @@ What it would mean for the code:
 
 Still undecided: everything about how a transport works.
 
-### The rules for capturing a city
+### A range for siege units
 
-How a city is captured is undetermined and is to be discussed.
+Consider giving the catapult and the cannon of classic a range of 2 tiles and the howitzer a range
+of 3, so that they attack from further than the next tile. Eventually the howitzer's range may be
+made much, much longer.
 
 What it would mean for the code:
 
-- It touches what the model already says about cities: a city is 5 by 5 tiles, units of another
-  civilization may enter its city radius only when the two are friendly or at war, and many units
-  can surround it.
-- A captured city changes which civilization owns it, so whatever a city holds, its buildings
-  and its production queue, needs a rule for what the new owner gets. The model already says two
-  things: a world wonder is captured with its city, and where the captured city's radius
-  overlaps another city's radius, the older city keeps the tile, for now.
+- The model says a unit attacks a unit on a tile next to its own, for now, and that an attack
+  costs the straight or the diagonal base. A range would need a rule for which tiles are within
+  it and what an attack from further away costs, and `Combat.problem_attacking()` would take the
+  range of the kind instead of asking for the next tile.
+- Whether a unit struck from 2 tiles away can strike back would need deciding.
 
-Still undecided: everything about how a capture happens.
+### Tuning the growth rates of cities, and every other number
+
+The turns a city needs to grow at each size have to be tuned for good gameplay. The same is true
+of every coefficient in a theme. The tuning will eventually be done for caveman.
+
+What it would mean for the code:
+
+- The growth numbers are constants of the theme's city (`GROWTH_TURNS`, `GROWTH_FOOD` and
+  `MAX_CITIZENS`), so tuning changes a theme and not the engine.
+- Tuning needs whole games to judge by, so it waits for the computer players and the log of a
+  game that the tests produce.
+
+Still undecided: what good gameplay means in numbers, like how many turns a game of caveman
+should take and how large its villages should get.
+
+### FROM_CIV.md: how the rules differ from FreeCiv
+
+A document called `FROM_CIV.md` that says how the rules of the game are possibly different from
+FreeCiv in major ways, and what is unique about the rules. The top casually mentions that the
+interface is different and links to the guide. The rest is mostly about the rules and the
+definitions in abstract terms. Guides for the tech trees, the units and the nature of classic,
+SciFi, fantasy, PlanetWars and caveman are then generated separately. Not to be done now.
+
+What it would mean for the documents:
+
+- The document is generated from the model, `GAME_RULES.md`, so it waits until the model is
+  further along, and it links to `GUIDE.md`, which does not exist until there are screens.
+- Saying how FreeCiv differs means looking at what FreeCiv's rules are, which Claude may do
+  occasionally, without copying FreeCiv's design.
+- The guides for each theme come from the theme files in `.claude/` and from the themes'
+  Python classes, so a tool could generate the lists of units and technologies.
+
+Still undecided: whether the document is kept current by hand or regenerated, and how the guides
+for each theme are named.
+
+### A map viewer for saved games, before the whole text UI
+
+Before the whole text UI needs building, the test code can save game files for scenarios, and
+the central component that shows the map can be built on its own. A test UI that uses only that
+component could then step through the turns of a scenario and show what each turn looks like.
+The work needs some discussion of the text UI, helps to make some early decisions about the
+screens, and helps to judge later whether the computer players are good and whether what happens
+in a game makes sense.
+
+What it would mean for the code:
+
+- The tests that play a scenario would save the game after each turn, or keep one file for each
+  turn, so the scenario's saved games have to be kept somewhere and regenerated when the saved
+  game's format changes.
+- Stepping through turns needs either a file for each turn or a way to replay a game from its
+  orders, which the idea "Seeded replay" above would give.
+- The map component would be the first use of Textual, so Textual joins the dependencies then,
+  and the rules for testing a screen join `.claude/TESTING.md`.
+- The order in which the game is designed says that a screen is built only after a whole game can
+  be played by the tests, and that the user walks Claude through each screen first. The viewer
+  shows a game and takes no orders, and the user decides whether the viewer counts as a screen
+  for that rule.
+
+Still undecided: what the map component shows at each zoom level, how the viewer steps between
+turns, and where the scenario files live.

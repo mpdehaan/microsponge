@@ -13,9 +13,11 @@ that document and know nothing about screens. microsponge is an engine with them
 game: the base classes are common to every theme, and a theme is a package of short Python classes
 built on them, never a configuration file. The text UI is built on the model objects afterwards,
 and is the only part that draws anything. The computer players are algorithms written for this
-game, which play through the same model objects a person does. So far only the ground under all
-of that exists: the command line, the program's text, the version, and the tests that keep the
-code's rules.
+game, which play through the same model objects a person does. So far the ground under all of
+that exists, the command line, the program's text, the version and the tests that keep the
+code's rules, and on it the first model objects: the kinds a theme builds on, the world, the
+units, the cities and what they build, the civilizations and their research, the game, its
+turns and the saved game.
 
 ## The parts
 
@@ -23,11 +25,53 @@ code's rules.
   the `microsponge` command, and `__main__.py` lets `python -m microsponge` do the same.
   `err_messages.py` holds every error message and `ui_strings.py` every other piece of text the
   program shows.
-- `support` is the plumbing the rest stands on: so far, the version.
-- `test/` holds the tests, and `tools/` the scripts for working on the code.
+- `support` is the plumbing the rest stands on: so far, the version and small helpers for
+  text and numbers.
+- `engine` holds the model objects every theme shares, in a package for each topic:
+  - `kinds` has the base classes a theme builds on: terrain, resource, technology, the kinds of
+    unit, building and world wonder, improvement, the city spec and the theme itself. It also has the
+    catalog, which gives each kind of a theme a number for the length of a game.
+  - `world` is one map of tiles.
+  - `units` holds every unit of a game, the rules for units, and the rules for a unit that
+    builds an improvement.
+  - `cities` has the city, the rules for building one and for the units inside, the harvest,
+    which is the tile each citizen takes and what a city collects, and production: the units
+    and buildings a city builds, paid for a part each turn.
+  - `civilizations` has the civilization: what it holds, what it knows, its action points and
+    its wars, research, which is the one technology a civilization researches with the
+    research points it gathers, and the strategic resources within its borders.
+  - `game` ties one game together: the turn, whose turn it is, the civilizations, the worlds,
+    the cities and the units.
+  - `turns` starts a game, does the work of ending a turn, and has every order a civilization
+    gives on its turn.
+  - `saving` writes a game to a file and reads one back.
+- `themes` holds a package for each theme: caveman, the tiny theme the tests play, and the first
+  stubs of classic, SciFi, fantasy and PlanetWars.
+- `test/` holds the tests, and `tools/` the scripts for working on the code and on the balance
+  of a theme's units.
 
-The model objects, the themes and the text UI will each be a package of their own, described here
-when they exist.
+The text UI will be a package of its own, described here when it exists.
+
+## How a game is held
+
+- **A theme is short classes.** A kind, like the warrior, is a class that only sets what differs
+  from its base, and is never made into an object. A theme lists its kinds.
+- **The map is layers of numbers.** A world holds one grid of integers for each fact about its
+  tiles, like the terrain or the unit on each tile, not an object for each tile, so that a huge
+  map stays small and fast. A world wraps around from east to west and has edges at the top and
+  the bottom.
+- **The units are columns of numbers.** A unit is a number, and each fact about the units, like
+  the kind or the hit points, is a list indexed by that number.
+- **One class owns each array.** Only the world touches the layers and only the units touch the
+  columns, so a change of layout touches one class.
+- **Everything a player does is an order.** Moving a unit, building a city, declaring war and
+  ending the turn are each one method of one class, which checks whose turn it is and the action
+  points before anything changes. The screens and the computer players will give the same
+  orders, so neither can do what the other cannot.
+- **A saved game is JSON, mostly numbers.** Each layer and column is saved under a number of its
+  own that never changes, and the file records the name of every kind's number, so a game saved
+  by one version loads after a theme has reordered its kinds or added to them. The file also
+  records the version it requires, and a file from before the format last changed is refused.
 
 ## The rules the code keeps
 
