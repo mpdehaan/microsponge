@@ -23,6 +23,7 @@ from microsponge.engine.kinds.building import Building, Wonder
 from microsponge.engine.kinds.catalog import Catalog
 from microsponge.engine.kinds.category import CATEGORIES, Category
 from microsponge.engine.kinds.city_spec import CitySpec
+from microsponge.engine.kinds.dice import NO_DICE, Dice
 from microsponge.engine.kinds.domain import Domain
 from microsponge.engine.kinds.improvement import Improvement
 from microsponge.engine.kinds.kind import shown_name
@@ -31,7 +32,8 @@ from microsponge.engine.kinds.technology import Technology
 from microsponge.engine.kinds.terrain import Terrain
 from microsponge.engine.kinds.terrain_bonus import TerrainBonus
 from microsponge.engine.kinds.theme import LEAST_COST, Theme, underpriced
-from microsponge.engine.kinds.unit_kinds import SettlerUnit, UnitKind, can_hit
+from microsponge.engine.kinds.unit_kinds import NO_ARMOR, SettlerUnit, UnitKind, attack_dice, can_hit
+from microsponge.engine.units.unit_control import BEST_ARMOR_CLASS
 from microsponge.themes import THEMES
 from microsponge.themes.caveman import buildings as caveman_buildings
 from microsponge.themes.caveman import city as caveman_city
@@ -111,8 +113,8 @@ LATER_PLATFORM = 'later platform'
 ONE_WORLD = 1
 GRANARY_FOOD = 1
 GRANARY_TURNS_SOONER = 1
-WATCHTOWER_DEFENSE_BONUS = 25
-SIEGE_DEFENSE = 1
+WATCHTOWER_ARMOR_BONUS = 1
+SIEGE_ARMOR_CLASS = NO_ARMOR
 SIEGE_HIT_POINTS = 1
 SIEGE_STEP = 3
 EVERY_COST_BASE = 1
@@ -125,6 +127,7 @@ SCIFI = 'SciFi'
 PLANETWARS = 'PlanetWars'
 THE_LEAST_COST = 10
 TWICE = 2
+LEVEL_HIT_POINTS_PERCENT = 2
 CAPTAIN_CAVEMAN = 'captain caveman'
 SLINGSHOT_CAVEMAN = 'slingshot caveman'
 ANGRY_BIRD = 'angry bird'
@@ -137,8 +140,8 @@ BANK_INCOME_BONUS = 20
 BANKRUPTCY_HARVEST_PENALTY = 50
 BANKRUPTCY_TURNS = 50
 COST = 'COST'
-# What the model says of hit points: about 10 for the weakest unit, and up to 500.
-WEAKEST_HIT_POINTS = 10
+# What the model says of hit points: about 5 to 10 for the weakest unit, and up to 500.
+WEAKEST_HIT_POINTS = 5
 MOST_HIT_POINTS = 500
 # What the model says of every city.
 CENTER_SIZE = 5
@@ -257,7 +260,7 @@ class TestCaveman(unittest.TestCase):
         self.assertEqual(raft.DOMAIN, Domain.SEA)
         self.assertIn(caveman_resources.Wood, raft.COST)
         self.assertEqual([terrain for terrain in Caveman.TERRAINS if caveman_resources.Wood in terrain.GIVES], [caveman_terrains.Forest])
-        self.assertTrue(NO_ATTACK < raft.ATTACK < caveman_units.Warrior.ATTACK)
+        self.assertTrue(NO_ATTACK < raft.ATTACK.average() < caveman_units.Warrior.ATTACK.average())
 
     def test_the_raft_requires_a_harbor_and_only_the_harbor_requires_water_next_to_the_city_center(self):
         self.assertEqual(caveman_units.Raft.REQUIRES, (caveman_buildings.Harbor,))
@@ -276,7 +279,7 @@ class TestCaveman(unittest.TestCase):
         bird = caveman_units.AngryBird
         self.assertEqual(bird.DOMAIN, Domain.AIR)
         self.assertEqual(shown_name(bird), ANGRY_BIRD)
-        self.assertTrue(NO_ATTACK < bird.ATTACK < caveman_units.Warrior.ATTACK)
+        self.assertTrue(NO_ATTACK < bird.ATTACK.average() < caveman_units.Warrior.ATTACK.average())
         self.assertEqual(bird.COST, {caveman_resources.Currency: min(unit.COST[caveman_resources.Currency] for unit in Caveman.UNITS)})
         self.assertEqual(bird.BUILD_TURNS, min(unit.BUILD_TURNS for unit in Caveman.UNITS))
 
@@ -287,14 +290,17 @@ class TestCaveman(unittest.TestCase):
     def test_slingshot_caveman_is_the_land_unit_that_can_hit_air_and_is_strong_against_air_and_weak_against_land(self):
         slingshot = caveman_units.SlingshotCaveman
         self.assertEqual([unit for unit in Caveman.UNITS if unit.DOMAIN == Domain.LAND and unit.CAN_HIT_AIR], [slingshot])
-        self.assertTrue(slingshot.ATTACK < caveman_units.Warrior.ATTACK < slingshot.AIR_ATTACK)
-        self.assertEqual([unit for unit in Caveman.UNITS if unit.AIR_ATTACK is not None], [slingshot])
+        against_air = attack_dice(kind=slingshot, target=caveman_units.AngryBird)
+        self.assertTrue(slingshot.ATTACK.average() < caveman_units.Warrior.ATTACK.average() < against_air.average())
+        self.assertEqual(slingshot.EXTRA_DICE, {Domain.AIR: 1})
+        self.assertEqual([unit for unit in Caveman.UNITS if unit.EXTRA_DICE], [slingshot])
         self.assertEqual(shown_name(slingshot), SLINGSHOT_CAVEMAN)
 
     def test_captain_caveman_is_twice_the_warrior_and_requires_the_barracks_which_requires_discipline(self):
         captain = caveman_units.CaptainCaveman
         warrior = caveman_units.Warrior
-        self.assertEqual(captain.ATTACK, warrior.ATTACK * TWICE)
+        self.assertEqual(captain.ATTACK, warrior.ATTACK.with_extra(dice=warrior.ATTACK.count))
+        self.assertEqual(captain.ATTACK.average(), warrior.ATTACK.average() * TWICE)
         self.assertEqual(captain.HIT_POINTS, warrior.HIT_POINTS * TWICE)
         self.assertEqual(captain.COST[caveman_resources.Currency], warrior.COST[caveman_resources.Currency] * TWICE)
         self.assertEqual(captain.REQUIRES, (caveman_buildings.Barracks,))
@@ -370,19 +376,22 @@ class TestCaveman(unittest.TestCase):
     def test_a_unit_or_building_that_costs_less_than_10_currency_is_found(self):
         self.assertEqual(underpriced(CheapCaveman), [Bargain, FoodOnly])
 
-    def test_every_caveman_unit_defines_its_attack_defense_and_hit_points_and_heals_faster_in_a_city(self):
+    def test_every_caveman_unit_defines_its_attack_dice_armor_class_and_hit_points_and_heals_faster_in_a_city(self):
         for unit in Caveman.UNITS:
             with self.subTest(unit=unit):
                 self.assertTrue(issubclass(unit, caveman_units.CavemanUnit))
                 self.assertTrue(WEAKEST_HIT_POINTS <= unit.HIT_POINTS <= MOST_HIT_POINTS)
                 self.assertTrue(unit.STRIKES_BACK)
                 self.assertIn(unit.DOMAIN, CAVEMAN_DOMAINS)
-                self.assertGreaterEqual(unit.ATTACK, 0)
-                self.assertGreaterEqual(unit.DEFENSE, 0)
+                self.assertIsInstance(unit.ATTACK, Dice)
+                self.assertGreaterEqual(unit.ATTACK.least(), NO_ATTACK)
+                self.assertTrue(BEST_ARMOR_CLASS <= unit.ARMOR_CLASS <= NO_ARMOR)
                 self.assertEqual((unit.HEAL, unit.CITY_HEAL), (caveman_units.CavemanUnit.HEAL, caveman_units.CavemanUnit.CITY_HEAL))
         self.assertGreater(caveman_units.CavemanUnit.HEAL, 0)
         self.assertGreater(caveman_units.CavemanUnit.CITY_HEAL, caveman_units.CavemanUnit.HEAL)
-        self.assertGreater(caveman_units.Warrior.ATTACK, caveman_units.Settler.ATTACK)
+        self.assertEqual(caveman_units.Settler.ATTACK, NO_DICE)
+        self.assertGreater(caveman_units.Warrior.ATTACK.average(), NO_ATTACK)
+        self.assertEqual(Caveman.LEVEL_HIT_POINTS_PERCENT, LEVEL_HIT_POINTS_PERCENT)
 
     def test_every_caveman_unit_and_building_costs_something_to_support(self):
         for kind in Caveman.UNITS + Caveman.BUILDINGS:
@@ -504,12 +513,12 @@ class TestClassic(unittest.TestCase):
             self.assertEqual(set(bonus.GIVES), {caveman_resources.Food})
         self.assertLess(bonuses.Bison.GIVES[caveman_resources.Food], bonuses.Elephants.GIVES[caveman_resources.Food])
 
-    def test_the_watchtower_requires_fire_and_flint_and_boosts_the_defenses_of_its_city_by_a_quarter(self):
+    def test_the_watchtower_requires_fire_and_flint_and_makes_the_armor_class_of_every_unit_inside_better_by_one(self):
         watchtower = caveman_buildings.Watchtower
         self.assertEqual(watchtower.REQUIRES, (caveman_technologies.Fire, caveman_resources.Flint))
-        self.assertEqual(watchtower.DEFENSE_BONUS, WATCHTOWER_DEFENSE_BONUS)
-        self.assertEqual([building for building in Caveman.BUILDINGS if building.DEFENSE_BONUS], [watchtower])
-        self.assertEqual(Building.DEFENSE_BONUS, 0)
+        self.assertEqual(watchtower.ARMOR_BONUS, WATCHTOWER_ARMOR_BONUS)
+        self.assertEqual([building for building in Caveman.BUILDINGS if building.ARMOR_BONUS], [watchtower])
+        self.assertEqual(Building.ARMOR_BONUS, 0)
         self.assertIn(caveman_technologies.Fire, Caveman.TECHNOLOGIES)
 
     def test_classic_has_the_terrains_the_user_named_and_only_rivers_and_lakes_are_fresh_water(self):
@@ -566,18 +575,19 @@ class TestClassic(unittest.TestCase):
         self.assertEqual({unit for unit in Classic.UNITS if not unit.STRIKES_BACK}, siege)
         self.assertEqual({unit for unit in Classic.UNITS if unit.BYPASSES_WALLS}, siege)
         for unit in siege:
-            self.assertEqual((unit.DEFENSE, unit.HIT_POINTS), (SIEGE_DEFENSE, SIEGE_HIT_POINTS))
+            self.assertEqual((unit.ARMOR_CLASS, unit.HIT_POINTS), (SIEGE_ARMOR_CLASS, SIEGE_HIT_POINTS))
 
     def test_a_cannon_is_3_times_a_catapult_and_a_howitzer_3_times_a_cannon(self):
-        self.assertEqual(classic_units.Cannon.ATTACK, classic_units.Catapult.ATTACK * SIEGE_STEP)
-        self.assertEqual(classic_units.Howitzer.ATTACK, classic_units.Cannon.ATTACK * SIEGE_STEP)
-        self.assertGreater(classic_units.Catapult.ATTACK, 0)
+        self.assertEqual(classic_units.Cannon.ATTACK.average(), classic_units.Catapult.ATTACK.average() * SIEGE_STEP)
+        self.assertEqual(classic_units.Howitzer.ATTACK.average(), classic_units.Cannon.ATTACK.average() * SIEGE_STEP)
+        self.assertEqual(classic_units.Howitzer.ATTACK.sides, classic_units.Catapult.ATTACK.sides)
+        self.assertGreater(classic_units.Catapult.ATTACK.average(), NO_ATTACK)
 
     def test_city_walls_require_fortification_cost_stone_and_are_the_walls_of_classic(self):
         walls = classic_buildings.CityWalls
         self.assertEqual(walls.REQUIRES, (classic_technologies.Fortification,))
         self.assertEqual(set(walls.COST), {classic_resources.Stone})
-        self.assertGreater(walls.DEFENSE_BONUS, 0)
+        self.assertGreater(walls.ARMOR_BONUS, 0)
         self.assertEqual([building for building in Classic.BUILDINGS if building.WALLS], [walls])
         self.assertFalse(Building.WALLS)
 

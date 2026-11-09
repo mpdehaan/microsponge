@@ -36,6 +36,7 @@ class Barracks(Building):
     COST = {Currency: 30}
     BUILD_TURNS = 5
     SUPPORT = {Currency: 1}
+    LEVEL_BONUS = 1
 
 
 class Harbor(Building):
@@ -50,7 +51,7 @@ class Watchtower(Building):
     COST = {Currency: 20}
     BUILD_TURNS = 5
     SUPPORT = {Currency: 1}
-    DEFENSE_BONUS = 25
+    ARMOR_BONUS = 1
 
 
 class GreatCavePainting(Wonder):

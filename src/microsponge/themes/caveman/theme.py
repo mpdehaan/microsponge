@@ -32,6 +32,7 @@ class Caveman(Theme):
     FOOD = Food
     STARTS_WITH = {Currency: 50}
     ACTION_POINTS = 4
+    LEVEL_HIT_POINTS_PERCENT = 2
     CITY = Village
     TERRAINS = (Grassland, Mountains, Water, Forest, Tarpit)
     RESOURCES = (Currency, Food, Stone, Wood, Flint)

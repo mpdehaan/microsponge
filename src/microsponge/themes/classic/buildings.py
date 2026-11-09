@@ -40,7 +40,7 @@ class Bank(Building):
 class CityWalls(Building):
     REQUIRES = (Fortification,)
     COST = {Stone: 30}
-    DEFENSE_BONUS = 50
+    ARMOR_BONUS = 2
     WALLS = True
 
 

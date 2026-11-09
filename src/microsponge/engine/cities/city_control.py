@@ -21,6 +21,7 @@ from microsponge.engine.kinds.catalog import NOTHING
 from microsponge.engine.kinds.category import Category
 from microsponge.engine.kinds.kind import shown_name
 from microsponge.engine.kinds.unit_kinds import SettlerUnit
+from microsponge.engine.units.levels import FIRST_LEVEL, LAST_LEVEL
 from microsponge.engine.units.unit_column import UnitColumn
 from microsponge.engine.units.unit_control import UnitControl
 from microsponge.engine.world.layer import Layer
@@ -171,24 +172,31 @@ class CityControl:
         """Make a new unit of a kind that a city has finished, and return the unit's id, or None when there is nowhere to put the unit.
 
         The unit goes inside the city. When the city is full of units, the unit goes on a tile
-        next to the city center that it can stand on, chosen at random.
+        next to the city center that it can stand on, chosen at random. The unit starts at the
+        level the city's buildings give, like a barracks that starts units at level 2.
         """
         target = game.get_city(city)
+        level = CityControl.starting_level(game=game, city=city)
         if CityControl.has_room(game=game, city=city):
-            unit = UnitControl.create(game=game, kind=kind, owner=target.get_owner(), world=target.get_world(), x=target.get_x(), y=target.get_y(), city=city)
+            unit = UnitControl.create(game=game, kind=kind, owner=target.get_owner(), world=target.get_world(), x=target.get_x(), y=target.get_y(), city=city, level=level)
             target.add_unit(unit)
             return unit
         free = CityControl.free_ring_tiles(game=game, city=city, kind=kind)
         if not free:
             return None
         x, y = game.get_random().choice(free)
-        return UnitControl.place(game=game, kind=kind, owner=target.get_owner(), world=target.get_world(), x=x, y=y)
+        return UnitControl.place(game=game, kind=kind, owner=target.get_owner(), world=target.get_world(), x=x, y=y, level=level)
 
     @staticmethod
-    def defense_bonus(*, game, city, against):
-        """Return the percent a city's buildings add to the defense of every unit inside against a kind of unit, like a watchtower's. City walls add nothing against a kind that bypasses walls."""
+    def starting_level(*, game, city):
+        """Return the level a unit built in a city starts at: the first, plus what each of the city's buildings adds, never past the last level."""
+        return min(FIRST_LEVEL + sum(building.LEVEL_BONUS for building in CityControl.buildings_of(game=game, city=city)), LAST_LEVEL)
+
+    @staticmethod
+    def armor_bonus(*, game, city, against):
+        """Return by how much a city's buildings make the armor class of every unit inside better against a kind of unit, like a watchtower's. City walls add nothing against a kind that bypasses walls."""
         buildings = CityControl.buildings_of(game=game, city=city)
-        return sum(building.DEFENSE_BONUS for building in buildings if not (building.WALLS and against.BYPASSES_WALLS))
+        return sum(building.ARMOR_BONUS for building in buildings if not (building.WALLS and against.BYPASSES_WALLS))
 
     @staticmethod
     def capture(*, game, city, by):

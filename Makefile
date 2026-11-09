@@ -21,7 +21,7 @@
 PYTHON = .venv/bin/python
 NAME ?=
 
-.PHONY: help setup run test test-one pyflakes pep8 loose-strings balance hooks clean
+.PHONY: help setup run test test-one pyflakes pep8 loose-strings balance unit-report building-report wonder-report tech-report guides hooks clean
 
 help:
 	@echo "make setup          make .venv and install microsponge into it"
@@ -32,6 +32,11 @@ help:
 	@echo "make pep8           what pycodestyle says, less what setup.cfg ignores: a look, not a rule, see .claude/STYLE.md"
 	@echo "make loose-strings  string literals inside functions under src/, which should be constants"
 	@echo "make balance        how the units of a theme stand against each other: THEME=caveman, or classic, SciFi, fantasy or PlanetWars"
+	@echo "make unit-report    every unit of a theme with its properties: THEME=caveman; add FORMAT=--markdown to any report for the guides"
+	@echo "make building-report  every building of a theme with its properties: THEME=caveman"
+	@echo "make wonder-report  every world wonder of a theme with its properties: THEME=caveman"
+	@echo "make tech-report    the tech tree of a theme with its properties: THEME=caveman"
+	@echo "make guides         refresh the generated appendix of every theme guide, GUIDE_<THEME>.md"
 	@echo "make hooks          install the git pre-commit hook, which runs every test before a commit goes in"
 	@echo "make clean          remove Python caches"
 
@@ -58,7 +63,22 @@ loose-strings:
 	$(PYTHON) tools/loose_strings.py src
 
 balance:
-	$(PYTHON) tools/balance.py $(THEME)
+	$(PYTHON) tools/balance.py $(THEME) $(FORMAT)
+
+unit-report:
+	$(PYTHON) tools/unit_report.py $(THEME) $(FORMAT)
+
+building-report:
+	$(PYTHON) tools/building_report.py $(THEME) $(FORMAT)
+
+wonder-report:
+	$(PYTHON) tools/wonder_report.py $(THEME) $(FORMAT)
+
+tech-report:
+	$(PYTHON) tools/tech_report.py $(THEME) $(FORMAT)
+
+guides:
+	$(PYTHON) tools/theme_guides.py
 
 hooks:
 	ln -sf ../../tools/pre_commit.sh .git/hooks/pre-commit

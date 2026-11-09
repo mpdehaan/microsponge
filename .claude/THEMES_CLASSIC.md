@@ -93,8 +93,8 @@ What the musketeer and the infantry require in the tech tree is left undefined f
 Cannons and catapults do not strike back when attacked, and neither does the howitzer. Every
 other unit of classic strikes back, unless the user says otherwise.
 
-The catapult, the cannon and the howitzer all bypass city walls, and each has a defense of just 1
-and a hit point of just 1.
+The catapult, the cannon and the howitzer all bypass city walls, and each has no armor, an armor
+class of 10, and a hit point of just 1.
 
 ## Balance
 
@@ -109,10 +109,12 @@ the code of classic yet.
 - A musketeer is 5 times more powerful in attack and defense than a legion.
 - Infantry is 5 times more powerful than a musketeer.
 - A cannon is 3 times more powerful than a catapult, and a howitzer 3 times more powerful than
-  a cannon. These are the first numbers in the code of classic: Claude gave the catapult an
-  attack of 6, so the cannon has 18 and the howitzer 54, to be balanced with the rest of
-  classic's numbers later. `make balance THEME=classic` shows the howitzer finishing most units
-  in one attack, which is meaningless until the other units have numbers.
+  a cannon. These are the first numbers in the code of classic: Claude gave the catapult 2d6,
+  so the cannon rolls 6d6 and the howitzer 18d6, to be balanced with the rest of classic's
+  numbers later. `make balance THEME=classic` shows the howitzer finishing most units in one
+  attack, which is meaningless until the other units have numbers.
+- A barracks may start the units built in its city at level 2, as caveman's does, to be tested
+  with classic much later. Classic has no barracks in the code yet.
 
 ## World wonders
 
@@ -140,8 +142,9 @@ The world wonders of classic are these, and that's it for now:
   library, the college and the research center.
 - A bank increases the income in currency of its city by 20 percent each turn, for now.
 - City walls are a building, researched by the technology called fortification, and require
-  stone. Claude chose a cost of 30 stone and a defense boost of 50 percent for the units inside,
-  to be balanced later. City walls are bypassed by the catapult, the cannon and the howitzer.
+  stone. Claude chose a cost of 30 stone, and city walls make the armor class of every unit
+  inside 2 better, to be balanced later. City walls are bypassed by the catapult, the cannon
+  and the howitzer.
 
 ## Not decided yet
 

@@ -161,6 +161,14 @@ speed is harder to refactor and invites duplication. The user is never okay with
 condition-specific optimization, like skipping work that would do nothing, unless the case it
 skips and the case it doesn't both have good tests.
 
+**Everything is tuned later, so plan for it.** The user will optimize the tech trees, the balance
+of the units, the growth of cities and every other number once games are played, and has asked
+Claude to plan on that need. So every number of a theme is a constant on the theme's own class
+where a person can change it in one place, the engine never hides a number of its own that a
+theme would want to change, and the tools, `tools/balance.py`, the kind reports (`tools/unit_report.py` and its siblings) and the report of the scripted
+game, show the effect of a change without reading code. A rule that is rough at first is fine
+as long as changing it is one edit.
+
 **Nothing is written twice.** The user wants the code refactorable and free of duplication:
 shared behaviour goes in a base class or a helper with a name that says what it's for, and when a
 second copy of something would be written, the first is made shareable instead.
@@ -175,9 +183,15 @@ above the module docstring, opening with `# microsponge: a strategy game`. Where
 differ.
 `ARCHITECTURE.md` is a tour of the code for people who won't edit it, kept true the same way.
 The model and the theme files are the user describing the game to Claude, so they read as rules.
-`GUIDE.md`, the guide for people who play the game, will explain everything in them in a
-friendlier way, and is written from them. When there are screens, the guide is kept true with
-every change to a screen, a setting or a key, and the documents show screenshots taken from the real
+`GUIDE.md`, the guide for people who play the game, explains everything in them in a friendlier
+way, and is written from them, without the themes: dice, armor, what moves where and the rest
+of what holds in every theme. Each theme has its own page, `GUIDE_<THEME>.md`, with what the
+theme is like, its story and its tips, written by hand, and an appendix of its units, buildings,
+world wonders, tech tree and balance, generated from the code by `tools/theme_guides.py`
+between two marker comments, which `test/test_theme_guides.py` checks is current: a change to a
+theme's numbers is followed by `make guides`. A change to the rules of the game changes
+`GUIDE.md` in the same commit, in the words the game shows on screen. When there are screens,
+the guide is kept true with every change to a screen, a setting or a key, and the documents show screenshots taken from the real
 screens by a tool, regenerated when a screen changes or the user asks. When there are packages
 worth drawing, the diagrams in `ARCHITECTURE.md` come from the code by a tool, and a test checks
 that they're current. A change to a rule on this page updates this file. An idea in `IDEAS.md` is

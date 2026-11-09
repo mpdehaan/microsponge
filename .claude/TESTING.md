@@ -68,6 +68,21 @@ import, an undefined name or a name defined twice fails the tests; `pyflakes` is
   later. Caveman lives with the other themes, because the screens may later be allowed
   to play it, and caveman can help to build the early text UI. The eventual goal is that the computer players play a game of caveman in the tests
   and produce a convincing log of the game, before any screen exists.
+- **The first scripted game.** The first goal is a test script in which several computer players
+  play caveman against each other with no person and no screen, starting with 2 players and a
+  turn limit, and then 3, since the user suggests an odd number of civilizations so that the
+  game does not stall in a trade of blows. The script shows whether an algorithmic player can
+  win, is efficient and does not think too long on a turn. There are no failure criteria yet: the
+  first script runs up to 100 turns, and the user talks Claude through what to check. What the
+  user wants to see first is a summary report of every computer player: when it built each of
+  its cities, when it researched each technology, and how many of each kind of unit it made and
+  lost. "Good", for now, means that some side is actually going to win, and the script also
+  notes tuning that would make the game more fun: fewer turns between the variety of things to
+  do, and not too many action choices on one turn. The strategies the players follow are in
+  `AI_STRATEGIES_CAVEMAN.md`. The scripted game plays on a bigger world than the unit tests'
+  fixed test world, made by a simple map generator from the game's seeded random source, which
+  makes a map one way for now: the user will later look at what the generator makes and ask for
+  styles. The fixed test world stays for the unit tests.
 - **A test may end a game that has stalled.** When nothing has been built and no unit has been
   produced in 200 turns, test code is allowed to end the game. That never happens to a game a
   person plays. With the rule that a game ends after 50 turns of bankruptcy in a row (the model,
@@ -117,14 +132,14 @@ beside them:
 - **The program.** `test/test_cli.py` (the command line) and `test/test_version.py` (the
   version).
 - **The model objects.** `test/test_kinds.py` (kinds and the catalog), `test/test_world.py`,
-  `test/test_units.py`, `test/test_unit_control.py`, `test/test_cities.py` (building a city and
+  `test/test_units.py`, `test/test_dice.py` (the dice an attack rolls), `test/test_unit_control.py`, `test/test_cities.py` (building a city and
   the units inside), `test/test_harvest.py` (what citizens collect), `test/test_civilization.py`,
   `test/test_game.py`, `test/test_turns.py` (starting a game, the turn order and ending a
   turn), `test/test_orders.py` (what a civilization may do on its turn), `test/test_work.py` (a
   worker building an improvement), `test/test_production.py` (what a city builds),
   `test/test_research.py` (what a civilization researches), `test/test_strategic.py`
-  (strategic resources and borders), `test/test_combat.py` (attacks, taking a city and
-  losing), `test/test_terrain_bonuses.py` (special tiles that give
+  (strategic resources and borders), `test/test_combat.py` (attacks, taking a city,
+  losing, and experience and levels), `test/test_terrain_bonuses.py` (special tiles that give
   more), `test/test_saving.py` (the saved game, also loaded into later
   versions of a theme) and `test/test_themes.py` (what each theme holds). More join them as the model objects
   are derived from the model, `GAME_RULES.md`.
@@ -132,8 +147,13 @@ beside them:
   with and compares two games, and `test/later_caveman.py` has caveman as later versions might
   change it. `test/refusals.py` gives a test class `refused()`, which returns the message the
   program refuses something with, so that no test file writes that out again.
-- **The tools.** `test/test_balance.py` (the tool that shows how the units of a theme stand
-  against each other).
+- **The tools.** `test/test_balance.py` (the report that shows how the units of a theme stand
+  against each other, and its tool), `test/test_kind_reports.py` (the reports on a theme's
+  units, buildings, world wonders and tech tree, their Markdown form, the command line the
+  theme tools share and the four scripts), `test/test_tables.py` (tables of text, plain and
+  Markdown) and `test/test_theme_guides.py` (every theme has a guide, the common guide links to
+  each, and the generated appendix of each guide is current). The scripts in `tools/` are run as
+  subprocesses, with the repository's own interpreter, to check that each prints its report.
 - **The rules.** `test/test_slots.py`, `test/test_keyword_only.py`,
   `test/test_message_constants.py`, `test/test_pyflakes.py`, `test/test_doc_paths.py` and
   `test/test_license_headers.py`.

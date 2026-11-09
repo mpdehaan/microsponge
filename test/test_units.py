@@ -21,8 +21,9 @@ import unittest
 
 from refusals import Refusals
 from microsponge.engine.kinds.catalog import NOTHING
-from microsponge.engine.units.unit_column import RETIRED_UNIT_COLUMNS, UNIT_COLUMNS, UnitColumn
-from microsponge.engine.units.units import Units
+from microsponge.engine.units.levels import FIRST_LEVEL
+from microsponge.engine.units.unit_column import COLUMN_DEFAULTS, RETIRED_UNIT_COLUMNS, UNIT_COLUMNS, UnitColumn
+from microsponge.engine.units.units import Units, default_of
 from microsponge.err_messages import ERR_COLUMNS_DIFFER, ERR_NO_SUCH_COLUMN, ERR_NO_SUCH_UNIT, ERR_UNKNOWN_ID
 
 FIRST_UNIT = 1
@@ -39,8 +40,8 @@ ANOTHER_UNIT = {UnitColumn.KIND: ANOTHER_KIND, UnitColumn.OWNER: A_CIVILIZATION,
 
 
 def in_every_column(values):
-    """Return what a unit added with some columns holds in every column: nothing in the columns it was not given."""
-    return {column: values.get(column, NOTHING) for column in UNIT_COLUMNS}
+    """Return what a unit added with some columns holds in every column: the column's default, nothing for most, in the columns it was not given."""
+    return {column: values.get(column, default_of(column)) for column in UNIT_COLUMNS}
 
 
 def a_column_nobody_has():
@@ -73,10 +74,13 @@ class TestUnits(Refusals, unittest.TestCase):
         self.assertEqual(self.every_value(units=self.units, unit=first), in_every_column(A_UNIT))
         self.assertEqual(self.every_value(units=self.units, unit=second), in_every_column(ANOTHER_UNIT))
 
-    def test_a_column_left_out_when_adding_holds_nothing(self):
+    def test_a_column_left_out_when_adding_holds_its_default_which_is_nothing_for_most_and_the_first_level_for_the_level(self):
         unit = self.units.add({UnitColumn.KIND: A_KIND})
         self.assertEqual(self.units.get_value(column=UnitColumn.OWNER, unit=unit), NOTHING)
         self.assertEqual(self.units.get_value(column=UnitColumn.KIND, unit=unit), A_KIND)
+        self.assertEqual(self.units.get_value(column=UnitColumn.LEVEL, unit=unit), FIRST_LEVEL)
+        self.assertEqual(self.units.get_value(column=UnitColumn.EXPERIENCE, unit=unit), NOTHING)
+        self.assertEqual(COLUMN_DEFAULTS, {UnitColumn.LEVEL: FIRST_LEVEL})
 
     def test_a_value_can_be_changed_for_one_unit(self):
         first = self.units.add(A_UNIT)
@@ -147,14 +151,16 @@ class TestUnits(Refusals, unittest.TestCase):
     def test_a_saved_game_calls_each_column_by_its_number(self):
         self.assertEqual(set(through_json(self.units.to_data())), {str(column) for column in UNIT_COLUMNS})
 
-    def test_a_column_the_saved_game_lacks_holds_nothing_for_every_unit(self):
+    def test_a_column_the_saved_game_lacks_holds_its_default_for_every_unit(self):
         first = self.units.add(A_UNIT)
         second = self.units.add(ANOTHER_UNIT)
         data = through_json(self.units.to_data())
         del data[str(UnitColumn.HIT_POINTS)]
+        del data[str(UnitColumn.LEVEL)]
         loaded = Units.from_data(data)
         for unit in (first, second):
             self.assertEqual(loaded.get_value(column=UnitColumn.HIT_POINTS, unit=unit), NOTHING)
+            self.assertEqual(loaded.get_value(column=UnitColumn.LEVEL, unit=unit), FIRST_LEVEL)
             self.assertEqual(loaded.get_value(column=UnitColumn.KIND, unit=unit), self.units.get_value(column=UnitColumn.KIND, unit=unit))
 
     def test_a_column_this_version_does_not_have_is_left_behind(self):

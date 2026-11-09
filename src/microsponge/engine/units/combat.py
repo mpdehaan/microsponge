@@ -23,12 +23,18 @@ from microsponge.engine.kinds.catalog import NOTHING
 from microsponge.engine.kinds.kind import shown_name
 from microsponge.engine.kinds.unit_kinds import can_hit
 from microsponge.engine.units.unit_column import UnitColumn
-from microsponge.engine.units.unit_control import NO_BONUS, UnitControl
+from microsponge.engine.units.levels import NO_EXPERIENCE, Levels
+from microsponge.engine.units.unit_control import NO_BONUS, NO_DAMAGE, WHOLE, UnitControl
 from microsponge.engine.world.layer import Layer
 from microsponge.err_messages import ERR_ATTACK_OWN, ERR_CANNOT_HIT, ERR_CITY_UNDEFENDED, ERR_NOT_AT_WAR, ERR_NOTHING_TO_ATTACK
 
 # The hit points of a unit that is gone.
 DEAD = 0
+# The experience a unit gains for an attack it makes, beside what a kill gives, and the percent of that a unit gains for being attacked and surviving.
+# The attack experience is 2 so that half of it is a whole point, since percentages round down.
+ATTACK_EXPERIENCE = 2
+DEFENSE_EXPERIENCE_PERCENT = 50
+SURVIVAL_EXPERIENCE = ATTACK_EXPERIENCE * DEFENSE_EXPERIENCE_PERCENT // WHOLE
 
 
 @dataclass(slots=True, kw_only=True)
@@ -42,16 +48,20 @@ class AttackOutcome:
     strike_back: int
     defender_killed: bool
     attacker_killed: bool
+    # The id of the unit that struck back, or None.
+    striker: int | None = None
 
 
 class Combat:
     """The rules for fighting, as static methods over a game. It is never made into an object.
 
-    An attack deals the attacker's attack points less the defender's defense, at least chip
-    damage, and the defender strikes back with a percent of its attack points when its kind
-    does and can hit the attacker. Inside a city, the city's buildings boost the defense of
-    every unit inside, the unit with the strongest defense is the one hit, and the unit with
-    the strongest attack among those that can hit the attacker is the one that strikes back.
+    An attack rolls the attacker's dice, and the defender's armor class mitigates the roll, down
+    to chip damage at the least; the defender strikes back with a percent of its own roll,
+    through the attacker's armor, when its kind does and can hit the attacker. Inside a city,
+    the city's buildings make the armor class of every unit inside better, the unit with the
+    best armor class is the one hit, and the unit with the strongest dice among those that can
+    hit the attacker is the one that strikes back. Fighting gives experience, and experience
+    gives levels (`Levels`).
     """
 
     __slots__ = ()
@@ -93,16 +103,16 @@ class Combat:
 
     @staticmethod
     def defender_of_city(*, game, city):
-        """Return the id of the unit inside a city that an attack hits, the one with the strongest defense, or None when no unit is inside."""
+        """Return the id of the unit inside a city that an attack hits, the one with the best armor class, or None when no unit is inside."""
         inside = game.get_city(city).get_units()
-        return max(inside, key=lambda unit: UnitControl.kind_of(game=game, unit=unit).DEFENSE, default=None)
+        return min(inside, key=lambda unit: UnitControl.armor_class_of(game=game, unit=unit), default=None)
 
     @staticmethod
     def striker_of_city(*, game, city, attacker):
-        """Return the id of the unit inside a city that strikes back at an attacker, the one with the strongest attack among those that can hit the attacker, or None."""
+        """Return the id of the unit inside a city that strikes back at an attacker, the one with the strongest dice on average among those that can hit the attacker, or None."""
         kind = UnitControl.kind_of(game=game, unit=attacker)
         able = [unit for unit in game.get_city(city).get_units() if can_hit(kind=UnitControl.kind_of(game=game, unit=unit), target=kind)]
-        return max(able, key=lambda unit: UnitControl.kind_of(game=game, unit=unit).ATTACK, default=None)
+        return max(able, key=lambda unit: UnitControl.average_roll(attacker=UnitControl.kind_of(game=game, unit=unit), defender=kind), default=None)
 
     @staticmethod
     def attack(*, game, unit, x, y):
@@ -119,17 +129,62 @@ class Combat:
         else:
             defender = Combat.defender_of_city(game=game, city=city)
             striker = Combat.striker_of_city(game=game, city=city, attacker=unit)
-            bonus = CityControl.defense_bonus(game=game, city=city, against=UnitControl.kind_of(game=game, unit=unit))
-        attacker_kind = UnitControl.kind_of(game=game, unit=unit)
-        damage = UnitControl.damage(attacker=attacker_kind, defender=UnitControl.kind_of(game=game, unit=defender), defense_bonus=bonus)
+            bonus = CityControl.armor_bonus(game=game, city=city, against=UnitControl.kind_of(game=game, unit=unit))
+        roll = UnitControl.roll_against(game=game, unit=unit, target=defender)
+        damage = UnitControl.mitigated(roll=roll, armor_class=UnitControl.armor_class_of(game=game, unit=defender, bonus=bonus))
+        prizes = {defender: Combat.kill_experience(game=game, unit=defender), unit: Combat.kill_experience(game=game, unit=unit)}
         defender_killed = Combat.hurt(game=game, unit=defender, damage=damage)
-        strike_back = 0
+        strike_back = NO_DAMAGE
         attacker_killed = False
         if striker is not None and not (defender_killed and striker == defender):
-            strike_back = UnitControl.strike_back_damage(attacker=attacker_kind, defender=UnitControl.kind_of(game=game, unit=striker))
+            strike_back = Combat.strike_back(game=game, attacker=unit, striker=striker)
             attacker_killed = Combat.hurt(game=game, unit=unit, damage=strike_back)
+        Combat.reward(game=game, attacker=unit, defender=defender, striker=striker, prizes=prizes, defender_killed=defender_killed, attacker_killed=attacker_killed)
         Combat.settle_losses(game)
-        return AttackOutcome(defender=defender, damage=damage, strike_back=strike_back, defender_killed=defender_killed, attacker_killed=attacker_killed)
+        return AttackOutcome(defender=defender, damage=damage, strike_back=strike_back, defender_killed=defender_killed, attacker_killed=attacker_killed, striker=striker if strike_back else None)
+
+    @staticmethod
+    def strike_back(*, game, attacker, striker):
+        """Return the damage a unit that was attacked deals its attacker by striking back: its kind's percent of its own roll, through the attacker's armor, or nothing when its kind does not strike back at the attacker."""
+        roll = UnitControl.strike_back_roll(
+            attacker=UnitControl.kind_of(game=game, unit=attacker), defender=UnitControl.kind_of(game=game, unit=striker),
+            roll=UnitControl.roll_against(game=game, unit=striker, target=attacker),
+        )
+        if roll is None:
+            return NO_DAMAGE
+        return UnitControl.mitigated(roll=roll, armor_class=UnitControl.armor_class_of(game=game, unit=attacker))
+
+    @staticmethod
+    def kill_experience(*, game, unit):
+        """Return the experience killing a unit gives, worked out while the unit is still there."""
+        return Levels.kill_experience(killed=UnitControl.kind_of(game=game, unit=unit), level=UnitControl.level_of(game=game, unit=unit))
+
+    @staticmethod
+    def reward(*, game, attacker, defender, striker, prizes, defender_killed, attacker_killed):
+        """Give the units of an attack their experience: the attacker a little for attacking and the defender's prize for a kill, the defender half of that little for surviving, and the striker the attacker's whole prize for killing the attacker on defense.
+
+        The prizes are what killing each unit gives, worked out before anyone was removed.
+        """
+        if attacker_killed:
+            Combat.gain(game=game, unit=striker, experience=prizes[attacker])
+        else:
+            Combat.gain(game=game, unit=attacker, experience=ATTACK_EXPERIENCE + (prizes[defender] if defender_killed else NO_EXPERIENCE))
+        if not defender_killed:
+            Combat.gain(game=game, unit=defender, experience=SURVIVAL_EXPERIENCE)
+
+    @staticmethod
+    def gain(*, game, unit, experience):
+        """Give a unit experience, and when the experience reaches a level, the level and the hit points the level adds, on top of the unit's wounds."""
+        units = game.get_units()
+        total = units.get_value(column=UnitColumn.EXPERIENCE, unit=unit) + experience
+        units.set_value(column=UnitColumn.EXPERIENCE, unit=unit, value=total)
+        before = UnitControl.level_of(game=game, unit=unit)
+        after = Levels.level_for(experience=total)
+        if after > before:
+            whole_before = UnitControl.max_hit_points(game=game, unit=unit)
+            units.set_value(column=UnitColumn.LEVEL, unit=unit, value=after)
+            gained = UnitControl.max_hit_points(game=game, unit=unit) - whole_before
+            units.set_value(column=UnitColumn.HIT_POINTS, unit=unit, value=units.get_value(column=UnitColumn.HIT_POINTS, unit=unit) + gained)
 
     @staticmethod
     def hurt(*, game, unit, damage):

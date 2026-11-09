@@ -25,8 +25,11 @@ turns and the saved game.
   the `microsponge` command, and `__main__.py` lets `python -m microsponge` do the same.
   `err_messages.py` holds every error message and `ui_strings.py` every other piece of text the
   program shows.
-- `support` is the plumbing the rest stands on: so far, the version and small helpers for
-  text and numbers.
+- `support` is the plumbing the rest stands on: the version, small helpers for text and
+  numbers, and the reports the tools print and the theme guides include: tables of text
+  (`tables.py`), the command line the theme tools share (`theme_tools.py`), the reports on a
+  theme's units, buildings, world wonders and tech tree (`kind_reports.py`), the balance
+  report (`balance_report.py`) and the generated appendix of each theme's guide (`guides.py`).
 - `engine` holds the model objects every theme shares, in a package for each topic:
   - `kinds` has the base classes a theme builds on: terrain, resource, technology, the kinds of
     unit, building and world wonder, improvement, the city spec and the theme itself. It also has the
@@ -48,7 +51,8 @@ turns and the saved game.
 - `themes` holds a package for each theme: caveman, the tiny theme the tests play, and the first
   stubs of classic, SciFi, fantasy and PlanetWars.
 - `test/` holds the tests, and `tools/` the scripts for working on the code and on the balance
-  of a theme's units.
+  of a theme's units: the reports on a theme, which also print Markdown for the guides, and
+  `theme_guides.py`, which regenerates the appendix of every `GUIDE_<THEME>.md`.
 
 The text UI will be a package of its own, described here when it exists.
 

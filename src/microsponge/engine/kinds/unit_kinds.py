@@ -17,22 +17,29 @@
 """The bases of a theme's kinds of unit: land, sea, air and space units, and the settler."""
 
 from microsponge.engine.kinds.domain import Domain
+from microsponge.engine.kinds.dice import NO_DICE
 from microsponge.engine.kinds.kind import Kind, saved_name
 from microsponge.err_messages import ERR_NO_DOMAIN
+
+# The armor class of a unit with no armor, which lets every damage roll land whole.
+NO_ARMOR = 10
+NO_EXTRA_DICE = 0
 
 
 class UnitKind(Kind):
     """A kind of unit, like a warrior. Each unit on the map is a row of numbers, not an object of this class."""
 
-    # Every kind of unit in a theme defines these three. Hit points are large: about 10 for the weakest unit, up to 500.
-    ATTACK = 0
-    DEFENSE = 0
+    # Every kind of unit in a theme defines these three: the dice an attack rolls, the armor class, where NO_ARMOR is 10 and 0 is the best, and the hit points.
+    ATTACK = NO_DICE
+    ARMOR_CLASS = NO_ARMOR
     HIT_POINTS = 10
-    # The attack points against air units, for a kind whose attack is different against them. None means ATTACK.
-    AIR_ATTACK = None
-    # Whether a unit of this kind attacks back when it is attacked, and with what percent of its attack points.
+    # The extra dice the kind rolls against a class of unit, like a slingshot against air units: {Domain.AIR: 1}.
+    EXTRA_DICE = {}
+    # Whether a unit of this kind attacks back when it is attacked, and with what percent of its damage roll.
     STRIKES_BACK = True
-    STRIKE_BACK_PERCENT = 20
+    STRIKE_BACK_PERCENT = 50
+    # The experience a unit that kills a unit of this kind gains, before the level of the unit killed is added: weaker kinds are worth less.
+    EXPERIENCE_WORTH = 1
     # Which class of unit this kind is: LandUnit, SeaUnit, AirUnit and SpaceUnit each set theirs.
     DOMAIN = None
     # Which classes of unit this kind can hit, attacking or striking back.
@@ -102,11 +109,9 @@ class SettlerUnit(LandUnit):
     CITIZENS = 1
 
 
-def attack_points(*, kind, target):
-    """Return the attack points a kind of unit has against another kind: its attack points against air units when the target is one and the kind sets them, or else its attack points."""
-    if target.DOMAIN == Domain.AIR and kind.AIR_ATTACK is not None:
-        return kind.AIR_ATTACK
-    return kind.ATTACK
+def attack_dice(*, kind, target):
+    """Return the dice a kind of unit rolls against another kind: its attack dice, with the extra dice it has against the other's class of unit."""
+    return kind.ATTACK.with_extra(dice=kind.EXTRA_DICE.get(target.DOMAIN, NO_EXTRA_DICE))
 
 
 def can_hit(*, kind, target):

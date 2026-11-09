@@ -53,7 +53,9 @@ Still undecided: everything about how a transport works.
 
 Consider giving the catapult and the cannon of classic a range of 2 tiles and the howitzer a range
 of 3, so that they attack from further than the next tile. Eventually the howitzer's range may be
-made much, much longer.
+made much, much longer. The model now says what range is for: a siege unit chooses between a
+strike on the next tile and a bombard at range, which wounds every unit in a city without killing
+them all at once.
 
 What it would mean for the code:
 
@@ -62,6 +64,8 @@ What it would mean for the code:
   it and what an attack from further away costs, and `Combat.problem_attacking()` would take the
   range of the kind instead of asking for the next tile.
 - Whether a unit struck from 2 tiles away can strike back would need deciding.
+- A bombard would need its own damage rule for every unit inside the city, and a second attack
+  order beside `Orders.attack()`, which a screen offers as a choice.
 
 ### Tuning the growth rates of cities, and every other number
 

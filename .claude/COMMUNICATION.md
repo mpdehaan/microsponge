@@ -96,9 +96,11 @@ apart from the rules for the code (`.claude/STYLE.md`) so that they can be revie
 
 - In a discussion, concerns and questions share one running list of numbers, continued across
   replies rather than starting again at 1, so that the user can answer "on 11, yes" and both can
-  see which numbers are still open. The reply lists what's unresolved by number at the end. Once
-  every number is resolved, the next question may start again from 1. A number is never reused
-  while anything numbered is open, and one reply never holds two lists that both start at 1:
+  see which numbers are still open. The reply lists what's unresolved by number at the end. As
+  soon as every number is resolved, with no open question, concern or confirmation left, the
+  numbering goes back to 1, so that the user can tell from the numbers alone that everything
+  was resolved: a reply that starts a list at 1 says that nothing was open before it. The user
+  asked for this. A number is never reused while anything numbered is open, and one reply never holds two lists that both start at 1:
   proposals, concerns, findings and questions put to the user all take numbers from the same
   running sequence, so that "1" means one thing. A reply that numbers its proposals 1 to 3 and
   its open questions 1 and 2 gets the answer "1 and 2", which can't be told apart.

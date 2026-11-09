@@ -40,8 +40,10 @@ class Building(Kind):
     WORKED_TILE_BONUS = {}
     # The turns sooner its city grows a citizen.
     GROWS_SOONER = 0
-    # The percent it adds to the defense of every unit inside its city when the city is attacked, like a watchtower.
-    DEFENSE_BONUS = 0
+    # The levels above the first that a unit built in its city starts at, like a barracks that starts units at level 2.
+    LEVEL_BONUS = 0
+    # By how much it makes the armor class of every unit inside its city better when the city is attacked, like a watchtower.
+    ARMOR_BONUS = 0
     # Whether it is city walls, whose defense bonus a unit that bypasses walls, like a catapult, ignores.
     WALLS = False
     # Whether only a city with a water tile next to its city center can build it, like a harbor.

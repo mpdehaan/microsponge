@@ -8,7 +8,7 @@ says where things are and how the parts fit, and is kept true with every change 
 ## The engine, by subpackage
 
 - `kinds`: the base classes a theme builds on. `kind.py` has `Kind`, and beside it are
-  `terrain.py`, `resource.py`, `technology.py`, `unit_kinds.py` (land, sea, air and space units,
+  `dice.py` (the dice an attack is written as), `terrain.py`, `resource.py`, `technology.py`, `unit_kinds.py` (land, sea, air and space units,
   the settler, and which class of unit can hit which), `domain.py` (the classes of unit), `building.py` (buildings and world wonders), `city_spec.py` (what a city means
   in a theme), `bonuses.py` (what a civilization's technologies add up to) and `theme.py` (the lists of a theme's kinds, and its limits). `improvement.py` (what a worker unit builds on a tile), `terrain_bonus.py` (a special tile that gives more). `category.py` names
   the seven categories of kind, and `catalog.py` gives every kind of a theme its id.
@@ -22,8 +22,9 @@ says where things are and how the parts fit, and is kept true with every change 
   static class for what a city builds.
 - `units`: `units.py` holds every unit as columns of integers, `unit_column.py` numbers the
   columns, `unit_control.py` is the static class with the rules for units, and
-  `work_control.py` is the static class for a unit building an improvement, and `combat.py`
-  is the static class for attacks and for who has lost.
+  `work_control.py` is the static class for a unit building an improvement, `combat.py`
+  is the static class for attacks, experience and who has lost, and `levels.py` is the static
+  class for what a level takes and adds.
 - `civilizations`: `civilization.py` is one civilization: its name, what it holds of each
   resource, the technologies it knows, its action points, its bankrupt turns, its wars,
   what it researches and whether it has lost. `requirements.py` says what a civilization or a
@@ -98,7 +99,7 @@ says where things are and how the parts fit, and is kept true with every change 
 - A strategic resource is an id in the world's strategic resource layer, on a tile whose
   terrain lists the resource in `CAN_HAVE`. `Strategic.held()` gives the resources on the
   tiles of a civilization's cities' radii, each once, worked or not. Caveman has flint, and the
-  watchtower requires fire and flint; `DEFENSE_BONUS` on a building is only recorded. A kind lists a strategic resource in `REQUIRES`
+  watchtower requires fire and flint. A kind lists a strategic resource in `REQUIRES`
   beside technologies and buildings, and `strategic_for()` only looks for them when a kind
   requires one. `Strategic.terrain_changed()` takes a resource off a tile whose new terrain
   cannot have the resource.
@@ -121,8 +122,25 @@ says where things are and how the parts fit, and is kept true with every change 
 - `Production.waiting_cities()`, `Production.blocked_cities()` and `Research.must_choose()` are
   what a screen or a computer player asks before ending a turn. Only a technology left to
   pick stops a turn from ending.
-- `attack_points()` in `unit_kinds.py` gives a kind's `AIR_ATTACK` against an air unit when the
-  kind sets one, and `UnitControl.attacks_to_kill()` is what `tools/balance.py` tabulates.
+- A kind's `ATTACK` is a `Dice` (count, sides, plus), `NO_DICE` for a kind that cannot attack,
+  and `EXTRA_DICE` maps a `Domain` to the extra dice rolled against that class of unit:
+  `attack_dice()` in `unit_kinds.py` puts them together. `ARMOR_CLASS` is 10 (`NO_ARMOR`) for
+  no armor and 0 for the best; `UnitControl.mitigated()` takes 10 percent off a roll for each
+  point below 10, rounding up, with `CHIP_DAMAGE` as the floor. A building's `ARMOR_BONUS` and
+  a unit's level make the armor class better. `UnitControl.damage()` and `attacks_to_kill()`
+  work on the average roll, for `tools/balance.py` and for screens; `Combat.attack()` rolls
+  from `Game.get_random()`. A strike back is `STRIKE_BACK_PERCENT` of the striker's own roll
+  through the attacker's armor.
+- Units have a `LEVEL` and an `EXPERIENCE` column (`COLUMN_DEFAULTS` fills a missing level
+  with `FIRST_LEVEL`). `Levels` says what a level takes (`experience_for()`, 10 times the
+  triangular number) and adds: a damage point at levels 10 and 20, an armor point at 5 and
+  15, and `Theme.LEVEL_HIT_POINTS_PERCENT` of the kind's hit points a level. `Combat.reward()`
+  gives `ATTACK_EXPERIENCE` (2) for an attack, `SURVIVAL_EXPERIENCE` for surviving one, which
+  is `DEFENSE_EXPERIENCE_PERCENT` (50) of the attack experience, and the victim's
+  `EXPERIENCE_WORTH` plus level for a kill, to the attacker or to the striker that killed the
+  attacker alike, and `Combat.gain()` raises the level and
+  adds the new hit points on top of the wounds. A building's `LEVEL_BONUS` raises the level a
+  unit built in its city starts at (`CityControl.starting_level()`), like caveman's barracks.
 - Every `Orders` method checks that the game is being played and that the turn belongs to the
   civilization, then the action points of the unit and of the civilization, then the model
   object's own rule, and charges the points last, so a refused order changes nothing.
@@ -150,9 +168,10 @@ says where things are and how the parts fit, and is kept true with every change 
 - City radii never overlap: `CityControl.problem_founding()` refuses a site whose radius
   reaches a tile of another city's radius, so a tile belongs to one city at most.
 - `Combat.attack()` resolves one attack on a tile next to the attacker: the unit on the tile,
-  or the units inside the city whose center covers the tile, where the strongest defense is
-  hit with `CityControl.defense_bonus()` added, leaving out the `WALLS` buildings against a
-  kind with `BYPASSES_WALLS`, and the strongest attack able to hit strikes back. It returns an `AttackOutcome` for a screen or a log, and then `settle_losses()` marks
+  or the units inside the city whose center covers the tile, where the best armor class is
+  hit with `CityControl.armor_bonus()` making the armor better, leaving out the `WALLS`
+  buildings against a kind with `BYPASSES_WALLS`, and the strongest dice able to hit strike
+  back. It returns an `AttackOutcome` for a screen or a log, and then `settle_losses()` marks
   as lost each civilization with nothing left (`Civilization.get_cities_founded()` says
   whether cities or units count) and takes its units off the map. `CityControl.enter()` takes
   a city of a civilization at war with no unit inside, through `problem_taking()` and
@@ -161,6 +180,25 @@ says where things are and how the parts fit, and is kept true with every change 
 - Not built yet: satellites, the colony ship,
   putting strategic resources on the map when a world is made, the technology given after
   6000 turns, and trading technology.
+
+## The reports and the guides
+
+- `support/tables.py` lines up a table's columns, numbers at the right and words at the left,
+  as plain text or as Markdown (`table_lines(*, title, heading, rows, markdown)`), and shows
+  cells as people read them: `shown_number()` writes 0 as a dash, `shown_flag()` writes yes or a
+  dash, `shown_kinds()` and `shown_amounts()` list kinds and resource amounts.
+- `support/theme_tools.py` is the command line the theme tools share: one theme's name and
+  `--markdown`, through `run_theme_tool(*, arguments, report)`, which calls
+  `report(theme, markdown=)`.
+- `support/kind_reports.py` reports on a theme's units, buildings, world wonders and tech tree,
+  one row for each kind and one column for each property, leaving out and naming the columns
+  no kind of the theme sets. A technology's "allows" column is every kind whose `REQUIRES` lists
+  the technology. `support/balance_report.py` is the balance report, moved out of
+  `tools/balance.py`, which is now a few lines like the other tools.
+- `support/guides.py` knows where each theme's guide is (`GUIDE_<THEME>.md`, from the saved
+  name) and generates its appendix, the five reports as Markdown between `START_MARKER` and
+  `END_MARKER`. `tools/theme_guides.py` refreshes every guide, or with `--check` says which
+  are stale and fails, and `test/test_theme_guides.py` fails when any is stale.
 
 ## The saved game
 

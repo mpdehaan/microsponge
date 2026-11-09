@@ -57,6 +57,8 @@ SECOND_CIVILIZATION = 2
 FIRST_CITY = 1
 A_NAME = 'Ugghome'
 A_FEW_ROUNDS = 2
+A_LEVEL = 3
+SOME_EXPERIENCE = 35
 A_FEW_CITIZENS = 2
 THE_EARLIEST_VERSION = '0.0.0'
 NOT_JSON = 'once upon a time'
@@ -140,6 +142,17 @@ class TestSaving(Refusals, unittest.TestCase):
         end_rounds(game=game, rounds=A_FEW_ROUNDS)
         end_turn_by_order(game=game, civilization=FIRST_CIVILIZATION)
         return game
+
+    def test_a_unit_keeps_its_level_and_experience_through_a_save(self):
+        game = self.a_game_in_play()
+        unit = UnitControl.units_of(game=game, civilization=FIRST_CIVILIZATION)[0]
+        game.get_units().set_value(column=UnitColumn.LEVEL, unit=unit, value=A_LEVEL)
+        game.get_units().set_value(column=UnitColumn.EXPERIENCE, unit=unit, value=SOME_EXPERIENCE)
+        save_game(game=game, path=self.path)
+        loaded = load_game(path=self.path, themes=THEMES)
+        self.assertEqual(UnitControl.level_of(game=loaded, unit=unit), A_LEVEL)
+        self.assertEqual(loaded.get_units().get_value(column=UnitColumn.EXPERIENCE, unit=unit), SOME_EXPERIENCE)
+        self.assertEqual(game_facts(loaded), game_facts(game))
 
     def test_a_game_in_play_comes_back_as_it_was_and_goes_on_the_same_way(self):
         game = self.a_game_in_play()

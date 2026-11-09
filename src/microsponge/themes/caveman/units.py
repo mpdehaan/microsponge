@@ -16,6 +16,8 @@
 
 """The caveman units."""
 
+from microsponge.engine.kinds.dice import Dice
+from microsponge.engine.kinds.domain import Domain
 from microsponge.engine.kinds.unit_kinds import AirUnit, LandUnit, SeaUnit, SettlerUnit, UnitKind
 from microsponge.themes.caveman.buildings import Barracks, Harbor
 from microsponge.themes.caveman.improvements import Clearing, Farm
@@ -33,37 +35,39 @@ class CavemanUnit(UnitKind):
 class Settler(CavemanUnit, SettlerUnit):
     COST = {Currency: 10}
     BUILD_TURNS = 6
-    DEFENSE = 1
-    HIT_POINTS = 10
+    HIT_POINTS = 5
 
 
 class Warrior(CavemanUnit, LandUnit):
     REQUIRES = (Clubs,)
     COST = {Currency: 10}
     BUILD_TURNS = 3
-    ATTACK = 6
-    DEFENSE = 2
-    HIT_POINTS = 20
+    ATTACK = Dice(count=2, sides=4)
+    ARMOR_CLASS = 8
+    HIT_POINTS = 10
+    EXPERIENCE_WORTH = 2
 
 
 class SlingshotCaveman(CavemanUnit, LandUnit):
     REQUIRES = (Clubs,)
     COST = {Currency: 15}
     BUILD_TURNS = 3
-    ATTACK = 4
-    AIR_ATTACK = 8
+    ATTACK = Dice(count=1, sides=6)
+    EXTRA_DICE = {Domain.AIR: 1}
     CAN_HIT_AIR = True
-    DEFENSE = 2
-    HIT_POINTS = 20
+    ARMOR_CLASS = 8
+    HIT_POINTS = 10
+    EXPERIENCE_WORTH = 2
 
 
 class CaptainCaveman(CavemanUnit, LandUnit):
     REQUIRES = (Barracks,)
     COST = {Currency: 20}
     BUILD_TURNS = 6
-    ATTACK = 12
-    DEFENSE = 2
-    HIT_POINTS = 40
+    ATTACK = Dice(count=4, sides=4)
+    ARMOR_CLASS = 8
+    HIT_POINTS = 20
+    EXPERIENCE_WORTH = 4
 
 
 class Worker(CavemanUnit, LandUnit):
@@ -71,22 +75,21 @@ class Worker(CavemanUnit, LandUnit):
     BUILDS = (Farm, Clearing)
     COST = {Currency: 10}
     BUILD_TURNS = 3
-    DEFENSE = 1
-    HIT_POINTS = 10
+    HIT_POINTS = 5
 
 
 class Raft(CavemanUnit, SeaUnit):
     REQUIRES = (Harbor,)
     COST = {Currency: 10, Wood: 10}
     BUILD_TURNS = 4
-    ATTACK = 4
-    DEFENSE = 1
-    HIT_POINTS = 10
+    ATTACK = Dice(count=1, sides=6)
+    ARMOR_CLASS = 9
+    HIT_POINTS = 5
 
 
 class AngryBird(CavemanUnit, AirUnit):
     COST = {Currency: 10}
     BUILD_TURNS = 2
-    ATTACK = 4
-    HIT_POINTS = 10
+    ATTACK = Dice(count=1, sides=6)
+    HIT_POINTS = 5
     TAKES_CITIES = False

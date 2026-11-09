@@ -16,6 +16,7 @@
 
 """The units of classic."""
 
+from microsponge.engine.kinds.dice import Dice
 from microsponge.engine.kinds.unit_kinds import AirUnit, LandUnit, SettlerUnit, UnitKind
 from microsponge.themes.classic.buildings import TheManhattanProject
 from microsponge.themes.classic.resources import Iron
@@ -44,8 +45,7 @@ class Legion(LandUnit):
 class Catapult(LandUnit):
     STRIKES_BACK = False
     BYPASSES_WALLS = True
-    ATTACK = 6
-    DEFENSE = 1
+    ATTACK = Dice(count=2, sides=6)
     HIT_POINTS = 1
 
 
@@ -56,16 +56,14 @@ class Knights(LandUnit):
 class Cannon(LandUnit):
     STRIKES_BACK = False
     BYPASSES_WALLS = True
-    ATTACK = Catapult.ATTACK * 3
-    DEFENSE = 1
+    ATTACK = Catapult.ATTACK.with_extra(dice=Catapult.ATTACK.count * 2)
     HIT_POINTS = 1
 
 
 class Howitzer(LandUnit):
     STRIKES_BACK = False
     BYPASSES_WALLS = True
-    ATTACK = Cannon.ATTACK * 3
-    DEFENSE = 1
+    ATTACK = Cannon.ATTACK.with_extra(dice=Cannon.ATTACK.count * 2)
     HIT_POINTS = 1
 
 

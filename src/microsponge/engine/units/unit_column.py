@@ -17,6 +17,7 @@
 """The columns of the units, each with a number of its own that never changes."""
 
 from microsponge.engine.kinds.category import Category
+from microsponge.engine.units.levels import FIRST_LEVEL
 
 
 class UnitColumn:
@@ -41,12 +42,17 @@ class UnitColumn:
     # The id of the improvement the unit is building, in the catalog's improvements, or NOTHING, and the turns the building still takes.
     IMPROVEMENT = 9
     BUILD_TURNS = 10
+    # The unit's level, from FIRST_LEVEL, and its experience toward the next.
+    LEVEL = 11
+    EXPERIENCE = 12
 
 
 UNIT_COLUMNS = (
     UnitColumn.KIND, UnitColumn.OWNER, UnitColumn.WORLD, UnitColumn.X, UnitColumn.Y, UnitColumn.HIT_POINTS, UnitColumn.CITY, UnitColumn.ACTION_POINTS,
-    UnitColumn.IMPROVEMENT, UnitColumn.BUILD_TURNS,
+    UnitColumn.IMPROVEMENT, UnitColumn.BUILD_TURNS, UnitColumn.LEVEL, UnitColumn.EXPERIENCE,
 )
+# What a column holds for a unit that was added, or saved, without it; every other column holds NOTHING.
+COLUMN_DEFAULTS = {UnitColumn.LEVEL: FIRST_LEVEL}
 RETIRED_UNIT_COLUMNS = ()
 # The columns that hold ids of a theme's kinds, which loading a saved game may have to renumber.
 COLUMN_CATEGORIES = {UnitColumn.KIND: Category.UNITS, UnitColumn.IMPROVEMENT: Category.IMPROVEMENTS}

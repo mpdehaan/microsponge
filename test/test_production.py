@@ -31,6 +31,7 @@ from microsponge.engine.kinds.category import Category
 from microsponge.engine.kinds.kind import shown_name
 from microsponge.engine.turns.orders import Orders
 from microsponge.engine.turns.turn_control import TurnControl
+from microsponge.engine.units.levels import FIRST_LEVEL, Levels
 from microsponge.engine.units.unit_column import UnitColumn
 from microsponge.engine.units.unit_control import UnitControl
 from microsponge.engine.world.layer import Layer
@@ -62,6 +63,7 @@ NO_PROGRESS = 0
 NOTHING_HELD = 0
 WHOLE = 100
 PLENTY = 1000
+BARRACKS_LEVEL_BONUS = 1
 STARTING_CURRENCY = Caveman.STARTS_WITH[Currency]
 # The currency a city of one citizen brings in each turn.
 INCOME = Village.CITIZEN_CURRENCY
@@ -352,6 +354,31 @@ class TestABuildingAUnitRequires(ProductionCase):
         self.build(CaptainCaveman)
         self.rounds(CaptainCaveman.BUILD_TURNS)
         self.assertEqual(self.kinds_inside(), [CaptainCaveman])
+
+    def test_a_barracks_starts_the_units_built_in_its_city_at_level_2_whole_at_that_level_and_another_city_at_level_1(self):
+        other = self.another_city()
+        self.give(resource=Currency, amount=PLENTY)
+        learn(game=self.game, civilization=FIRST_CIVILIZATION, technology=Clubs)
+        self.assertEqual(CityControl.starting_level(game=self.game, city=self.city_id), FIRST_LEVEL)
+        give_building(game=self.game, city=self.city_id, building=Barracks)
+        self.assertEqual(Barracks.LEVEL_BONUS, BARRACKS_LEVEL_BONUS)
+        self.assertEqual(CityControl.starting_level(game=self.game, city=self.city_id), FIRST_LEVEL + BARRACKS_LEVEL_BONUS)
+        self.assertEqual(CityControl.starting_level(game=self.game, city=other), FIRST_LEVEL)
+        self.build(Warrior)
+        Orders.build(game=self.game, city=other, kind=Warrior)
+        self.rounds(Warrior.BUILD_TURNS)
+        trained, raw = self.units_of_kind(Warrior)
+        self.assertEqual(UnitControl.level_of(game=self.game, unit=trained), FIRST_LEVEL + BARRACKS_LEVEL_BONUS)
+        self.assertEqual(self.units.get_value(column=UnitColumn.EXPERIENCE, unit=trained), Levels.experience_for(level=FIRST_LEVEL + BARRACKS_LEVEL_BONUS))
+        self.assertEqual(self.units.get_value(column=UnitColumn.HIT_POINTS, unit=trained), Levels.hit_points(theme=Caveman, kind=Warrior, level=FIRST_LEVEL + BARRACKS_LEVEL_BONUS))
+        self.assertEqual(UnitControl.level_of(game=self.game, unit=raw), FIRST_LEVEL)
+        self.assertEqual(self.units.get_value(column=UnitColumn.HIT_POINTS, unit=raw), Warrior.HIT_POINTS)
+        for _ in range(Village.MOST_UNITS):
+            self.build(Warrior)
+            self.rounds(Warrior.BUILD_TURNS)
+        outside = self.units_of_kind(Warrior)[-1]
+        self.assertEqual(self.units.get_value(column=UnitColumn.CITY, unit=outside), NOTHING)
+        self.assertEqual(UnitControl.level_of(game=self.game, unit=outside), FIRST_LEVEL + BARRACKS_LEVEL_BONUS)
 
     def test_a_harbor_is_built_only_by_a_city_with_water_next_to_its_center(self):
         lakeside = self.another_city(site=A_LAKESIDE_SITE)

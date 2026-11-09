@@ -14,8 +14,8 @@ file, so it's in force in every session. `.claude/TESTING.md` says what caveman 
 - Caveman is kept simple, and has no cows.
 - Caveman has one strategic resource, flint, which Claude put in the mountains. Flint, with
   the technology called fire, is required to build the watchtower, which boosts the defense of
-  every unit inside its city by 25 percent. City walls, if they come later, give a further
-  boost, and will be discussed with the tests for classic.
+  every unit inside its city. City walls, if they come later, give a further boost, and will be
+  discussed with the tests for classic.
 - Bison and elephants are terrain bonuses on grassland, which give more food when the tile is
   worked, and are required for nothing.
 - The units are the settler, the warrior, the worker, captain caveman, slingshot caveman, the
@@ -40,33 +40,43 @@ file, so it's in force in every session. `.claude/TESTING.md` says what caveman 
 
 ## The numbers Claude chose
 
-Each line is attack, defense and hit points, then the cost and the turns to build. Every unit
-costs 1 currency and 1 food to support each turn and has 2 action points.
+Each line is the attack dice, the armor class, the hit points and the experience worth, then the
+cost and the turns to build. Every unit costs 1 currency and 1 food to support each turn and has
+2 action points. A level adds 2 percent of the kind's hit points, rounded down over the levels
+gained, so a level 20 warrior has 13 hit points and a level 20 captain caveman 27.
 
-- settler: 0, 1, 10. 10 currency and a citizen, 6 turns.
-- warrior: 6, 2, 20. 10 currency, 3 turns. Requires clubs.
-- worker: 0, 1, 10. 10 currency, 3 turns. Requires agriculture.
-- captain caveman: 12, 2, 40. 20 currency, 6 turns. Requires a barracks.
-- slingshot caveman: 4 against land and sea units and 8 against air units, 2, 20. 15 currency,
+- settler: no attack, 10, 5, worth 1. 10 currency and a citizen, 6 turns.
+- warrior: 2d4, 8, 10, worth 2. 10 currency, 3 turns. Requires clubs.
+- worker: no attack, 10, 5, worth 1. 10 currency, 3 turns. Requires agriculture.
+- captain caveman: 4d4, 8, 20, worth 4. 20 currency, 6 turns. Requires a barracks.
+- slingshot caveman: 1d6, and 1 extra die against air units, 8, 10, worth 2. 15 currency,
   3 turns. Requires clubs.
-- raft: 4, 1, 10. 10 currency and 10 wood, 4 turns. Requires a harbor.
-- angry bird: 4, 0, 10. 10 currency, 2 turns.
+- raft: 1d6, 9, 5, worth 1. 10 currency and 10 wood, 4 turns. Requires a harbor.
+- angry bird: 1d6, 10, 5, worth 1. 10 currency, 2 turns.
 - barracks: 30 currency, 5 turns, 1 currency to support. Requires discipline, which takes 40
-  research points.
+  research points. The barracks starts the units built in its city at level 2, which the user
+  decided for caveman as for classic.
 - harbor: 30 currency, 5 turns, 1 currency to support. Requires no technology.
 - forest: gives 1 wood, and costs 2 to move into.
 - watchtower: 20 currency, 5 turns, 1 currency to support. Requires fire, which takes 20
-  research points, and flint within the borders. The 25 percent raises the defense of a unit
-  inside from 2 to 3, rounding up, which Claude chose.
+  research points, and flint within the borders. The watchtower makes the armor class of every
+  unit inside 1 better, which Claude chose.
 - bison: 1 more food from the tile. elephants: 2 more food.
 - The test world has flint on its one mountain tile, inside the second civilization's first
   city radius, and bison and elephants on grassland far from both civilizations' first cities.
 
 ## Balance
 
-`tools/balance.py caveman` shows how many attacks each unit needs against each other unit. With
-the numbers above, a warrior needs 5 attacks against a warrior and 10 against captain caveman,
-and captain caveman needs 2 against a warrior and 4 against captain caveman. Outside what the
-model asks of balance ("Combat"): captain caveman finishes a settler, a worker or a raft in one
-attack, and slingshot caveman and the angry bird each need 20 attacks against captain caveman,
-which is what being weak against land and super weak come to.
+The user finds 5 warrior-to-warrior battle turns far too long, and the properties of the units
+are to be tweaked so that they make sense, together with the damage roll the model asks for
+("Combat"): evenly matched units kill one another in a few turns, and unmatched units often fall
+in one turn unless fortified.
+
+`tools/balance.py caveman` shows how many attacks each unit needs against each other unit on
+average rolls. With the numbers above, a warrior needs 3 attacks against a warrior and 5 against
+captain caveman, and captain caveman needs 2 against a warrior and 3 against captain caveman. A
+warrior finishes a settler, a worker or a raft in one attack, and slingshot caveman and the angry
+bird each need 7 attacks against captain caveman, which is what being weak against land and super
+weak come to. A level 20 warrior needs 2 attacks against a level 1 warrior, and a level 1 warrior
+5 against a level 20. The user does not know yet whether 5 hit points is right for the settler,
+the worker, the raft and the angry bird, and will find out by playing.

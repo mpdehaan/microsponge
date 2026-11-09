@@ -186,12 +186,12 @@ class TurnControl:
 
     @staticmethod
     def heal(*, game, civilization):
-        """Give each unit of a civilization back the hit points its kind heals in a turn, more inside a city, up to its kind's hit points."""
+        """Give each unit of a civilization back the hit points its kind heals in a turn, more inside a city, up to the hit points of a whole unit at its level."""
         units = game.get_units()
         for unit in UnitControl.units_of(game=game, civilization=civilization):
             kind = UnitControl.kind_of(game=game, unit=unit)
             healed = kind.CITY_HEAL if units.get_value(column=UnitColumn.CITY, unit=unit) != NOTHING else kind.HEAL
-            hit_points = min(units.get_value(column=UnitColumn.HIT_POINTS, unit=unit) + healed, kind.HIT_POINTS)
+            hit_points = min(units.get_value(column=UnitColumn.HIT_POINTS, unit=unit) + healed, UnitControl.max_hit_points(game=game, unit=unit))
             units.set_value(column=UnitColumn.HIT_POINTS, unit=unit, value=hit_points)
 
     @staticmethod

@@ -120,10 +120,17 @@ otherwise. What classic itself chooses, like its list of resources, is kept in
   stays known to that civilization, and the fog of war never hides explored land.
 - A theme may have technology that reveals land, or the whole map, without exploring.
 - The fog of war hides units. Each civilization can see units only so far, which can be thought
-  of as a visibility radius.
+  of as a visibility radius. A unit has a vision radius of maybe 5 tiles, which can be changed
+  for each kind of unit later.
 - What a civilization can see decides which units of other civilizations are drawn for that
   civilization.
-- A computer player makes its decisions from what its civilization can see.
+- A computer player makes its decisions from what its civilization can see. A computer player
+  never cheats by looking at global information: the computer players simulate human behavior,
+  with incomplete information subject to the fog of war, and may not have seen all of the
+  terrain yet.
+- A civilization remembers every tile it has ever seen, with the terrain as it last saw it, and
+  sees units only on the tiles within the vision radius of its units and cities right now. A
+  city has a vision radius of its own.
 - A theme may have stealth units.
 
 ## Resources
@@ -490,20 +497,69 @@ otherwise. What classic itself chooses, like its list of resources, is kept in
 ## Combat
 
 - Each unit has hit points.
-- Each unit has attack points and defense points. Every kind of unit defines its attack points,
-  its defense points and its hit points.
-- When a unit attacks another unit, the attack points of the attacking unit are reduced by the
-  defense points of the other unit, and what is left is the damage dealt to the hit points of
-  the other unit.
-- An attack always deals at least 1 damage, called chip damage, however strong the defense.
-- Hit points are large numbers: about 10 for even the weakest unit, and up to 500 for the
+- Each unit has attack dice, an armor class and hit points. Every kind of unit defines the
+  three.
+- When a unit attacks another unit, the attacking unit rolls its attack dice, the armor class
+  of the other unit mitigates the roll as below, and what is left is the damage dealt to the hit
+  points of the other unit.
+- An attack always deals at least 1 damage, called chip damage, however good the armor.
+- The damage of an attack includes a degree of randomness: a damage roll, made with dice, for
+  the feel of a tabletop role-playing game. An attack always does some damage, and the more
+  attack a unit has, the wider the range of its damage can be: a warrior has a small range,
+  and a unit like a tank might have a different range. In general, a unit that is evenly
+  matched should kill a similar unit in a few turns, and an unmatched unit should often fall in
+  one turn, unless the unit is in some kind of fortification. The dice roll from the game's one
+  random source, so that a seeded game plays the same every time. A unit's attack is written as
+  dice, like 2d6 or 2d6+4, and stored as the count of dice, the kind of die and the number added,
+  so that code can edit it.
+- Defense is an armor class, somewhat like the armor class of early tabletop role-playing
+  games, in the versions where an armor class of 0 was the best. The armor class is not about
+  whether an attack hits: the armor class mitigates damage. Every point of armor class below
+  10 takes 10 percent off the damage roll, rounded up, and an attack always does at least the
+  chip damage of 1: an armor class of 10 is no armor and lets a roll land whole, an armor class
+  of 5 halves the roll, and an armor class of 0 or below lets only the chip damage through.
+  The user has no idea whether this is right, and it changes if the games played show units
+  trading blows too long, or that it sucks.
+- A defensive building, like caveman's watchtower or classic's city walls, adds armor class
+  levels in the direction that makes the units inside stronger, instead of a percentage.
+- A unit that is attacked strikes back for 50 percent of its damage roll, rounded down, for
+  now, and the armor of the attacker still counts against the strike back.
+- Siege units like classic's catapult, cannon and howitzer will have two attack choices: a
+  strike, at melee range, which is the attack on the next tile described here, and a bombard,
+  at range, which wounds every unit in a city in a way that will probably not kill them all at
+  once. Range and bombard are not built ("A range for siege units" in `IDEAS.md`).
+- Units have levels, from 1 up to 20. A level mostly adds hit points, a tiny number each level,
+  and very small bonuses, not many at all: at levels 10 and 20 a unit gets an extra damage
+  point on every roll, and, interlaced with that, at levels 5 and 15 the unit's armor class
+  gets 1 better. The user first said every 5 levels for each, and chose every 10 so that a
+  level 20 unit is only about 50 percent better than a level 1 unit of the same kind, which
+  every 5 levels made about three times better. The hit points a level adds are a percentage
+  of the kind's hit points, set by the theme. A unit that goes up a level keeps its wounds and
+  gains the new hit points on top.
+- Experience comes from killing more than from attacking, but from both: a kill gives the
+  killer the experience worth of the kind killed, which each kind sets so that weaker units
+  offer less, plus the level of the unit killed, and every attack a unit makes gives it a
+  little. A unit that is attacked and survives gets 50 percent of what an attack gives, and a
+  unit that kills an attacker on defense gets the whole experience of the kill, as the
+  attacker would have. The experience a level needs grows with the
+  level: level 2 at 10, level 3 at 30, level 4 at 60, 10 times the triangular number, so level
+  20 at 1900. These numbers are agreed for now, and change if the games played show that
+  units do not level up, so that leveling can happen more.
+- A building may start the units built in its city at a higher level, like a barracks that
+  starts units at level 2, whole at that level and with the experience of that level.
+- A unit's level and experience are in the saved game, and the screens show them, probably in
+  the sidebar.
+- A kind of unit that is better against one class of unit, air, sea or land, like caveman's
+  slingshot caveman against air units, gets its bonus as extra dice: the kind says how many
+  extra dice it rolls against that class, rather than a separate attack value.
+- Hit points are large numbers: about 5 to 10 for even the weakest unit, and up to 500 for the
   largest. A unit that takes only chip damage from one attacker mostly heals the chip damage
   back.
 - A unit whose hit points reach 0 is removed from the game.
 - A unit that is attacked strikes back, by default. Whether a unit strikes back is a property
   of the kind of unit.
-- A unit strikes back at reduced power: by default with 20 percent of its attack points. The
-  percentage can be set for each kind of unit.
+- A unit strikes back at reduced power: by default with 50 percent of its damage roll, as
+  above. The percentage can be set for each kind of unit.
 - Units are classified as land units, sea units, air units and space units, and there may be
   more classes. Each kind of unit says whether it can hit air units, whether it can hit land
   units and whether it can hit sea units.
@@ -516,11 +572,9 @@ otherwise. What classic itself chooses, like its list of resources, is kept in
   changes hands with its buildings and its priorities as they are. Taking a city ends all of
   the city's current production, with no refund. City walls and other defenses may come later.
 - Destroying a unit does not move the attacker into the tile where the unit was destroyed.
-- A building can boost the defense of its city by a percentage, like the watchtower of caveman:
-  the boost applies to every unit inside the city when the city is attacked. City walls, when
-  they come, provide an additional boost, and will be talked about with the tests for classic.
-  The boosted defense rounds up, so that a boost of 25 percent raises a defense of 2 to 3
-  rather than leaving it at 2, which is fine for now until the user decides it isn't.
+- A building can boost the defense of its city, like the watchtower of caveman: the boost
+  applies to every unit inside the city when the city is attacked. City walls, when they come,
+  provide an additional boost, and will be talked about with the tests for classic.
 - A theme may have city walls, a building whose boost certain kinds of unit bypass, like the
   catapult, the cannon and the howitzer of classic: against such a unit, the walls add nothing,
   while every other defensive building still counts.
@@ -528,13 +582,13 @@ otherwise. What classic itself chooses, like its list of resources, is kept in
   means attacking any tile of the city center from a tile next to that tile. A city with no
   unit inside cannot be attacked, only taken.
 - When a city with units inside is attacked, the units inside are attacked in turn, the unit
-  with the strongest defense first. The unit inside that strikes back is the one with the
+  with the best armor class first. The unit inside that strikes back is the one with the
   strongest attack among those that can actually hit the attacker, and when none of them can,
   nobody strikes back and that is fine. To defend against a unit, a unit must be able to hit
   that unit.
 - What a kind of unit can hit covers attacking as well as striking back.
-- Certain kinds of unit that can attack air units get a bonus against air units: the bonus is a
-  different attack value against air units.
+- Certain kinds of unit that can attack air units get a bonus against air units, as the extra
+  dice described above.
 - Units are balanced so that fights take several attacks. A theme in which every unit can kill
   every unit in one turn is bad. In general, most units can be killed by any unit that can hit
   them in about 5 to 10 attacks at worst.
@@ -545,7 +599,6 @@ otherwise. What classic itself chooses, like its list of resources, is kept in
   city, and a theme can give a default for all of its units.
 - A land unit gets a defense bonus from the terrain the land unit is on.
 - Air units have advantages.
-- Units do not gain experience from fighting. There are no veteran units.
 - Combat needs more discussion, and attacking a city needs planning in more detail.
 
 ## Turns
@@ -584,7 +637,49 @@ otherwise. What classic itself chooses, like its list of resources, is kept in
   game, and replay the game on the map, zoomed out or not.
 - A computer player plays its civilization according to the civilization's traits ("Traits"),
   so different civilizations play differently.
-- The details are to be discussed.
+- The computer players have personality, and vary: each civilization has feelings about the
+  others, like a reputation for who has wronged it, and is motivated in a few directions. Some
+  computer players are very logical and strategic, and try to be the best player; some tend to a
+  campaign against one other civilization and focus their attention there; some try to be
+  peaceful and build up larger armies; some have other strategies, but never dumb ones. All the
+  computer players being different, rather than all the same, is what creates differences in a
+  game and keeps it from stalemate, unless each is focused on another in a tangled circle of
+  conflict.
+- Every player, human or computer, is expected to use positional strategy: cities are built
+  close by while an empire is built, and a civilization that blocks out another's land hurts its
+  reputation with that civilization. A player may attack, but mostly attacks when the player
+  can win, judged from the incomplete information the player has.
+- A player who is being boxed out, or who sees a gap in the terrain closing, may send a quick
+  settler through to found a satellite city, to keep expanding, because military action means
+  not investing in the economy, and it is easy to get behind in technology.
+- A computer player watches where its workers can make improvements, and sets the work
+  priorities of its citizens. Building cities to reach special resources matters, depending on
+  the tradeoffs, which must be considered carefully. Terrain matters: most units cannot cross
+  mountains quickly, because mountains take more movement points, and the themes will be tweaked
+  until that is true everywhere.
+- A computer player may choose not to anger civilizations more powerful than itself, from what
+  it can infer about their power. More information comes with diplomacy technology, and maybe
+  with spy capabilities, which are to be determined.
+- A computer player's personality is a handful of numbers on one player class, the
+  civilization's traits ("Traits"): how much it values expansion against the army, how far
+  below a sure win it will attack, how long it remembers a wrong, how strongly it prefers one
+  enemy, how much it values science and research, how much it tries to be nonviolent when it
+  can dominate by investing first, and how much it wants to conquer land rather than stay
+  smaller and defensible or keep a large military. "Logical and strategic", "campaigner" and
+  "peaceful builder" are settings of those numbers, and the traits may more or less be
+  randomized when a game starts. No computer player is ever lazy: every one tries to win, each
+  by a different strategy. One strategy looks at what the player knows about the map and
+  adapts to it.
+- The computer players of each theme are subclasses of a common player: caveman has less
+  technology than the other themes, so decisions made for caveman may not all suit another
+  theme, but the flavors and the ideas are the same.
+- Eventually games of computer players against each other are played to improve all of the
+  strategies, and to make the players more unpredictable.
+- The game is tuned so that there is a wide variety of fun things to do without too many turns
+  between them, and so that a turn does not hold too many action choices, which would be
+  frustrating. Tuning that would help is noted whenever the scripted games show it.
+- The details are to be discussed, in `AI_STRATEGIES_CAVEMAN.md` for caveman and in a file like
+  it for each theme.
 
 ## Not decided yet
 

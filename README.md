@@ -11,6 +11,12 @@ engine exist, and there is nothing to play.
 [INSTALL.md](INSTALL.md) says how to create a virtual environment and install microsponge and its
 `microsponge` command.
 
+## How it's played
+
+[GUIDE.md](GUIDE.md) is the guide for people who play the game: how every theme is played, with
+a page for each theme, like [GUIDE_CAVEMAN.md](GUIDE_CAVEMAN.md), that says what the theme is
+like and lists its units, buildings, world wonders and tech tree.
+
 ## How it's built
 
 [GAME_RULES.md](GAME_RULES.md) is the model: what the game is and how it's played, which the code

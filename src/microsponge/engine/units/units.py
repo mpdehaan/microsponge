@@ -18,8 +18,13 @@
 
 from microsponge.engine.kinds.catalog import NOTHING, renumbered
 from microsponge.engine.saving.keys import text_keys
-from microsponge.engine.units.unit_column import UNIT_COLUMNS, UnitColumn
+from microsponge.engine.units.unit_column import COLUMN_DEFAULTS, UNIT_COLUMNS, UnitColumn
 from microsponge.err_messages import ERR_COLUMNS_DIFFER, ERR_NO_SUCH_COLUMN, ERR_NO_SUCH_UNIT
+
+
+def default_of(column):
+    """Return what a column holds when nothing was given for it."""
+    return COLUMN_DEFAULTS.get(column, NOTHING)
 
 
 def same_length(columns):
@@ -48,11 +53,11 @@ class Units:
             raise ValueError(ERR_NO_SUCH_COLUMN.format(column=column)) from None
 
     def add(self, values):
-        """Add a unit from the value of each of its columns, and return its id. A column left out holds NOTHING."""
+        """Add a unit from the value of each of its columns, and return its id. A column left out holds its default, NOTHING for most."""
         for column in values:
             self._values(column)
         for column, numbers in self._columns.items():
-            numbers.append(values.get(column, NOTHING))
+            numbers.append(values.get(column, default_of(column)))
         return len(self._columns[UnitColumn.KIND]) - 1
 
     def exists(self, unit):
@@ -94,8 +99,8 @@ class Units:
     def from_data(cls, data):
         """Return the units a saved game holds, taking its lists as the units' own.
 
-        A column the saved game lacks, because the column was added later, holds NOTHING for
-        every unit. A column the saved game holds that is not in UNIT_COLUMNS, because it was
+        A column the saved game lacks, because the column was added later, holds its default for
+        every unit, NOTHING for most. A column the saved game holds that is not in UNIT_COLUMNS, because it was
         retired, is left behind.
         """
         saved = {column: data[str(column)] for column in UNIT_COLUMNS if str(column) in data}
@@ -103,5 +108,5 @@ class Units:
             raise ValueError(ERR_COLUMNS_DIFFER)
         units = cls()
         length = len(next(iter(saved.values()), units._columns[UnitColumn.KIND]))
-        units._columns = {column: saved.get(column) or [NOTHING] * length for column in UNIT_COLUMNS}
+        units._columns = {column: saved.get(column) or [default_of(column)] * length for column in UNIT_COLUMNS}
         return units

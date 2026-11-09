@@ -23,14 +23,17 @@ from refusals import Refusals
 from microsponge.engine.kinds.catalog import NOTHING
 from microsponge.engine.kinds.category import Category, shown_category
 from microsponge.engine.kinds.kind import saved_name, shown_name
+from microsponge.engine.kinds.dice import Dice
 from microsponge.engine.kinds.domain import Domain
 from microsponge.engine.kinds.unit_kinds import AirUnit, LandUnit, SeaUnit, SpaceUnit, UnitKind, can_hit
 from microsponge.engine.units.unit_column import UnitColumn
-from microsponge.engine.units.unit_control import CHIP_DAMAGE, NO_DAMAGE, UnitControl
+from microsponge.engine.units.levels import LAST_LEVEL, Levels
+from microsponge.engine.units.unit_control import BEST_ARMOR_CLASS, CHIP_DAMAGE, NO_DAMAGE, UnitControl
 from microsponge.engine.world.layer import Layer
 from microsponge.support.numbers import divided_rounding_up
 from microsponge.err_messages import ERR_CANNOT_BE_ON, ERR_NO_DOMAIN, ERR_NO_SUCH_CIVILIZATION, ERR_NO_SUCH_UNIT, ERR_NO_SUCH_WORLD, ERR_NOT_IN_THEME, ERR_ROW_OFF_THE_MAP, ERR_TILE_HAS_A_UNIT
 from microsponge.themes.caveman.terrains import Grassland, Mountains, Tarpit, Water
+from microsponge.themes.caveman.theme import Caveman
 from microsponge.themes.caveman.units import AngryBird, Raft, Settler, Warrior
 from microsponge.themes.classic.units import Phalanx
 
@@ -39,44 +42,54 @@ SECOND_CIVILIZATION = 2
 NO_SUCH_CIVILIZATION = 3
 NO_SUCH_WORLD = 1
 THE_LEAST_DAMAGE = 1
-STRIKE_BACK_PERCENT = 20
+STRIKE_BACK_PERCENT = 50
 WHOLE = 100
+PERCENT_PER_ARMOR_POINT = 10
+NO_ARMOR = 10
+HALF_ARMOR = 5
+# Every test kind below rolls a fixed number, no dice and a number added, so that the damage is known.
+FIXED_WARRIOR_ROLL = 5
+
+
+def fixed(roll):
+    """Return dice that always roll a number."""
+    return Dice(count=0, sides=0, plus=roll)
 
 
 class Mammoth(LandUnit):
-    """A strong land unit, whose strike back at its default power still gets through a warrior's defense."""
+    """A strong land unit with good armor, whose strike back at the default percent still hurts a warrior."""
 
-    ATTACK = 50
-    DEFENSE = 5
+    ATTACK = fixed(50)
+    ARMOR_CLASS = 5
     HIT_POINTS = 100
 
 
 class Hedgehog(LandUnit):
-    """A land unit that strikes back with all of its attack points."""
+    """A land unit that strikes back with its whole roll."""
 
-    ATTACK = 10
+    ATTACK = fixed(10)
     STRIKE_BACK_PERCENT = 100
 
 
 class Tortoise(LandUnit):
     """A land unit that does not strike back."""
 
-    ATTACK = 10
+    ATTACK = fixed(10)
     STRIKES_BACK = False
 
 
 class SpearThrower(LandUnit):
     """A land unit that can hit air units."""
 
-    ATTACK = 10
+    ATTACK = fixed(10)
     CAN_HIT_AIR = True
 
 
 class Slinger(LandUnit):
-    """A land unit whose attack is different against air units, and which strikes back with all of it."""
+    """A land unit with extra dice against air units, which strikes back with its whole roll."""
 
-    ATTACK = 3
-    AIR_ATTACK = 9
+    ATTACK = Dice(count=1, sides=1, plus=2)
+    EXTRA_DICE = {Domain.AIR: 6}
     CAN_HIT_AIR = True
     STRIKE_BACK_PERCENT = 100
 
@@ -96,23 +109,31 @@ class Mystery(UnitKind):
 
 
 class Canoe(SeaUnit):
-    """A naval unit with no attack points."""
+    """A naval unit with no attack dice."""
 
 
 class Pterodactyl(AirUnit):
-    """An aerial unit with no attack points."""
+    """An aerial unit with no attack dice."""
 
 
 class Boulder(SeaUnit):
-    """A kind of unit whose defense is more than a warrior's attack."""
+    """A kind of unit with armor better than the best, which still lets chip damage through."""
 
-    DEFENSE = Warrior.ATTACK + 1
+    ARMOR_CLASS = BEST_ARMOR_CLASS - 1
 
 
 class Pebble(SeaUnit):
-    """A kind of unit whose defense is exactly a warrior's attack."""
+    """A kind of unit with the best armor."""
 
-    DEFENSE = Warrior.ATTACK
+    ARMOR_CLASS = BEST_ARMOR_CLASS
+
+
+class Clubber(LandUnit):
+    """A warrior that always rolls its average, against a warrior's armor."""
+
+    ATTACK = fixed(FIXED_WARRIOR_ROLL)
+    ARMOR_CLASS = Warrior.ARMOR_CLASS
+    HIT_POINTS = Warrior.HIT_POINTS
 
 
 class TestUnitControl(Refusals, unittest.TestCase):
@@ -180,39 +201,60 @@ class TestUnitControl(Refusals, unittest.TestCase):
             with self.subTest(kind=kind, terrain=terrain):
                 self.assertEqual(UnitControl.can_be_on(kind=kind, terrain=terrain), allowed)
 
-    def test_an_attack_deals_its_attack_points_less_the_defense_points_of_the_unit_attacked(self):
-        self.assertEqual(UnitControl.damage(attacker=Warrior, defender=Settler), Warrior.ATTACK - Settler.DEFENSE)
-        self.assertEqual(UnitControl.damage(attacker=Warrior, defender=Warrior), Warrior.ATTACK - Warrior.DEFENSE)
-        self.assertGreater(UnitControl.damage(attacker=Warrior, defender=Warrior), CHIP_DAMAGE)
+    def test_armor_takes_10_percent_off_a_roll_for_every_point_below_10_rounding_up(self):
+        self.assertEqual(UnitControl.mitigated(roll=10, armor_class=NO_ARMOR), 10)
+        self.assertEqual(UnitControl.mitigated(roll=10, armor_class=Warrior.ARMOR_CLASS), 10 * Warrior.ARMOR_CLASS * PERCENT_PER_ARMOR_POINT // WHOLE)
+        self.assertEqual(UnitControl.mitigated(roll=7, armor_class=HALF_ARMOR), divided_rounding_up(amount=7, by=2))
+        self.assertEqual(UnitControl.mitigated(roll=5, armor_class=HALF_ARMOR), 3)
+        self.assertEqual(UnitControl.mitigated(roll=10, armor_class=NO_ARMOR + 1), 10)
 
-    def test_an_attack_no_stronger_than_the_defense_still_deals_chip_damage(self):
+    def test_the_best_armor_and_better_still_let_chip_damage_through(self):
         self.assertEqual(CHIP_DAMAGE, THE_LEAST_DAMAGE)
+        self.assertEqual(UnitControl.mitigated(roll=50, armor_class=BEST_ARMOR_CLASS), CHIP_DAMAGE)
+        self.assertEqual(UnitControl.mitigated(roll=50, armor_class=Boulder.ARMOR_CLASS), CHIP_DAMAGE)
+        self.assertEqual(UnitControl.mitigated(roll=0, armor_class=NO_ARMOR), CHIP_DAMAGE)
         self.assertEqual(UnitControl.damage(attacker=Warrior, defender=Pebble), CHIP_DAMAGE)
-        self.assertEqual(UnitControl.damage(attacker=Warrior, defender=Boulder), CHIP_DAMAGE)
         self.assertEqual(UnitControl.damage(attacker=Settler, defender=Warrior), CHIP_DAMAGE)
 
-    def test_a_kind_can_have_other_attack_points_against_air_units_attacking_and_striking_back(self):
-        self.assertEqual(UnitControl.damage(attacker=Slinger, defender=Pterodactyl), Slinger.AIR_ATTACK - Pterodactyl.DEFENSE)
-        self.assertEqual(UnitControl.damage(attacker=Slinger, defender=Warrior), Slinger.ATTACK - Warrior.DEFENSE)
-        self.assertEqual(UnitControl.damage(attacker=Slinger, defender=Canoe), Slinger.ATTACK - Canoe.DEFENSE)
-        self.assertEqual(UnitControl.strike_back_damage(attacker=Pterodactyl, defender=Slinger), Slinger.AIR_ATTACK - Pterodactyl.DEFENSE)
-        self.assertEqual(UnitControl.strike_back_damage(attacker=Canoe, defender=Slinger), Slinger.ATTACK - Canoe.DEFENSE)
-        self.assertNotEqual(Slinger.AIR_ATTACK, Slinger.ATTACK)
+    def test_an_attack_on_an_average_roll_deals_the_dice_average_through_the_armor_of_the_unit_attacked(self):
+        self.assertEqual(Warrior.ATTACK.average(), FIXED_WARRIOR_ROLL)
+        self.assertEqual(UnitControl.damage(attacker=Warrior, defender=Settler), UnitControl.mitigated(roll=FIXED_WARRIOR_ROLL, armor_class=Settler.ARMOR_CLASS))
+        self.assertEqual(UnitControl.damage(attacker=Warrior, defender=Warrior), UnitControl.mitigated(roll=FIXED_WARRIOR_ROLL, armor_class=Warrior.ARMOR_CLASS))
+        self.assertEqual(UnitControl.damage(attacker=Warrior, defender=Warrior), UnitControl.damage(attacker=Clubber, defender=Clubber))
+        self.assertGreater(UnitControl.damage(attacker=Warrior, defender=Warrior), CHIP_DAMAGE)
+        self.assertEqual(UnitControl.damage(attacker=Raft, defender=Settler), int(Raft.ATTACK.average()))
 
-    def test_a_kind_with_no_other_attack_points_against_air_units_hits_them_with_its_attack_points(self):
-        self.assertIsNone(SpearThrower.AIR_ATTACK)
-        self.assertEqual(UnitControl.damage(attacker=SpearThrower, defender=Pterodactyl), SpearThrower.ATTACK - Pterodactyl.DEFENSE)
+    def test_a_kind_can_roll_extra_dice_against_air_units_attacking_and_striking_back(self):
+        against_air = Slinger.ATTACK.with_extra(dice=Slinger.EXTRA_DICE[Domain.AIR])
+        self.assertEqual(UnitControl.damage(attacker=Slinger, defender=Pterodactyl), UnitControl.mitigated(roll=int(against_air.average()), armor_class=Pterodactyl.ARMOR_CLASS))
+        self.assertEqual(UnitControl.damage(attacker=Slinger, defender=Warrior), UnitControl.mitigated(roll=int(Slinger.ATTACK.average()), armor_class=Warrior.ARMOR_CLASS))
+        self.assertEqual(UnitControl.damage(attacker=Slinger, defender=Canoe), UnitControl.mitigated(roll=int(Slinger.ATTACK.average()), armor_class=Canoe.ARMOR_CLASS))
+        self.assertEqual(UnitControl.strike_back_damage(attacker=Pterodactyl, defender=Slinger), UnitControl.mitigated(roll=int(against_air.average()), armor_class=Pterodactyl.ARMOR_CLASS))
+        self.assertEqual(UnitControl.strike_back_damage(attacker=Canoe, defender=Slinger), UnitControl.mitigated(roll=int(Slinger.ATTACK.average()), armor_class=Canoe.ARMOR_CLASS))
+        self.assertGreater(against_air.average(), Slinger.ATTACK.average())
+
+    def test_a_kind_with_no_extra_dice_against_air_units_hits_them_with_its_own_dice(self):
+        self.assertEqual(SpearThrower.EXTRA_DICE, {})
+        self.assertEqual(UnitControl.damage(attacker=SpearThrower, defender=Pterodactyl), UnitControl.mitigated(roll=int(SpearThrower.ATTACK.average()), armor_class=Pterodactyl.ARMOR_CLASS))
 
     def test_the_attacks_a_kind_needs_against_another_count_a_last_attack_for_the_hit_points_left_over(self):
         damage = UnitControl.damage(attacker=Hedgehog, defender=Warrior)
         self.assertNotEqual(Warrior.HIT_POINTS % damage, 0)
-        self.assertEqual(UnitControl.attacks_to_kill(attacker=Hedgehog, defender=Warrior), Warrior.HIT_POINTS // damage + 1)
-        self.assertEqual(UnitControl.attacks_to_kill(attacker=Warrior, defender=Warrior), divided_rounding_up(amount=Warrior.HIT_POINTS, by=UnitControl.damage(attacker=Warrior, defender=Warrior)))
-        self.assertEqual(UnitControl.attacks_to_kill(attacker=Settler, defender=Warrior), Warrior.HIT_POINTS)
+        self.assertEqual(UnitControl.attacks_to_kill(theme=Caveman, attacker=Hedgehog, defender=Warrior), Warrior.HIT_POINTS // damage + 1)
+        self.assertEqual(UnitControl.attacks_to_kill(theme=Caveman, attacker=Warrior, defender=Warrior), divided_rounding_up(amount=Warrior.HIT_POINTS, by=UnitControl.damage(attacker=Warrior, defender=Warrior)))
+        self.assertEqual(UnitControl.attacks_to_kill(theme=Caveman, attacker=Settler, defender=Warrior), Warrior.HIT_POINTS)
 
     def test_a_kind_that_cannot_hit_another_needs_no_number_of_attacks(self):
-        self.assertIsNone(UnitControl.attacks_to_kill(attacker=Warrior, defender=Pterodactyl))
-        self.assertIsNotNone(UnitControl.attacks_to_kill(attacker=SpearThrower, defender=Pterodactyl))
+        self.assertIsNone(UnitControl.attacks_to_kill(theme=Caveman, attacker=Warrior, defender=Pterodactyl))
+        self.assertIsNotNone(UnitControl.attacks_to_kill(theme=Caveman, attacker=SpearThrower, defender=Pterodactyl))
+
+    def test_a_level_adds_to_the_roll_makes_the_armor_better_and_adds_hit_points_so_more_attacks_are_needed(self):
+        recruit = UnitControl.attacks_to_kill(theme=Caveman, attacker=Warrior, defender=Warrior)
+        self.assertLess(UnitControl.attacks_to_kill(theme=Caveman, attacker=Warrior, defender=Warrior, attacker_level=LAST_LEVEL), recruit)
+        self.assertGreater(UnitControl.attacks_to_kill(theme=Caveman, attacker=Warrior, defender=Warrior, defender_level=LAST_LEVEL), recruit)
+        self.assertEqual(UnitControl.average_roll(attacker=Warrior, defender=Warrior, level=LAST_LEVEL), FIXED_WARRIOR_ROLL + Levels.damage_bonus(level=LAST_LEVEL))
+        self.assertEqual(UnitControl.armor_class(kind=Warrior, level=LAST_LEVEL), Warrior.ARMOR_CLASS - Levels.armor_bonus(level=LAST_LEVEL))
+        self.assertEqual(UnitControl.armor_class(kind=Warrior, bonus=1), Warrior.ARMOR_CLASS - 1)
 
     def test_dividing_and_rounding_up_counts_a_part_left_over_as_one_more(self):
         self.assertEqual(divided_rounding_up(amount=10, by=4), 3)
@@ -220,19 +262,20 @@ class TestUnitControl(Refusals, unittest.TestCase):
         self.assertEqual(divided_rounding_up(amount=1, by=4), 1)
         self.assertEqual(divided_rounding_up(amount=0, by=4), 0)
 
-    def test_a_unit_strikes_back_with_a_fifth_of_its_attack_points_by_default(self):
+    def test_a_unit_strikes_back_with_half_of_its_roll_by_default_through_the_armor_of_the_attacker(self):
         self.assertEqual(Mammoth.STRIKE_BACK_PERCENT, STRIKE_BACK_PERCENT)
-        expected = Mammoth.ATTACK * STRIKE_BACK_PERCENT // WHOLE - Warrior.DEFENSE
+        expected = UnitControl.mitigated(roll=Mammoth.ATTACK.plus * STRIKE_BACK_PERCENT // WHOLE, armor_class=Warrior.ARMOR_CLASS)
         self.assertGreater(expected, CHIP_DAMAGE)
         self.assertEqual(UnitControl.strike_back_damage(attacker=Warrior, defender=Mammoth), expected)
         self.assertLess(expected, UnitControl.damage(attacker=Mammoth, defender=Warrior))
+        self.assertEqual(UnitControl.strike_back_roll(attacker=Warrior, defender=Mammoth, roll=Mammoth.ATTACK.plus), Mammoth.ATTACK.plus * STRIKE_BACK_PERCENT // WHOLE)
 
     def test_a_weak_strike_back_still_deals_chip_damage(self):
-        self.assertEqual(UnitControl.strike_back_damage(attacker=Warrior, defender=Warrior), CHIP_DAMAGE)
         self.assertEqual(UnitControl.strike_back_damage(attacker=Mammoth, defender=Warrior), CHIP_DAMAGE)
+        self.assertEqual(UnitControl.strike_back_damage(attacker=Warrior, defender=Raft), CHIP_DAMAGE)
 
     def test_the_power_of_a_strike_back_can_be_set_for_a_kind_of_unit(self):
-        self.assertEqual(UnitControl.strike_back_damage(attacker=Warrior, defender=Hedgehog), Hedgehog.ATTACK - Warrior.DEFENSE)
+        self.assertEqual(UnitControl.strike_back_damage(attacker=Warrior, defender=Hedgehog), UnitControl.mitigated(roll=Hedgehog.ATTACK.plus, armor_class=Warrior.ARMOR_CLASS))
         self.assertEqual(UnitControl.strike_back_damage(attacker=Warrior, defender=Hedgehog), UnitControl.damage(attacker=Hedgehog, defender=Warrior))
 
     def test_a_kind_that_does_not_strike_back_deals_nothing_when_attacked(self):
