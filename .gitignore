@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+.DS_Store
+build/
+dist/
+*.egg-info/
+# Editors' swap files, which are never part of the project.
+*.swp
