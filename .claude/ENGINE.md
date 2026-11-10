@@ -14,7 +14,8 @@ says where things are and how the parts fit, and is kept true with every change 
   the seven categories of kind, and `catalog.py` gives every kind of a theme its id.
 - `world`: `world.py` is one map of tiles, and `layer.py` numbers its layers: terrain, unit,
   city (whose city radius a tile belongs to), city center, improvement, strategic resource and
-  terrain bonus. `terrain_bonus_control.py` is the static class for terrain bonuses.
+  terrain bonus. `memory.py` is a civilization's memory of one world, a `World` with every
+  layer but the units. `terrain_bonus_control.py` is the static class for terrain bonuses.
 - `cities`: `city.py` is one city, with its citizens, its count toward growing, its
   priorities, its buildings and its production queue. `city_control.py` is the static class with the rules for building a city, the
   tiles a city covers, and units going inside and coming out. `harvest.py` is the static class
@@ -27,9 +28,10 @@ says where things are and how the parts fit, and is kept true with every change 
   class for what a level takes and adds.
 - `civilizations`: `civilization.py` is one civilization: its name, what it holds of each
   resource, the technologies it knows, its action points, its bankrupt turns, its wars,
-  what it researches and whether it has lost. `requirements.py` says what a civilization or a
-  city lacks of what a kind requires, `research.py` is the static class for research, and
-  `strategic.py` the static class for strategic resources.
+  what it researches, whether it has lost and its memory of each world. `requirements.py` says
+  what a civilization or a city lacks of what a kind requires, `research.py` is the static
+  class for research, `strategic.py` the static class for strategic resources, `sight.py` the
+  static class for the fog of war, and `view.py` the view of the map a player reads.
 - `game`: `game.py`, the turn, whose turn it is, the civilizations, the worlds, the cities and
   the units of one game, whether the game is over, and the one source of random draws.
 - `turns`: `turn_control.py` is the static class that starts a game and does the work of ending
@@ -177,9 +179,24 @@ says where things are and how the parts fit, and is kept true with every change 
   a city of a civilization at war with no unit inside, through `problem_taking()` and
   `capture()`, which changes the owner and ends the city's production with no refund. Razing,
   and the turns that taking or razing will take, are not built.
+- The fog of war. A kind of unit has `VISION`, 5 by default: the unit sees the square of
+  tiles that many each way, and a city sees its city radius. `Sight.start()`, from
+  `TurnControl.start()`, gives every civilization a `Memory` of every world, blank unless the
+  theme's `LAND_STARTS_EXPLORED`, and `Sight.refresh()` records what a civilization sees
+  when its turn starts (`TurnControl.pass_on()`). The orders that move a unit or found or
+  take a city call `Sight.look_around_unit()` or `Sight.look_around_city()`, so the memory
+  holds each tile as last seen, in every layer but the units, and who owned each city when
+  last seen. `Sight.view()` makes a `View`, which a screen or a computer player reads the map
+  through, never the world: `can_see()` is vision now, `has_seen()` says whether a tile is
+  drawn at all, `remembered()` gives a layer's value as it is in vision and as last seen
+  elsewhere, `owner_of()` a city's owner the same way, and `units_seen()` and `unit_on()`
+  the other civilizations' units in vision. A technology with `ENDS_FOG_OF_WAR` makes
+  `units_seen()` every unit on a tile, and reveals no land. Units inside a city are on no
+  tile and are never seen. Classic has `SpySatellites` and fantasy `RemoteViewing`, with no
+  numbers; caveman has none, and the tests add one to a later caveman.
 - Not built yet: satellites, the colony ship,
   putting strategic resources on the map when a world is made, the technology given after
-  6000 turns, and trading technology.
+  6000 turns, trading technology, and a technology that reveals land without exploring.
 
 ## The reports and the guides
 
@@ -204,11 +221,12 @@ says where things are and how the parts fit, and is kept true with every change 
 
 - JSON: `required_version`, `saved_by`, `theme`, `turn`, `playing`, `names`, `civilizations`,
   `worlds`, `cities` and `units`. A city holds its buildings, its production queue and its
-  progress, and a civilization what it researches, the research points put toward it and
-  how many cities it has founded. Layers and columns are keyed by their numbers, and `names` records the name of every
-  id in every category.
+  progress, and a civilization what it researches, the research points put toward it, how
+  many cities it has founded and its memories, one per world, each with its remembered layers
+  and the owners of the cities it has seen. Layers and columns are keyed by their numbers, and `names` records the name of every
+  id in every category. Memories arrived with version 0.0.5, which `REQUIRED_VERSION` moved to.
 - Loading matches the saved names to the current theme's catalog and renumbers the layers and
-  columns that hold kind ids (`LAYER_CATEGORIES`, `COLUMN_CATEGORIES`), only where an id differs,
+  columns that hold kind ids (`LAYER_CATEGORIES`, `COLUMN_CATEGORIES`), in the memories too, only where an id differs,
   and the resources, technologies, buildings and queued kinds that civilizations and cities
   hold, through each one's `renumber(category=, numbers=)`.
   A saved name the theme no longer has is refused, until the user says what becomes of a removed

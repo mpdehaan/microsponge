@@ -60,6 +60,8 @@ ERR_UNIT_NOT_IN_A_CITY = 'the unit {unit} is not inside a {city}'
 ERR_AMOUNT = 'an amount must be a whole number that is not negative, got {value!r}'
 ERR_CIVILIZATION_NAME = 'the name of a civilization must be text that is not blank, got {value!r}'
 
+ERR_NO_MEMORY = 'civilization {name!r} has no memory of a world with the id {world!r}: has the game started?'
+
 # combat.py
 ERR_ATTACK_OWN = 'the unit {unit} cannot attack its own civilization'
 ERR_CANNOT_HIT = 'a {unit} cannot hit a {target}'

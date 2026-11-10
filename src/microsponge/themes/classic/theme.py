@@ -25,7 +25,7 @@ from microsponge.themes.classic.buildings import (
 from microsponge.themes.classic.improvements import Mine
 from microsponge.themes.classic.resources import Currency, Food, Gold, Iron, Metal, Silk, Stone, Uranium, Wood
 from microsponge.themes.classic.terrain_bonuses import MetalDeposit
-from microsponge.themes.classic.technologies import BronzeWorking, Computers, Fortification, Industrialization, IronWorking, Irrigation, Literacy, Sanitation, TheInternet
+from microsponge.themes.classic.technologies import BronzeWorking, Computers, Fortification, Industrialization, IronWorking, Irrigation, Literacy, Sanitation, SpySatellites, TheInternet
 from microsponge.themes.classic.terrains import Desert, Grassland, Lake, Mountains, Ocean, River
 from microsponge.themes.classic.units import (
     AntiAirPlatform, AntiMissilePlatform, Bomber, Cannon, Catapult, CruiseMissile, Drone, FighterPlane, Howitzer,
@@ -39,7 +39,8 @@ class Classic(Theme):
     CITY = ClassicCity
     TERRAINS = (Grassland, Desert, Mountains, River, Lake, Ocean)
     RESOURCES = (Currency, Food, Wood, Stone, Metal, Iron, Gold, Uranium, Silk)
-    TECHNOLOGIES = (BronzeWorking, IronWorking, Irrigation, Literacy, Sanitation, Fortification, Industrialization, Computers, TheInternet)
+    LAND_STARTS_EXPLORED = False
+    TECHNOLOGIES = (BronzeWorking, IronWorking, Irrigation, Literacy, Sanitation, Fortification, Industrialization, Computers, TheInternet, SpySatellites)
     UNITS = (
         Settler, Scout, Warrior, Phalanx, Legion, Catapult, Knights, Cannon, Howitzer, Musketeer, Infantry, FighterPlane, Bomber, StealthBomber,
         CruiseMissile, NuclearMissile, Drone, AntiMissilePlatform, AntiAirPlatform,

@@ -117,6 +117,7 @@ The tech tree of classic:
 | industrialization | -          |
 | computers         | -          |
 | the internet      | -          |
+| spy satellites    | -          |
 
 no technology of classic sets these, so their columns are left out: research points, requires, harvest bonus %, unit support bonus %
 

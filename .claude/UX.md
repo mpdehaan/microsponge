@@ -47,5 +47,11 @@ agreed, and nothing about a screen is assumed before then.
 - A player is warned when another civilization starts a world wonder, without saying which
   civilization when the player has not met that civilization, and when the player starts a
   world wonder that another civilization is already building.
+- When a civilization knows a technology that ends the fog of war, like spy satellites in
+  classic, the screens take care not to overwhelm the player with every unit move the player
+  can then see. How is not decided.
+- The map screen draws only what is in the viewport and that the player's civilization can see
+  or remembers. The player's own units and everything inside the player's own cities are
+  always drawn.
 - There is some sort of notification of important events, like a city that cannot build what
   it was told to, which the player can hop through, jumping to the things that need attention.

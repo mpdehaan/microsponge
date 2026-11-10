@@ -130,7 +130,22 @@ otherwise. What classic itself chooses, like its list of resources, is kept in
   terrain yet.
 - A civilization remembers every tile it has ever seen, with the terrain as it last saw it, and
   sees units only on the tiles within the vision radius of its units and cities right now. A
-  city has a vision radius of its own.
+  city sees its own city radius and no more.
+- A vision radius is a square, for now: a unit with a vision radius of 5 sees the 11 by 11
+  tiles with the unit in the middle, the same shape as a city radius. This may change later.
+- A city of another civilization that a civilization has seen stays on that civilization's
+  map, with the owner the city had when last seen. Coming back, the civilization may find the
+  city gone or in other hands. Strategic resources, terrain bonuses and improvements are
+  remembered the same way, as last seen.
+- The map is drawn as the civilization last saw each tile, until the civilization next sees
+  the tile and finds out what is different.
+- A theme may have a technology that ends the fog of war: a civilization that knows it sees
+  every unit everywhere. A screen is to take care not to overwhelm the player with every unit
+  move that can then be seen.
+- A civilization always sees everything of its own: its units, and everything inside its own
+  cities. What is inside another civilization's city is never seen, not the units inside, not
+  the buildings and not the production queue, even once the fog of war has ended. A theme may
+  later have a technology that shows what is inside every city.
 - A theme may have stealth units.
 
 ## Resources

@@ -93,3 +93,7 @@ class Telepathy(Technology):
 
 class Blimps(Technology):
     pass
+
+
+class RemoteViewing(Technology):
+    ENDS_FOG_OF_WAR = True

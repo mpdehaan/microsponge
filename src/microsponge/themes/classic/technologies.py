@@ -53,3 +53,7 @@ class Irrigation(Technology):
 
 class Fortification(Technology):
     pass
+
+
+class SpySatellites(Technology):
+    ENDS_FOG_OF_WAR = True

@@ -76,6 +76,7 @@ The tech tree of fantasy:
 | summoning         |
 | telepathy         |
 | blimps            |
+| remote viewing    |
 
 no technology of fantasy sets these, so their columns are left out: research points, requires, allows, harvest bonus %, unit support bonus %
 

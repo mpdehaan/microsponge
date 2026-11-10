@@ -140,7 +140,8 @@ beside them:
   `test/test_research.py` (what a civilization researches), `test/test_strategic.py`
   (strategic resources and borders), `test/test_combat.py` (attacks, taking a city,
   losing, and experience and levels), `test/test_terrain_bonuses.py` (special tiles that give
-  more), `test/test_saving.py` (the saved game, also loaded into later
+  more), `test/test_sight.py` (the fog of war: what a civilization sees, what it remembers,
+  and the view a player reads), `test/test_saving.py` (the saved game, also loaded into later
   versions of a theme) and `test/test_themes.py` (what each theme holds). More join them as the model objects
   are derived from the model, `GAME_RULES.md`.
 - **Shared helpers.** `test/caveman_game.py` builds the small game of caveman the tests play

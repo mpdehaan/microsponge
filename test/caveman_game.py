@@ -37,6 +37,7 @@ from microsponge.engine.turns.turn_control import TurnControl
 from microsponge.engine.units.unit_column import COLUMN_CATEGORIES, UNIT_COLUMNS
 from microsponge.engine.units.unit_control import UnitControl
 from microsponge.engine.world.layer import LAYER_CATEGORIES, LAYERS, Layer
+from microsponge.engine.world.memory import REMEMBERED_LAYERS
 from microsponge.engine.world.terrain_bonus_control import TerrainBonusControl
 from microsponge.engine.world.world import World
 from microsponge.themes.caveman.resources import Flint
@@ -206,12 +207,19 @@ def city_facts(*, game, city):
     )
 
 
+def memory_facts(*, game, memory):
+    """Return what a civilization remembers of a world: every remembered layer with kinds by name, and the owner it last saw of each city."""
+    layers = [layer_facts(game=game, world=memory, layer=layer) for layer in REMEMBERED_LAYERS]
+    return (layers, [memory.get_owner(city) for city in game.get_city_ids()])
+
+
 def civilization_facts(*, game, civilization):
     return (
         civilization.get_name(), by_resource_name(game=game, amounts=civilization.get_holdings()),
         sorted(names_of(game=game, category=Category.TECHNOLOGIES, kind_ids=civilization.get_technologies())),
         name_of(game=game, category=Category.TECHNOLOGIES, kind_id=civilization.get_researching()), civilization.get_research(),
         civilization.get_action_points(), civilization.get_bankrupt_turns(), civilization.get_wars(), civilization.has_lost(),
+        [memory_facts(game=game, memory=memory) for memory in civilization.get_memories()],
     )
 
 

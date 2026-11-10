@@ -28,7 +28,7 @@ from microsponge.engine.game.game import GAME_KEYS, Game
 from microsponge.err_messages import ERR_NOT_A_SAVED_GAME, ERR_SAVED_GAME_TOO_NEW, ERR_SAVED_GAME_TOO_OLD
 from microsponge.support.version import VERSION, is_version, version_numbers
 
-REQUIRED_VERSION = '0.0.2'
+REQUIRED_VERSION = '0.0.5'
 # What a saved game calls its parts, beside the game's own.
 REQUIRED_VERSION_KEY = 'required_version'
 SAVED_BY_KEY = 'saved_by'

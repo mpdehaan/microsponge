@@ -55,11 +55,13 @@ class World:
     """
 
     __slots__ = ('_width', '_height', '_layers')
+    # The layers this kind of map holds. A memory of a world (memory.py) holds fewer.
+    HELD_LAYERS = LAYERS
 
     def __init__(self, *, width, height):
         self._width = check_size(name=WIDTH_KEY, value=width)
         self._height = check_size(name=HEIGHT_KEY, value=height)
-        self._layers = {layer: rows_of(value=NOTHING, width=width, height=height) for layer in LAYERS}
+        self._layers = {layer: rows_of(value=NOTHING, width=width, height=height) for layer in self.HELD_LAYERS}
 
     def get_width(self):
         return self._width
@@ -118,7 +120,7 @@ class World:
         """
         world = cls(width=data[WIDTH_KEY], height=data[HEIGHT_KEY])
         saved = data[LAYERS_KEY]
-        for layer in LAYERS:
+        for layer in cls.HELD_LAYERS:
             if str(layer) in saved:
                 world._layers[layer] = check_rows(layer=layer, rows=saved[str(layer)], width=world._width, height=world._height)
         return world

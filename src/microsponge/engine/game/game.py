@@ -226,3 +226,7 @@ class Game:
             if numbers[category] is not None:
                 for holder in self._civilizations + self._cities:
                     holder.renumber(category=category, numbers=numbers[category])
+        for layer, category in LAYER_CATEGORIES.items():
+            if numbers[category] is not None:
+                for civilization in self._civilizations:
+                    civilization.renumber_memories(layer=layer, numbers=numbers[category])

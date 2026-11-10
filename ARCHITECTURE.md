@@ -42,7 +42,10 @@ turns and the saved game.
     and buildings a city builds, paid for a part each turn.
   - `civilizations` has the civilization: what it holds, what it knows, its action points and
     its wars, research, which is the one technology a civilization researches with the
-    research points it gathers, and the strategic resources within its borders.
+    research points it gathers, the strategic resources within its borders, and the fog of
+    war: what a civilization sees around its units and cities, what it remembers of each
+    world, and the view of the map that a player, or a computer player, reads instead of the
+    world itself.
   - `game` ties one game together: the turn, whose turn it is, the civilizations, the worlds,
     the cities and the units.
   - `turns` starts a game, does the work of ending a turn, and has every order a civilization

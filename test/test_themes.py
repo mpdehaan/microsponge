@@ -541,8 +541,13 @@ class TestClassic(unittest.TestCase):
         named = {
             technologies.IronWorking, technologies.Literacy, technologies.BronzeWorking, technologies.Computers,
             technologies.Industrialization, technologies.Sanitation, technologies.TheInternet, technologies.Irrigation, technologies.Fortification,
+            technologies.SpySatellites,
         }
         self.assertLessEqual(named, set(Classic.TECHNOLOGIES))
+
+    def test_spy_satellites_end_the_fog_of_war_in_classic_and_the_land_starts_unexplored(self):
+        self.assertEqual([technology for technology in Classic.TECHNOLOGIES if technology.ENDS_FOG_OF_WAR], [classic_technologies.SpySatellites])
+        self.assertFalse(Classic.LAND_STARTS_EXPLORED)
 
     def test_classic_has_the_units_the_user_named(self):
         units = classic_units
@@ -627,11 +632,15 @@ class TestFantasy(unittest.TestCase):
             technologies.DragonHusbandry, technologies.DragonRiding, technologies.Chivalry, technologies.WyvernHusbandry, technologies.Magic,
             technologies.FireMagic, technologies.WaterMagic, technologies.EarthMagic, technologies.AirMagic, technologies.Elementals,
             technologies.Necromancy, technologies.Psionics, technologies.Teleportation, technologies.Spirituality, technologies.NatureAttunement,
-            technologies.Guilds, technologies.Summoning, technologies.Telepathy, technologies.Blimps,
+            technologies.Guilds, technologies.Summoning, technologies.Telepathy, technologies.Blimps, technologies.RemoteViewing,
         }
         self.assertEqual(set(Fantasy.TECHNOLOGIES), named)
         for technology in Fantasy.TECHNOLOGIES:
             self.assertEqual(technology.REQUIRES, ())
+
+    def test_remote_viewing_ends_the_fog_of_war_in_fantasy_and_nothing_else_does(self):
+        self.assertEqual([technology for technology in Fantasy.TECHNOLOGIES if technology.ENDS_FOG_OF_WAR], [fantasy_technologies.RemoteViewing])
+        self.assertFalse(Fantasy.LAND_STARTS_EXPLORED)
 
 
 if __name__ == '__main__':

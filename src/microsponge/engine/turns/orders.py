@@ -19,6 +19,7 @@
 from microsponge.engine.cities.city_control import CityControl
 from microsponge.engine.cities.production import Production
 from microsponge.engine.civilizations.research import Research
+from microsponge.engine.civilizations.sight import Sight
 from microsponge.engine.kinds.catalog import NOTHING
 from microsponge.engine.kinds.category import Category
 from microsponge.engine.kinds.kind import shown_name
@@ -120,6 +121,7 @@ class Orders:
         Orders.check_points(game=game, unit=unit, cost=cost)
         Orders.check_may_enter(game=game, unit=unit, x=x, y=y)
         UnitControl.move_to(game=game, unit=unit, x=x, y=y)
+        Sight.look_around_unit(game=game, unit=unit)
         Orders.charge(game=game, unit=unit, cost=cost)
 
     @staticmethod
@@ -150,6 +152,7 @@ class Orders:
         Orders.check_points(game=game, unit=settler, cost=cost)
         owner = game.get_civilization(Orders.owner_of(game=game, unit=settler))
         city = CityControl.found(game=game, settler=settler, name=name)
+        Sight.look_around_city(game=game, city=city)
         owner.set_action_points(owner.get_action_points() - cost)
         return city
 
@@ -160,6 +163,7 @@ class Orders:
         Orders.check_points(game=game, unit=unit, cost=cost)
         WorkControl.check_idle(game=game, unit=unit)
         CityControl.enter(game=game, unit=unit, city=city)
+        Sight.look_around_city(game=game, city=city)
         Orders.charge(game=game, unit=unit, cost=cost)
 
     @staticmethod
@@ -168,6 +172,7 @@ class Orders:
         cost = game.get_theme().STRAIGHT_MOVE_COST_BASE
         Orders.check_points(game=game, unit=unit, cost=cost)
         CityControl.leave(game=game, unit=unit, x=x, y=y)
+        Sight.look_around_unit(game=game, unit=unit)
         Orders.charge(game=game, unit=unit, cost=cost)
 
     @staticmethod

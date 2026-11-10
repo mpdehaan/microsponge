@@ -19,7 +19,8 @@
 from microsponge.engine.kinds.catalog import NOTHING, renumbered, renumbered_keys
 from microsponge.engine.kinds.category import Category
 from microsponge.engine.saving.keys import number_keys, text_keys
-from microsponge.err_messages import ERR_AMOUNT, ERR_CIVILIZATION_NAME
+from microsponge.engine.world.memory import Memory
+from microsponge.err_messages import ERR_AMOUNT, ERR_CIVILIZATION_NAME, ERR_NO_MEMORY
 from microsponge.support.numbers import is_a_count
 from microsponge.support.text import is_a_name
 
@@ -34,6 +35,7 @@ RESEARCHING_KEY = 'researching'
 RESEARCH_KEY = 'research'
 LOST_KEY = 'lost'
 CITIES_FOUNDED_KEY = 'cities_founded'
+MEMORIES_KEY = 'memories'
 NOTHING_HELD = 0
 
 
@@ -57,7 +59,7 @@ class Civilization:
     own. Resources, technologies and other civilizations go by their ids.
     """
 
-    __slots__ = ('_name', '_holdings', '_technologies', '_researching', '_research', '_action_points', '_bankrupt_turns', '_wars', '_lost', '_cities_founded')
+    __slots__ = ('_name', '_holdings', '_technologies', '_researching', '_research', '_action_points', '_bankrupt_turns', '_wars', '_lost', '_cities_founded', '_memories')
 
     def __init__(self, name):
         self._name = check_name(name)
@@ -70,6 +72,7 @@ class Civilization:
         self._wars = set()
         self._lost = False
         self._cities_founded = 0
+        self._memories = []
 
     def get_name(self):
         return self._name
@@ -157,6 +160,20 @@ class Civilization:
     def lose(self):
         self._lost = True
 
+    def add_memory(self, memory):
+        """Add the civilization's memory of the next world, and return that world's id."""
+        self._memories.append(memory)
+        return len(self._memories) - 1
+
+    def get_memory(self, world):
+        """Return what the civilization remembers of a world, which a started game has for every world."""
+        if type(world) is not int or not 0 <= world < len(self._memories):
+            raise ValueError(ERR_NO_MEMORY.format(name=self._name, world=world))
+        return self._memories[world]
+
+    def get_memories(self):
+        return list(self._memories)
+
     def renumber(self, *, category, numbers):
         """Replace the ids of a category of kinds that the civilization holds, after loading a game saved with other ids."""
         if category == Category.RESOURCES:
@@ -164,6 +181,11 @@ class Civilization:
         if category == Category.TECHNOLOGIES:
             self._technologies = set(renumbered(values=self.get_technologies(), numbers=numbers))
             self._researching = renumbered(values=[self._researching], numbers=numbers)[0]
+
+    def renumber_memories(self, *, layer, numbers):
+        """Replace the ids in a layer of every memory, after loading a game saved with other ids."""
+        for memory in self._memories:
+            memory.renumber(layer=layer, numbers=numbers)
 
     def to_data(self):
         return {
@@ -177,6 +199,7 @@ class Civilization:
             WARS_KEY: self.get_wars(),
             LOST_KEY: self._lost,
             CITIES_FOUNDED_KEY: self._cities_founded,
+            MEMORIES_KEY: [memory.to_data() for memory in self._memories],
         }
 
     @classmethod
@@ -191,4 +214,5 @@ class Civilization:
         civilization._wars = set(data[WARS_KEY])
         civilization._lost = data[LOST_KEY]
         civilization._cities_founded = check_amount(data[CITIES_FOUNDED_KEY])
+        civilization._memories = [Memory.from_data(memory) for memory in data[MEMORIES_KEY]]
         return civilization

@@ -146,9 +146,22 @@ The world wonders of classic are these, and that's it for now:
   inside 2 better, to be balanced later. City walls are bypassed by the catapult, the cannon
   and the howitzer.
 
+## Visibility
+
+- The land starts out unexplored in classic: a civilization sees only what is around its
+  starting units and its cities. A civilization starts with no city, for now; options that
+  start a civilization with a city already founded and some units may come later.
+- The technology that ends the fog of war in classic is spy satellites, which the user
+  suggested. The code has `SpySatellites` with no requirements and no research cost yet.
+
+- The user is considering, for later, an end-stage technology called internet spybots, which
+  would show everything inside everybody's cities, beside advanced AI and then AI singularity,
+  which is not defined yet. None of the three is in the code.
+
 ## Not decided yet
 
-- Whether land starts out unexplored in classic.
+- What spy satellites requires and costs.
+- Whether internet spybots, advanced AI and AI singularity go in, and what each does.
 - Which other units need iron.
 - What uses stone, and whether civilizations have ages.
 - How much metal a metal deposit gives.

@@ -54,6 +54,8 @@ class Theme:
     # The fewest and the most worlds a game has. A theme with planets raises the most, and the player chooses.
     MIN_WORLDS = 1
     MAX_WORLDS = 1
+    # Whether every civilization knows the whole map from the start, or only what is around its units.
+    LAND_STARTS_EXPLORED = False
     # The action points moving one tile costs before the terrain is counted, straight and diagonally, and the same for attacking.
     STRAIGHT_MOVE_COST_BASE = 1
     DIAGONAL_MOVE_COST_BASE = 1

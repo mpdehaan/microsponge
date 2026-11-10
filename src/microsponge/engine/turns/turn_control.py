@@ -21,6 +21,7 @@ from microsponge.engine.cities.harvest import Harvest
 from microsponge.engine.cities.production import Production
 from microsponge.engine.civilizations.requirements import buildings_held, known_technologies
 from microsponge.engine.civilizations.research import Research
+from microsponge.engine.civilizations.sight import FIRST_CIVILIZATION, Sight
 from microsponge.engine.kinds.bonuses import harvest_percent, unit_support_percent
 from microsponge.engine.kinds.catalog import NOTHING
 from microsponge.engine.kinds.category import Category
@@ -31,7 +32,6 @@ from microsponge.err_messages import ERR_GAME_NOT_STARTED, ERR_GAME_OVER, ERR_GA
 
 WHOLE = 100
 NO_PENALTY = 0
-FIRST_CIVILIZATION = 1
 NOT_BANKRUPT = 0
 NO_CURRENCY = 0
 NOT_GROWING = 0
@@ -63,6 +63,7 @@ class TurnControl:
             for resource, amount in game.get_theme().STARTS_WITH.items():
                 game.get_civilization(civilization).add(resource=game.get_catalog().get_id(category=Category.RESOURCES, kind=resource), amount=amount)
             TurnControl.refill(game=game, civilization=civilization)
+        Sight.start(game)
         game.set_playing(FIRST_CIVILIZATION)
 
     @staticmethod
@@ -99,6 +100,7 @@ class TurnControl:
         if not later:
             game.next_turn()
         game.set_playing(later[0] if later else still_playing[0])
+        Sight.refresh(game=game, civilization=game.get_playing())
 
     @staticmethod
     def collect(*, game, civilization):

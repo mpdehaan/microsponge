@@ -11,6 +11,8 @@ short. [GUIDE.md](GUIDE.md) says how every theme is played; this page says what 
 
 ## The story
 
+Unga Bunga! It's Captain Caveman!
+
 The ice has pulled back, the grass has come up, and the clans have come down from the caves to
 see what the world is made of. It turns out to be made of grassland, forest, a few mountains, a
 lake and a tarpit, and there is just enough of it for one clan, which is a problem, because there

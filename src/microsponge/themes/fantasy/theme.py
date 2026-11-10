@@ -20,7 +20,7 @@ from microsponge.engine.kinds.theme import Theme
 from microsponge.themes.fantasy.city import FantasyCity
 from microsponge.themes.fantasy.technologies import (
     AirMagic, Blimps, Chivalry, DragonHusbandry, DragonRiding, EarthMagic, Elementals, FireMagic, Guilds, Magic, NatureAttunement, Necromancy,
-    Psionics, Spirituality, Summoning, Telepathy, Teleportation, WaterMagic, WyvernHusbandry,
+    Psionics, RemoteViewing, Spirituality, Summoning, Telepathy, Teleportation, WaterMagic, WyvernHusbandry,
 )
 from microsponge.themes.fantasy.units import (
     Blimp, Cleric, Dragon, Elemental, Goblin, Knight, Monk, Ogre, Ranger, Scout, Settler, Soldier, Sorcerer, Wizard, Worker, Wyvern,
@@ -31,6 +31,6 @@ class Fantasy(Theme):
     CITY = FantasyCity
     TECHNOLOGIES = (
         DragonHusbandry, DragonRiding, Chivalry, WyvernHusbandry, Magic, FireMagic, WaterMagic, EarthMagic, AirMagic, Elementals, Necromancy,
-        Psionics, Teleportation, Spirituality, NatureAttunement, Guilds, Summoning, Telepathy, Blimps,
+        Psionics, Teleportation, Spirituality, NatureAttunement, Guilds, Summoning, Telepathy, Blimps, RemoteViewing,
     )
     UNITS = (Settler, Worker, Scout, Soldier, Knight, Ranger, Monk, Cleric, Sorcerer, Wizard, Elemental, Ogre, Goblin, Dragon, Wyvern, Blimp)

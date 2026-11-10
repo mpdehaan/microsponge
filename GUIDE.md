@@ -151,8 +151,23 @@ start the units built in their city at level 2.
 ## Diplomacy, visibility and computer players
 
 Civilizations are at peace until one declares war on another, and a unit may not enter the
-territory of a civilization its own is not at war with or friendly with. The fog of war hides
-units: a civilization sees only what is within the vision of its units and cities, and remembers
-the terrain it has seen. The computer players play by the same rules, see only what their units
-see, and each has a personality of its own, so that no two play the same way. More on all of
-these arrives with the screens.
+territory of a civilization its own is not at war with or friendly with. The computer players
+play by the same rules, see only what their units see, and each has a personality of its own, so
+that no two play the same way. More on both arrives with the screens.
+
+## Exploring and the fog of war
+
+The land starts out unknown in most themes: at the start a civilization knows only the tiles
+around its settler, and a tile has to be seen before it is drawn at all. Every unit sees the
+tiles within its vision, 5 tiles each way for most kinds, a square of 11 by 11 with the unit in
+the middle, and a city sees its whole city radius. A tile once seen stays on the map as it was
+last seen, terrain, improvements, resources and all, until a unit or a city sees it again and
+finds out what has changed. A city of another civilization stays on the map too, with the owner
+it had when last seen: coming back, a civilization may find the city in other hands, or gone.
+
+The fog of war is about units: another civilization's units are shown only on the tiles a
+civilization can see right now, and a unit inside a city is never seen from outside. Some themes
+have a technology that ends the fog of war, like spy satellites in classic, and a civilization
+that knows it sees every unit everywhere, though it still has to explore the land. The computer
+players are under the same fog: they decide from what their units and cities can see and from
+what they remember, never from the whole map.

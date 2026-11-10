@@ -30,6 +30,9 @@ Classic is being developed first; this theme is recorded so that the engine allo
   so that the stub loads. Which class of unit each really is, and what each can do, is the
   user's to say.
 
+- The technology that ends the fog of war in fantasy is something like remote viewing, which
+  the user suggested. The code has `RemoteViewing` with no requirements and no research cost yet.
+
 ## Not decided yet
 
 - The properties of the astral plane, and which units move between the real world and the
