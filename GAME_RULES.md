@@ -74,7 +74,23 @@ otherwise. What classic itself chooses, like its list of resources, is kept in
   afresh, as if each civilization were a new person, so what a player learnt about a
   civilization in one game does not hold in the next.
 - The traits of a civilization can change as the civilization itself changes over time, on the
-  same slow timescale as its memory.
+  same slow timescale as its memory. This is left for later (`IDEAS.md`): for now the traits
+  stay as they were dealt for the whole game.
+- A computer player's traits are eight numbers, each from 0 to 100: expansion, how much it
+  values expansion over the army; boldness, how far below a sure win it will attack; grudge,
+  how long it remembers a wrong; aggressive hyperfocus, how strongly it prefers one enemy;
+  science, how much it values science and research; peace, how much it tries to be nonviolent
+  while it can dominate by investing; conquest, how much it wants to conquer land rather than
+  stay small and defensible or keep a large military; and economics, how much it values its
+  economy.
+- The traits are dealt as points. All the traits together could hold 800 points, and a
+  civilization gets between 40 and 60 percent of that, chosen at random when the game starts,
+  spread at random over its traits, no trait above 100. There are also named general
+  tendencies, settings of the eight numbers that are then slightly randomized, like logical and
+  strategic, campaigner and peaceful builder, so that a person setting up a game can later be
+  asked what kind of opponents they like, with some canned choices to keep that simple.
+- Every civilization is slightly subject to grudges when diplomacy happens, some more than
+  others, by the grudge trait. The memory of wrongs comes with diplomacy (`IDEAS.md`).
 - A person playing a civilization sets up no traits: the person plays as themselves.
 - The traits of a civilization may be shown in a window on the diplomacy screens, which may
   always be available to a civilization that has a spy network.

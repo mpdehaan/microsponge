@@ -141,11 +141,14 @@ beside them:
   (strategic resources and borders), `test/test_combat.py` (attacks, taking a city,
   losing, and experience and levels), `test/test_terrain_bonuses.py` (special tiles that give
   more), `test/test_sight.py` (the fog of war: what a civilization sees, what it remembers,
-  and the view a player reads), `test/test_saving.py` (the saved game, also loaded into later
+  and the view a player reads), `test/test_traits.py` (the traits of a computer-played
+  civilization), `test/test_computer_player.py` (two computer players playing a whole game of
+  caveman, and the traits tipping their decisions), `test/test_saving.py` (the saved game, also loaded into later
   versions of a theme) and `test/test_themes.py` (what each theme holds). More join them as the model objects
   are derived from the model, `GAME_RULES.md`.
 - **Shared helpers.** `test/caveman_game.py` builds the small game of caveman the tests play
-  with and compares two games, and `test/later_caveman.py` has caveman as later versions might
+  with and compares two games, and has `computer_played_caveman_game()` and `play_turns()` for
+  games the computer players play, and `test/later_caveman.py` has caveman as later versions might
   change it. `test/refusals.py` gives a test class `refused()`, which returns the message the
   program refuses something with, so that no test file writes that out again.
 - **The tools.** `test/test_balance.py` (the report that shows how the units of a theme stand

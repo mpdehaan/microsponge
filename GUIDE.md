@@ -151,9 +151,19 @@ start the units built in their city at level 2.
 ## Diplomacy, visibility and computer players
 
 Civilizations are at peace until one declares war on another, and a unit may not enter the
-territory of a civilization its own is not at war with or friendly with. The computer players
-play by the same rules, see only what their units see, and each has a personality of its own, so
-that no two play the same way. More on both arrives with the screens.
+territory of a civilization its own is not at war with or friendly with. More on diplomacy
+arrives with the screens.
+
+## The computer players
+
+Every civilization not played by a person is played by the computer, by the same rules and under
+the same fog of war. Each computer player has a personality of its own, eight traits from 0 to
+100 dealt afresh at the start of every game: expansion, boldness, grudge, aggressive hyperfocus,
+science, peace, conquest and economics. A player with high expansion keeps founding cities; one
+with high peace is slow to declare war; one with high boldness attacks below a sure win; one with
+high conquest marches on the enemy as soon as its army is ready, and one with low conquest keeps
+its army at home. No two players are dealt the same hand, so no two games play alike, and a
+person setting up a game will later be able to ask for the kind of opponents they like.
 
 ## Exploring and the fog of war
 

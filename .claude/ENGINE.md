@@ -32,6 +32,9 @@ says where things are and how the parts fit, and is kept true with every change 
   what a civilization or a city lacks of what a kind requires, `research.py` is the static
   class for research, `strategic.py` the static class for strategic resources, `sight.py` the
   static class for the fog of war, and `view.py` the view of the map a player reads.
+- `players`: `traits.py` is the eight traits of a computer-played civilization, how they are
+  dealt and the named tendencies, and `computer_player.py` is `ComputerPlayer`, the algorithm
+  that plays a turn, which each theme's player subclasses (`themes/caveman/player.py`).
 - `game`: `game.py`, the turn, whose turn it is, the civilizations, the worlds, the cities and
   the units of one game, whether the game is over, and the one source of random draws.
 - `turns`: `turn_control.py` is the static class that starts a game and does the work of ending
@@ -194,6 +197,27 @@ says where things are and how the parts fit, and is kept true with every change 
   `units_seen()` every unit on a tile, and reveals no land. Units inside a city are on no
   tile and are never seen. Classic has `SpySatellites` and fantasy `RemoteViewing`, with no
   numbers; caveman has none, and the tests add one to a later caveman.
+- The computer players. A civilization with `Traits` is computer-played (`is_computer_played()`),
+  and one without is a person's; the traits are in the saved game. `Traits.dealt(random)` deals
+  40 to 60 percent of the 800 points there could be, `Traits.tending_to(tendency=, random=)`
+  nudges a named tendency (`LOGICAL`, `CAMPAIGNER`, `PEACEFUL_BUILDER`), and
+  `Traits.favors(trait=, random=)` is the one draw every decision goes through, so a trait of 70
+  wins 70 times in 100. A theme names its player in `Theme.PLAYER`, and
+  `PLAYER.play_turn(game=, civilization=)` plays and ends a turn: pick research (science
+  trait chooses between the player's science and military orders), settle (found where the
+  settler stands, else walk to the nearest remembered site, `CityControl.problem_with_site()`
+  on the memory, else explore toward the nearest unseen tile outside known foreign land),
+  consider war (army of `GROUP_SIZE` ready, peace trait, first civilization met), command the
+  fighters (one stays inside each city, the rest garrison an empty city next to them, attack
+  what is next to them when `worth_attacking()`, by `attacks_to_kill()` and the boldness
+  trait, and march on the nearest known enemy city when the conquest trait says, hyperfocus
+  deciding whether they ignore enemy units on the way), and decide the builds (a defender for
+  a city with none, a settler by the expansion trait when none is alive, an economy building by
+  the economics trait, a fighter while the bank holds `RESERVE`, and something else instead of
+  a build that is blocked, `can_pay_a_part()` keeping a city off a build it cannot pay). Every
+  order goes through `Orders` inside `try_order()`, so a refused order changes nothing and the
+  player tries the next thing. The player reads the map only through the `View` and the
+  `Memory`.
 - Not built yet: satellites, the colony ship,
   putting strategic resources on the map when a world is made, the technology given after
   6000 turns, trading technology, and a technology that reveals land without exploring.

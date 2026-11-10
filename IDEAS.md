@@ -14,6 +14,34 @@ first, before any idea that hasn't been started.
 
 ## Unranked
 
+### The named tendencies, refined
+
+The three named tendencies, logical and strategic, campaigner and peaceful builder, start with
+numbers Claude chose. They will evolve: once scripted games show how each plays, their numbers
+are tuned, more tendencies may be added, and the canned choices a person picks opponents from
+are built on them.
+
+What it would mean for the code:
+
+- The tendencies stay settings in `src/microsponge/engine/players/traits.py`, one edit each, and
+  the report of the scripted game shows how each tendency did, so that the tuning reads off the
+  report.
+
+### Traits that change, and the memory of wrongs
+
+The model says that a civilization's traits can change slowly over a game, and that each
+computer player keeps a reputation of who has wronged it, to which every civilization is slightly
+subject, some more than others by the grudge trait. Both wait for diplomacy, since there is
+nothing yet for a grudge to act on; the grudge trait is stored and used by nothing.
+
+What it would mean for the code:
+
+- A memory of wrongs on the civilization, one number for each other civilization, raised by an
+  attack, a city taken or land blocked out, lowered a little each turn, faster for a civilization
+  with a low grudge trait, and in the saved game.
+- The computer player weighing the wrongs when it chooses whom to declare war on, and the traits
+  moving a point at a time on the same timescale.
+
 ### Seeded replay: proving that a change altered nothing
 
 The same seed and the same moves, played again, would always give the same game. A game could

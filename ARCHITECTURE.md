@@ -46,6 +46,9 @@ turns and the saved game.
     war: what a civilization sees around its units and cities, what it remembers of each
     world, and the view of the map that a player, or a computer player, reads instead of the
     world itself.
+  - `players` has the computer players: the traits that make a computer-played civilization's
+    personality, and the player that plays a civilization's turn by them, which each theme
+    subclasses to say which of its kinds the player researches, defends with and attacks with.
   - `game` ties one game together: the turn, whose turn it is, the civilizations, the worlds,
     the cities and the units.
   - `turns` starts a game, does the work of ending a turn, and has every order a civilization

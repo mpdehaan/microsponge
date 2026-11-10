@@ -56,6 +56,8 @@ class Theme:
     MAX_WORLDS = 1
     # Whether every civilization knows the whole map from the start, or only what is around its units.
     LAND_STARTS_EXPLORED = False
+    # The theme's computer player, a subclass of ComputerPlayer (engine/players), or None for a theme that cannot be played by the computer yet.
+    PLAYER = None
     # The action points moving one tile costs before the terrain is counted, straight and diagonally, and the same for attacking.
     STRAIGHT_MOVE_COST_BASE = 1
     DIAGONAL_MOVE_COST_BASE = 1

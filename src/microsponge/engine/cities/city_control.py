@@ -26,7 +26,7 @@ from microsponge.engine.units.unit_column import UnitColumn
 from microsponge.engine.units.unit_control import UnitControl
 from microsponge.engine.world.layer import Layer
 from microsponge.err_messages import (
-    ERR_CANNOT_TAKE_CITIES, ERR_CITY_COVERS_A_UNIT, ERR_CITY_COVERS_TERRAIN, ERR_CITY_DEFENDED, ERR_CITY_FULL, ERR_CITY_NEEDS_LAND, ERR_CITY_OFF_THE_MAP, ERR_CITY_TOO_CLOSE, ERR_NOT_A_SETTLER,
+    ERR_CANNOT_TAKE_CITIES, ERR_CITY_COVERS_A_UNIT, ERR_CITY_COVERS_TERRAIN, ERR_CITY_COVERS_UNSEEN, ERR_CITY_DEFENDED, ERR_CITY_FULL, ERR_CITY_NEEDS_LAND, ERR_CITY_OFF_THE_MAP, ERR_CITY_TOO_CLOSE, ERR_NOT_A_SETTLER,
     ERR_NOT_AT_WAR, ERR_NOT_NEXT_TO_CENTER, ERR_NOT_NEXT_TO_CITY, ERR_UNIT_IN_A_CITY, ERR_UNIT_NOT_IN_A_CITY,
 )
 
@@ -104,21 +104,35 @@ class CityControl:
         if units.get_value(column=UnitColumn.CITY, unit=settler) != NOTHING:
             return ERR_UNIT_IN_A_CITY.format(unit=settler, city=spec.NAME)
         world_id, x, y = UnitControl.tile_of(game=game, unit=settler)
-        world = game.get_world(world_id)
+        return CityControl.problem_with_site(game=game, tiles=game.get_world(world_id), x=x, y=y, ignoring=(settler,))
+
+    @staticmethod
+    def problem_with_site(*, game, tiles, x, y, ignoring=()):
+        """Return why a city cannot be built with its center on a tile of a map, as an error message, or None when it can.
+
+        The map is the world, or a civilization's memory of the world, which holds no units, so
+        that a computer player can look for a site in what it remembers. The units in ignoring,
+        like the settler itself, may stand in the city center.
+        """
+        spec = game.get_theme().CITY
         center = square(x=x, y=y, size=spec.CENTER_SIZE)
-        if reaches_off_the_map(tiles=center, world=world):
+        if reaches_off_the_map(tiles=center, world=tiles):
             return ERR_CITY_OFF_THE_MAP.format(city=spec.NAME)
-        for tile_x, tile_y in on_the_map(tiles=square(x=x, y=y, size=spec.RADIUS_SIZE), world=world):
-            neighbor = world.get_value(layer=Layer.CITY, x=tile_x, y=tile_y)
+        for tile_x, tile_y in on_the_map(tiles=square(x=x, y=y, size=spec.RADIUS_SIZE), world=tiles):
+            neighbor = tiles.get_value(layer=Layer.CITY, x=tile_x, y=tile_y)
             if neighbor != NOTHING:
                 return ERR_CITY_TOO_CLOSE.format(city=spec.NAME, name=game.get_city(neighbor).get_name())
         land = 0
+        holds_units = Layer.UNIT in tiles.HELD_LAYERS
         for tile_x, tile_y in center:
-            if world.get_value(layer=Layer.UNIT, x=tile_x, y=tile_y) not in (NOTHING, settler):
-                return ERR_CITY_COVERS_A_UNIT.format(city=spec.NAME, x=world.column(tile_x), y=tile_y)
-            terrain = game.get_terrain(world=world_id, x=tile_x, y=tile_y)
+            if holds_units and tiles.get_value(layer=Layer.UNIT, x=tile_x, y=tile_y) not in (NOTHING, *ignoring):
+                return ERR_CITY_COVERS_A_UNIT.format(city=spec.NAME, x=tiles.column(tile_x), y=tile_y)
+            terrain_id = tiles.get_value(layer=Layer.TERRAIN, x=tile_x, y=tile_y)
+            if terrain_id == NOTHING:
+                return ERR_CITY_COVERS_UNSEEN.format(city=spec.NAME, x=tiles.column(tile_x), y=tile_y)
+            terrain = game.get_catalog().get_kind(category=Category.TERRAINS, kind_id=terrain_id)
             if not terrain.BUILDABLE:
-                return ERR_CITY_COVERS_TERRAIN.format(city=spec.NAME, terrain=shown_name(terrain), x=world.column(tile_x), y=tile_y)
+                return ERR_CITY_COVERS_TERRAIN.format(city=spec.NAME, terrain=shown_name(terrain), x=tiles.column(tile_x), y=tile_y)
             land += terrain.LAND
         if land < spec.CENTER_LAND:
             return ERR_CITY_NEEDS_LAND.format(city=spec.NAME, least=spec.CENTER_LAND, land=land)

@@ -26,6 +26,8 @@ far from both settlers.
 
 from microsponge.engine.cities.city_control import CityControl
 from microsponge.engine.civilizations.civilization import Civilization
+from microsponge.engine.civilizations.sight import FIRST_CIVILIZATION
+from microsponge.engine.players.traits import Traits
 from microsponge.engine.civilizations.research import Research
 from microsponge.engine.civilizations.strategic import Strategic
 from microsponge.engine.game.game import Game
@@ -153,6 +155,22 @@ def end_turn_by_order(*, game, civilization):
     Orders.end_turn(game=game, civilization=civilization)
 
 
+def computer_played_caveman_game(*, seed, traits=None):
+    """Return a started game of caveman in which both civilizations are played by the computer, with traits dealt from the seed, or the traits given for each civilization."""
+    game = new_caveman_game()
+    game.set_seed(seed)
+    for civilization, holder in enumerate(game.get_civilizations(), start=FIRST_CIVILIZATION):
+        holder.set_traits(Traits.dealt(game.get_random()) if traits is None else Traits(traits[civilization - 1]))
+    TurnControl.start(game)
+    return game
+
+
+def play_turns(*, game, turns):
+    """Have the theme's computer player play every civilization's turns until the game reaches a turn or is over."""
+    while game.get_turn() < turns and not game.is_over():
+        game.get_theme().PLAYER.play_turn(game=game, civilization=game.get_playing())
+
+
 def end_rounds(*, game, rounds):
     """End the turn of every civilization still playing, in turn order, so many times over."""
     for _ in range(rounds * len(game.get_still_playing())):
@@ -220,6 +238,7 @@ def civilization_facts(*, game, civilization):
         name_of(game=game, category=Category.TECHNOLOGIES, kind_id=civilization.get_researching()), civilization.get_research(),
         civilization.get_action_points(), civilization.get_bankrupt_turns(), civilization.get_wars(), civilization.has_lost(),
         [memory_facts(game=game, memory=memory) for memory in civilization.get_memories()],
+        None if civilization.get_traits() is None else civilization.get_traits().get_values(),
     )
 
 

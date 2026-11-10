@@ -51,6 +51,12 @@ class Production:
         return (category, game.get_catalog().get_id(category=category, kind=kind))
 
     @staticmethod
+    def kind_of(*, game, item):
+        """Return the kind a production queue's (category, id) stands for, as the theme's class."""
+        category, kind_id = item
+        return game.get_catalog().get_kind(category=category, kind_id=kind_id)
+
+    @staticmethod
     def queue_of(*, game, city):
         """Return what a city builds, in order, as the theme's classes."""
         catalog = game.get_catalog()

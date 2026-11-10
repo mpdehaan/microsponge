@@ -113,13 +113,21 @@ The user wants variance programmed in, so that no two computer players are the s
   dumb ones.
 - The user suggests an odd number of civilizations, three at first, so that two equal players
   do not simply trade blows.
-- A player's personality is a handful of numbers on one player class, the civilization's
-  traits: how much it values expansion against the army, how far below a sure win it will
-  attack, how long it remembers a wrong, how strongly it prefers one enemy, how much it values
-  science and research, how much it tries to be nonviolent when it can dominate by investing
-  first, and how much it wants to conquer land rather than stay smaller and defensible or keep
-  a large military. "Logical and strategic", "campaigner" and "peaceful builder" are settings
-  of those numbers, which may more or less be randomized when a game starts.
+- A player's personality is eight numbers on the civilization, its traits, each from 0 to 100
+  (the model, "Traits"): expansion, boldness, grudge, aggressive hyperfocus, science, peace,
+  conquest and economics. The traits are dealt as points, 40 to 60 percent of the 800 a
+  civilization could hold, spread at random, and "logical and strategic", "campaigner" and
+  "peaceful builder" are named tendencies, settings of the eight numbers that are slightly
+  randomized, whose numbers Claude chose and will tune. Each trait tips one decision of the
+  player: expansion whether a city builds a settler or a fighter, economics whether it builds
+  for the economy instead, science which technology is researched, peace whether war is
+  declared when the army is ready, conquest whether the army marches or stays home, boldness
+  whether a unit attacks below a sure win, and aggressive hyperfocus whether units on the march
+  ignore enemy units that are not in the way. Grudge is stored and used by nothing yet.
+- The first computer player is simple on purpose, and is in `src/microsponge/engine/players/`:
+  `ComputerPlayer` walks the priority list above once a turn, reading the map only through the
+  `View`, and `CavemanPlayer` in the caveman theme says which technologies, defenders,
+  attackers and economy buildings are caveman's. Workers and improvements are not played yet.
 - No player is ever lazy: every one tries to win, each by a different strategy. One strategy
   looks at what the player knows about the map and adapts to it.
 - The players of each theme are subclasses of a common player, so the flavors and the ideas
@@ -129,6 +137,17 @@ The user wants variance programmed in, so that no two computer players are the s
   predictable.
 
 ## What Claude expects to go wrong, and how to see it
+
+- The first player does not path around foreign land: a settler or a fighter that has to go
+  around another civilization's city radius steps toward its goal, is refused, steps away from
+  the nearest foreign city, and comes back next turn. The trace of a game shows it as a unit
+  that stands on two tiles turn after turn.
+- The test world holds two sites for a second city, so expansion hardly shows there; the
+  scripted game's bigger world is where expansion is measured.
+- With caveman's 4 action points a turn for a civilization and 2 for each city, an army of ten
+  moves about six tiles a turn in all, so a war takes long, and no city fell in a hundred turns
+  of two computer players on the test world. This is the first thing to tune when the
+  scripted game shows the same.
 
 - Two players running the same rules reach the same army at the same time and trade attacks for
   many turns: the log should show how many turns a siege takes and how many units each side
@@ -167,4 +186,4 @@ scripted game and its report.
 
 ## Not decided yet
 
-- How the traits are randomized when a game starts, and in what ranges.
+- The numbers of the three named tendencies, which Claude chose, to be tuned.

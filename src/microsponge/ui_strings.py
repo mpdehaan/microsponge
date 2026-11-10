@@ -59,6 +59,19 @@ MSG_NO_UNITS = '{theme} has no units yet'
 MSG_EXTRA_DICE = '{dice} against {domain}'
 MSG_NO_CLASS = 'undecided'
 
+# players/computer_player.py
+MSG_CITY_NUMBERED = '{civilization} {number}'
+
+# players/traits.py
+MSG_TRAIT_AGGRESSIVE_HYPERFOCUS = 'aggressive hyperfocus'
+MSG_TRAIT_BOLDNESS = 'boldness'
+MSG_TRAIT_CONQUEST = 'conquest'
+MSG_TRAIT_ECONOMICS = 'economics'
+MSG_TRAIT_EXPANSION = 'expansion'
+MSG_TRAIT_GRUDGE = 'grudge'
+MSG_TRAIT_PEACE = 'peace'
+MSG_TRAIT_SCIENCE = 'science'
+
 # tables.py
 MSG_AMOUNT = '{amount} {name}'
 MSG_AMOUNTS_OF = '{name}: {amounts}'

@@ -19,6 +19,7 @@
 from microsponge.engine.kinds.catalog import NOTHING, renumbered, renumbered_keys
 from microsponge.engine.kinds.category import Category
 from microsponge.engine.saving.keys import number_keys, text_keys
+from microsponge.engine.players.traits import Traits
 from microsponge.engine.world.memory import Memory
 from microsponge.err_messages import ERR_AMOUNT, ERR_CIVILIZATION_NAME, ERR_NO_MEMORY
 from microsponge.support.numbers import is_a_count
@@ -36,6 +37,7 @@ RESEARCH_KEY = 'research'
 LOST_KEY = 'lost'
 CITIES_FOUNDED_KEY = 'cities_founded'
 MEMORIES_KEY = 'memories'
+TRAITS_KEY = 'traits'
 NOTHING_HELD = 0
 
 
@@ -59,7 +61,7 @@ class Civilization:
     own. Resources, technologies and other civilizations go by their ids.
     """
 
-    __slots__ = ('_name', '_holdings', '_technologies', '_researching', '_research', '_action_points', '_bankrupt_turns', '_wars', '_lost', '_cities_founded', '_memories')
+    __slots__ = ('_name', '_holdings', '_technologies', '_researching', '_research', '_action_points', '_bankrupt_turns', '_wars', '_lost', '_cities_founded', '_memories', '_traits')
 
     def __init__(self, name):
         self._name = check_name(name)
@@ -73,6 +75,7 @@ class Civilization:
         self._lost = False
         self._cities_founded = 0
         self._memories = []
+        self._traits = None
 
     def get_name(self):
         return self._name
@@ -160,6 +163,16 @@ class Civilization:
     def lose(self):
         self._lost = True
 
+    def get_traits(self):
+        """Return the traits of a computer-played civilization, or None for a civilization a person plays."""
+        return self._traits
+
+    def set_traits(self, traits):
+        self._traits = traits
+
+    def is_computer_played(self):
+        return self._traits is not None
+
     def add_memory(self, memory):
         """Add the civilization's memory of the next world, and return that world's id."""
         self._memories.append(memory)
@@ -200,6 +213,7 @@ class Civilization:
             LOST_KEY: self._lost,
             CITIES_FOUNDED_KEY: self._cities_founded,
             MEMORIES_KEY: [memory.to_data() for memory in self._memories],
+            TRAITS_KEY: None if self._traits is None else self._traits.to_data(),
         }
 
     @classmethod
@@ -215,4 +229,5 @@ class Civilization:
         civilization._lost = data[LOST_KEY]
         civilization._cities_founded = check_amount(data[CITIES_FOUNDED_KEY])
         civilization._memories = [Memory.from_data(memory) for memory in data[MEMORIES_KEY]]
+        civilization._traits = None if data[TRAITS_KEY] is None else Traits.from_data(data[TRAITS_KEY])
         return civilization

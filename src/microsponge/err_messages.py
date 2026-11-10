@@ -45,6 +45,7 @@ ERR_UNIT_NOT_HELD = 'the unit {unit} is not inside {name}'
 ERR_CANNOT_TAKE_CITIES = 'a {unit} cannot take a {city}'
 ERR_CITY_DEFENDED = '{name} has units inside: attack them first'
 ERR_CITY_COVERS_A_UNIT = 'a {city} cannot be built here: the {city} center would cover the unit at {x}, {y}'
+ERR_CITY_COVERS_UNSEEN = 'a {city} cannot be built here: the {city} center would cover the tile at {x}, {y}, which has not been seen'
 ERR_CITY_COVERS_TERRAIN = 'a {city} cannot be built here: the {city} center would cover the {terrain} at {x}, {y}'
 ERR_CITY_FULL = 'the {city} {name} already holds {most} units'
 ERR_CITY_NEEDS_LAND = 'a {city} cannot be built here: at least {least} tiles of the {city} center must be land, and {land} are'
@@ -85,6 +86,10 @@ ERR_NOT_NEXT_TO_UNIT = 'the tile at {x!r}, {y!r} is not next to the unit {unit}'
 ERR_NOT_YOUR_TURN = 'it is not the turn of {name}'
 ERR_PRIORITY_FOOD = 'every citizen falls back to {resource}, so a priority is for another resource'
 ERR_WAR_ON_YOURSELF = 'a civilization cannot declare war on itself'
+
+# players/traits.py
+ERR_NO_SUCH_TRAIT = 'there is no trait called {trait!r}'
+ERR_TRAIT_VALUE = 'a trait is a whole number from {least} to {most}, got {value!r}'
 
 # production.py
 ERR_ALREADY_BUILT = '{name} already has a {building}'
