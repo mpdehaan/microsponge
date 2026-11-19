@@ -23,6 +23,7 @@ from microsponge.engine.civilizations.sight import Sight
 from microsponge.engine.kinds.catalog import NOTHING
 from microsponge.engine.kinds.category import Category
 from microsponge.engine.kinds.kind import shown_name
+from microsponge.engine.orders.order_control import OrderControl
 from microsponge.engine.turns.turn_control import TurnControl
 from microsponge.engine.units.combat import Combat
 from microsponge.engine.units.unit_column import UnitColumn
@@ -60,24 +61,28 @@ class Orders:
         return game.get_units().get_value(column=UnitColumn.OWNER, unit=unit)
 
     @staticmethod
-    def check_points(*, game, unit, cost):
-        """Check that it is the turn of a unit's civilization, and that the unit has the action points and its civilization the Policy an order costs."""
+    def check_points(*, game, unit, cost, led=False):
+        """Check that it is the turn of a unit's civilization, and that the unit has the action points and its civilization the Policy an order costs.
+
+        An action that carries out a standing order is led: the standing order already takes its points, so the action takes only the unit's action points.
+        """
         owner = Orders.owner_of(game=game, unit=unit)
         Orders.check_turn(game=game, civilization=owner)
         left = game.get_units().get_value(column=UnitColumn.ACTION_POINTS, unit=unit)
         if left < cost:
             raise ValueError(ERR_NO_ACTION_POINTS.format(unit=unit, left=left, cost=cost))
         pool = game.get_civilization(owner).get_policy_points()
-        if pool < cost:
+        if pool < cost and not led:
             raise ValueError(ERR_NO_POLICY_POINTS.format(name=game.get_civilization(owner).get_name(), left=pool, cost=cost))
 
     @staticmethod
-    def charge(*, game, unit, cost):
-        """Take what an order costs: action points from a unit, and Policy from its civilization."""
+    def charge(*, game, unit, cost, led=False):
+        """Take what an order costs: action points from a unit, and Policy from its civilization unless the action is led by a standing order."""
         units = game.get_units()
         owner = game.get_civilization(Orders.owner_of(game=game, unit=unit))
         units.set_value(column=UnitColumn.ACTION_POINTS, unit=unit, value=units.get_value(column=UnitColumn.ACTION_POINTS, unit=unit) - cost)
-        owner.set_policy_points(owner.get_policy_points() - cost)
+        if not led:
+            owner.set_policy_points(owner.get_policy_points() - cost)
 
     @staticmethod
     def step(*, game, unit, x, y):
@@ -112,17 +117,17 @@ class Orders:
             raise ValueError(ERR_NOT_AT_WAR.format(name=game.get_civilization(other).get_name()))
 
     @staticmethod
-    def move(*, game, unit, x, y):
+    def move(*, game, unit, x, y, led=False):
         """Move a unit onto a tile next to it."""
         if game.get_units().get_value(column=UnitColumn.CITY, unit=unit) != NOTHING:
             raise ValueError(ERR_UNIT_IN_A_CITY.format(unit=unit, city=game.get_theme().CITY.NAME))
         WorkControl.check_idle(game=game, unit=unit)
         cost = Orders.move_cost(game=game, unit=unit, x=x, y=y)
-        Orders.check_points(game=game, unit=unit, cost=cost)
+        Orders.check_points(game=game, unit=unit, cost=cost, led=led)
         Orders.check_may_enter(game=game, unit=unit, x=x, y=y)
         UnitControl.move_to(game=game, unit=unit, x=x, y=y)
         Sight.look_around_unit(game=game, unit=unit)
-        Orders.charge(game=game, unit=unit, cost=cost)
+        Orders.charge(game=game, unit=unit, cost=cost, led=led)
 
     @staticmethod
     def attack_cost(*, game, unit, x, y):
@@ -132,56 +137,57 @@ class Orders:
         return theme.DIAGONAL_ATTACK_COST_BASE if across and down else theme.STRAIGHT_ATTACK_COST_BASE
 
     @staticmethod
-    def attack(*, game, unit, x, y):
+    def attack(*, game, unit, x, y, led=False):
         """Have a unit attack the unit on a tile next to it, or the units inside the city whose center covers the tile, and return what the attack did."""
         if game.get_units().get_value(column=UnitColumn.CITY, unit=unit) != NOTHING:
             raise ValueError(ERR_UNIT_IN_A_CITY.format(unit=unit, city=game.get_theme().CITY.NAME))
         WorkControl.check_idle(game=game, unit=unit)
         cost = Orders.attack_cost(game=game, unit=unit, x=x, y=y)
-        Orders.check_points(game=game, unit=unit, cost=cost)
+        Orders.check_points(game=game, unit=unit, cost=cost, led=led)
         problem = Combat.problem_attacking(game=game, unit=unit, x=x, y=y)
         if problem is not None:
             raise ValueError(problem)
-        Orders.charge(game=game, unit=unit, cost=cost)
+        Orders.charge(game=game, unit=unit, cost=cost, led=led)
         return Combat.attack(game=game, unit=unit, x=x, y=y)
 
     @staticmethod
-    def found_city(*, game, settler, name):
+    def found_city(*, game, settler, name, led=False):
         """Build a city where a settler stands, and return the city's id."""
         cost = game.get_theme().ACTION_COST_BASE
-        Orders.check_points(game=game, unit=settler, cost=cost)
+        Orders.check_points(game=game, unit=settler, cost=cost, led=led)
         owner = game.get_civilization(Orders.owner_of(game=game, unit=settler))
         city = CityControl.found(game=game, settler=settler, name=name)
         Sight.look_around_city(game=game, city=city)
-        owner.set_policy_points(owner.get_policy_points() - cost)
+        if not led:
+            owner.set_policy_points(owner.get_policy_points() - cost)
         return city
 
     @staticmethod
-    def enter_city(*, game, unit, city):
+    def enter_city(*, game, unit, city, led=False):
         """Move a unit from a tile next to the center of a city into the city, taking the city when the city is another civilization's and has no unit inside."""
         cost = game.get_theme().STRAIGHT_MOVE_COST_BASE
-        Orders.check_points(game=game, unit=unit, cost=cost)
+        Orders.check_points(game=game, unit=unit, cost=cost, led=led)
         WorkControl.check_idle(game=game, unit=unit)
         CityControl.enter(game=game, unit=unit, city=city)
         Sight.look_around_city(game=game, city=city)
-        Orders.charge(game=game, unit=unit, cost=cost)
+        Orders.charge(game=game, unit=unit, cost=cost, led=led)
 
     @staticmethod
-    def leave_city(*, game, unit, x, y):
+    def leave_city(*, game, unit, x, y, led=False):
         """Move a unit out of the city it is inside, onto a tile next to the city center."""
         cost = game.get_theme().STRAIGHT_MOVE_COST_BASE
-        Orders.check_points(game=game, unit=unit, cost=cost)
+        Orders.check_points(game=game, unit=unit, cost=cost, led=led)
         CityControl.leave(game=game, unit=unit, x=x, y=y)
         Sight.look_around_unit(game=game, unit=unit)
-        Orders.charge(game=game, unit=unit, cost=cost)
+        Orders.charge(game=game, unit=unit, cost=cost, led=led)
 
     @staticmethod
-    def build_improvement(*, game, unit, improvement):
+    def build_improvement(*, game, unit, improvement, led=False):
         """Set a unit to building an improvement on the tile it stands on, which takes the turns the improvement says."""
         cost = game.get_theme().ACTION_COST_BASE
-        Orders.check_points(game=game, unit=unit, cost=cost)
+        Orders.check_points(game=game, unit=unit, cost=cost, led=led)
         WorkControl.start(game=game, unit=unit, improvement=improvement)
-        Orders.charge(game=game, unit=unit, cost=cost)
+        Orders.charge(game=game, unit=unit, cost=cost, led=led)
 
     @staticmethod
     def abandon_improvement(*, game, unit):
@@ -234,9 +240,9 @@ class Orders:
 
     @staticmethod
     def end_turn(*, game, civilization):
-        """End a civilization's turn, which is refused while a technology is left to pick and none is picked."""
+        """End a civilization's turn, which is refused while a technology is left to pick and none is picked, and while its active orders take more control points than it has."""
         Orders.check_turn(game=game, civilization=civilization)
-        problem = Research.problem_ending_turn(game=game, civilization=civilization)
+        problem = Research.problem_ending_turn(game=game, civilization=civilization) or OrderControl.problem_ending_turn(game=game, civilization=civilization)
         if problem is not None:
             raise ValueError(problem)
         TurnControl.end_turn(game)

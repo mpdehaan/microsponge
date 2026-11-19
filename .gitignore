@@ -8,5 +8,7 @@ dist/
 *.egg-info/
 # Editors' swap files, which are never part of the project.
 *.swp
+# The logs of scripted games and their pages, which tools/game_log.py and tools/game_report.py write.
+logs/
 # Claude's queue of upcoming work, which is never part of the project.
 QUEUE.md

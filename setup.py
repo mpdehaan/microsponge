@@ -43,6 +43,7 @@ setup(
     python_requires='>=3.15',
     package_dir={'': 'src'},
     packages=find_packages('src'),
+    package_data={'microsponge.support': ['*.html']},
     install_requires=(HERE / 'requirements.txt').read_text(encoding='utf-8').split(),
     entry_points={'console_scripts': ['microsponge = microsponge.cli:main']},
 )

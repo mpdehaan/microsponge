@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""The computer player of caveman: which of caveman's kinds the player researches, defends with, attacks with and builds for the economy."""
+"""The computer player of caveman: which of caveman's kinds the player researches, raises its division from and has its villages build."""
 
 from microsponge.engine.players.computer_player import ComputerPlayer
 from microsponge.themes.caveman.buildings import ArrangementOfRocks, Barracks, ChieftainsHut, Granary, GreatCavePainting
@@ -26,6 +26,5 @@ class CavemanPlayer(ComputerPlayer):
     __slots__ = ()
     SCIENCE_RESEARCH = (Agriculture, Clubs, Leadership, Discipline, Fire)
     MILITARY_RESEARCH = (Clubs, Discipline, Fire, Leadership, Agriculture)
-    DEFENDERS = (CaptainCaveman, Warrior)
-    ATTACKERS = (CaptainCaveman, Warrior)
+    FIGHTERS = (CaptainCaveman, Warrior)
     ECONOMY = (Granary, ChieftainsHut, GreatCavePainting, Barracks, ArrangementOfRocks)

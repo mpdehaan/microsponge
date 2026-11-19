@@ -18,6 +18,7 @@
 
 from microsponge.engine.kinds.city_spec import CitySpec
 from microsponge.engine.kinds.map_spec import MapSpec
+from microsponge.engine.orders.order import ORDERS
 
 # The least currency any unit or building costs to build, in every theme.
 LEAST_COST = 10
@@ -36,8 +37,11 @@ class Theme:
     FOOD = None
     # What each civilization holds when a game starts: each resource with its amount.
     STARTS_WITH = {}
-    # The Policy a civilization has each turn before its cities and buildings add theirs.
-    POLICY_POINTS = 0
+    # The control points a civilization has each turn before its cities and buildings add theirs: Policy and Command, each with its number.
+    CONTROL_POINTS = {}
+    # A civilization may have one army for every so many of its cities and one division for every so many, rounding up, and always one of each.
+    CITIES_PER_ARMY = 10
+    CITIES_PER_DIVISION = 5
     # The action points it costs a unit to do something that is neither a move nor an attack, like building a city.
     ACTION_COST_BASE = 1
     # A civilization whose currency is at 0 is bankrupt: it collects this percent less of every resource,
@@ -66,6 +70,8 @@ class Theme:
     DIAGONAL_MOVE_COST_BASE = 1
     STRAIGHT_ATTACK_COST_BASE = 1
     DIAGONAL_ATTACK_COST_BASE = 1
+    # The kinds of standing order the theme has, which a theme may subclass to change what an order costs.
+    ORDERS = ORDERS
     TERRAINS = ()
     RESOURCES = ()
     TECHNOLOGIES = ()

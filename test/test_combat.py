@@ -21,6 +21,7 @@ import unittest
 from caveman_game import SETTLER_TILES, THE_WORLD, end_rounds, found_village, game_facts, give_building, learn, resource_id, settler_of, started_caveman_game
 from later_caveman import later_caveman
 from refusals import Refusals
+from microsponge.engine.kinds.control_points import Policy, points_given
 from microsponge.engine.cities.city_control import CityControl
 from microsponge.engine.cities.production import Production
 from microsponge.engine.kinds.catalog import NOTHING
@@ -173,7 +174,7 @@ class TestAttackingAUnit(CombatCase):
         self.assertEqual(self.hit_points(target), Warrior.HIT_POINTS - outcome.damage)
         self.assertEqual(self.hit_points(attacker), Warrior.HIT_POINTS - outcome.strike_back)
         self.assertEqual(self.points_of(attacker), Warrior.ACTION_POINTS - STRAIGHT)
-        self.assertEqual(self.game.get_civilization(FIRST_CIVILIZATION).get_policy_points(), Caveman.POLICY_POINTS - STRAIGHT)
+        self.assertEqual(self.game.get_civilization(FIRST_CIVILIZATION).get_policy_points(), points_given(by=Caveman, points=Policy) - STRAIGHT)
 
     def test_the_same_seed_rolls_the_same_fight(self):
         outcomes = []

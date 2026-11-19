@@ -25,6 +25,7 @@ from microsponge.engine.civilizations.sight import FIRST_CIVILIZATION, Sight
 from microsponge.engine.kinds.bonuses import harvest_percent, unit_support_percent
 from microsponge.engine.kinds.catalog import NOTHING
 from microsponge.engine.kinds.category import Category
+from microsponge.engine.kinds.control_points import Policy, points_given
 from microsponge.engine.units.unit_column import UnitColumn
 from microsponge.engine.units.unit_control import UnitControl
 from microsponge.engine.units.work_control import WorkControl
@@ -197,16 +198,19 @@ class TurnControl:
             units.set_value(column=UnitColumn.HIT_POINTS, unit=unit, value=hit_points)
 
     @staticmethod
-    def policy_points(*, game, civilization):
-        """Return the policy points a civilization has each turn: the theme's, and what each of its cities and buildings adds."""
+    def control_points(*, game, civilization, points):
+        """Return how many of a kind of control points, Policy or Command, a civilization has each turn: the theme's, and what each of its cities and buildings adds."""
         theme = game.get_theme()
-        from_cities = theme.CITY.POLICY_POINTS * len(game.get_cities_of(civilization))
-        return theme.POLICY_POINTS + from_cities + sum(building.POLICY_POINTS for building in buildings_held(game=game, civilization=civilization))
+        from_cities = points_given(by=theme.CITY, points=points) * len(game.get_cities_of(civilization))
+        from_buildings = sum(points_given(by=building, points=points) for building in buildings_held(game=game, civilization=civilization))
+        idle = [city for city in game.get_cities_of(civilization) if not game.get_city(city).get_queue()]
+        from_idle = theme.CITY.IDLE_CONTROL_POINTS.get(points, 0) * len(idle)
+        return points_given(by=theme, points=points) + from_cities + from_idle + from_buildings
 
     @staticmethod
     def refill(*, game, civilization):
         """Give a civilization all its policy points again, and each of its units all its action points."""
         units = game.get_units()
-        game.get_civilization(civilization).set_policy_points(TurnControl.policy_points(game=game, civilization=civilization))
+        game.get_civilization(civilization).set_policy_points(TurnControl.control_points(game=game, civilization=civilization, points=Policy))
         for unit in UnitControl.units_of(game=game, civilization=civilization):
             units.set_value(column=UnitColumn.ACTION_POINTS, unit=unit, value=UnitControl.kind_of(game=game, unit=unit).ACTION_POINTS)

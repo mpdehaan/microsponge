@@ -17,6 +17,7 @@
 """What a city is to cavemen: a village."""
 
 from microsponge.engine.kinds.city_spec import CitySpec
+from microsponge.engine.kinds.control_points import Command, Policy
 from microsponge.themes.caveman.resources import Food
 
 
@@ -26,5 +27,5 @@ class Village(CitySpec):
     PRODUCES = {Food: 2}
     GROWTH_FOOD = 5
     CITIZEN_CURRENCY = 2
-    POLICY_POINTS = 2
+    CONTROL_POINTS = {Policy: 2, Command: 2}
     RESEARCH_POINTS = 1

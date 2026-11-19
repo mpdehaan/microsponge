@@ -17,6 +17,7 @@
 """The caveman buildings and world wonders."""
 
 from microsponge.engine.kinds.building import Building, Wonder
+from microsponge.engine.kinds.control_points import Command, Policy
 from microsponge.themes.caveman.resources import Currency, Flint, Food, Stone
 from microsponge.themes.caveman.technologies import Agriculture, Discipline, Fire, Leadership
 from microsponge.themes.caveman.terrains import Grassland
@@ -52,6 +53,7 @@ class Watchtower(Building):
     BUILD_TURNS = 5
     SUPPORT = {Currency: 1}
     ARMOR_BONUS = 1
+    CONTROL_POINTS = {Command: 5}
 
 
 class ChieftainsHut(Building):
@@ -60,7 +62,7 @@ class ChieftainsHut(Building):
     COST = {Currency: 20}
     BUILD_TURNS = 4
     SUPPORT = {Currency: 1}
-    POLICY_POINTS = 2
+    CONTROL_POINTS = {Policy: 2}
 
 
 class GreatCavePainting(Wonder):
@@ -75,4 +77,4 @@ class ArrangementOfRocks(Wonder):
     BUILD_TURNS = 10
     SUPPORT = {Currency: 1}
     PRODUCES = {Currency: 2}
-    POLICY_POINTS = 1
+    CONTROL_POINTS = {Policy: 1}

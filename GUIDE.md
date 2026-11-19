@@ -98,11 +98,22 @@ cost 1.
 
 ## Policy
 
-A civilization has Policy, which the theme sets, and which each city and some buildings add
-to. Policy refills every turn. An order for a unit costs as much Policy as the order
-costs the unit in action points. Choosing what to build, choosing what to research, setting a
-city's priority, declaring war and ending the turn are free. Because Policy is small, a
-civilization cannot direct every unit every turn, and has to choose.
+A civilization has two kinds of control points, Policy and Command, which the theme sets, and
+which each city and some buildings add to. A city that is building nothing adds a little of
+both. A civilization has less Command than Policy.
+
+A player does not move every unit by hand. A player gives standing orders, and a helper carries
+them out turn after turn: a city is ordered what buildings to build, to raise units for a
+division, or to expand by building a settler; a division is ordered to keep units inside a
+city or to march on an enemy city; and the civilization is ordered what to research. Each
+order takes points every turn while it is active: an order for a city or for research takes
+Policy, and a military order takes Command for each unit it leads. An order for one unit
+alone takes more. A turn cannot end while the active orders take more Policy or more Command
+than the civilization has, so orders have to be disabled, which costs nothing. A city or a
+unit with no order does nothing, except that a unit that is attacked strikes back.
+
+A single action given directly to a unit still takes as much Policy as the action costs the
+unit in action points. Declaring war and ending the turn are free.
 
 ## Units
 

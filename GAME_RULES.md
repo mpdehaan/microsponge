@@ -286,6 +286,15 @@ otherwise. What classic itself chooses, like its list of resources, is kept in
 ## Points
 
 - The game scores points in different categories.
+- Each civilization accrues a score, in four parts, which is rough for now and will be refined.
+- Each turn, the military score grows by the sum of the hit points of the civilization's
+  military units, the science score by the number of technologies the civilization has
+  researched, the population score by the sum of the citizens of its cities, and the
+  development score by the sum of the number of buildings in each of its cities.
+- The number each part counts on one turn is recorded too, beside the total that adds up.
+- The score is shown for each civilization in the report of a game. What the score decides,
+  like a winner when a game ends with more than one civilization remaining, is not decided.
+- For now the score is kept by the log of a scripted game, and not by the game itself.
 
 ## The map
 
@@ -893,8 +902,9 @@ single units, and are rewritten as the details are decided.
 - Which base builds which unit for a division can be specified in many ways, and all are
   possible: the helper AI figures the split out, the order gives a balance in percentages
   over a pool of cities, or the order is very specific about each city.
-- The purposes of the engine are science, command, defense, offense, growth, expansion,
-  engineering and exploration, and a theme can add purposes of its own later.
+- The purposes of the engine are science, defense, offense, growth, expansion,
+  engineering and exploration, and a theme can add purposes of its own later. Policy and
+  Command are not purposes: both are kinds of control points.
 - Every category a kind belongs to, like its purposes and being an anti-air unit, is stored
   on the kind in the theme, so that the game reads all of the categories from the theme, and
   a person can open the one class of a kind, like caveman's captain caveman, and change
@@ -969,6 +979,17 @@ single units, and are rewritten as the details are decided.
   engineer takes Policy, and military movements take Command. A command order takes Command
   only. An order to raise units, which a division gives to a city, is a policy order,
   because the city does the work.
+- A city that is doing nothing, which is building nothing, adds a bonus to its
+  civilization's Policy and Command, maybe just 1 point of each.
+- What is built so far: the build order, the raise order, the expand order, the settler
+  order, the research order, the garrison order, which only moves units for now, and the
+  march order; one kind of target, a city; Policy and Command; armies and divisions with
+  their limits; the referee AI for givers, receivers and garrisoned cities; and the helper
+  AI's realized orders for settlers. Not built yet: the resolution order, the resources
+  policy order, the order for an engineer, orders for a planet, points and regions as
+  targets, the sources and the way of fulfilling of a garrison order, categories in a build
+  target, the view of problematic orders, the fog of war rule for invalid orders, and
+  orders in a saved game.
 - A completed order is set disabled. A disabled order costs no Policy and does nothing, and
   stays in the table as a convenience, so that a person can remove the order or modify the
   order. A computer player will probably just remove a disabled order.

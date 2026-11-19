@@ -47,6 +47,9 @@ term is added here when the user settles on the word.
 - The giver of an order is the thing in the game the order comes from, and the receiver is
   the thing ordered to do something. An order is never from the player. A destination or a
   target is part of what the order says, and is not the receiver.
+- Control points are the points orders take, in two kinds, Policy and Command: in code,
+  ControlPoints with the subclasses Policy and Command. The user wants them modelled this
+  way, and not as purposes.
 - Policy, or policy points, is what a civilization spends on policy orders, and is what was
   called the civilization's action points, then oversight points and then Oversight. The
   screens and Claude say Policy. When the user says Oversight or oversight points, the user

@@ -44,16 +44,19 @@ def started_game(*, theme, seed, civilizations):
     return game
 
 
-def play(*, game, turns=TURNS, stall_turns=STALL_TURNS):
-    """Have the theme's computer player play every civilization until the game is over, reaches a turn or stalls, and return the chronicle of the game."""
+def play(*, game, turns=TURNS, stall_turns=STALL_TURNS, log=None):
+    """Have the theme's computer player play every civilization until the game is over, reaches a turn or stalls, and return the chronicle of the game. A log that is passed in watches the game beside the chronicle."""
     chronicle = Chronicle(game)
     player = game.get_theme().PLAYER
     while game.get_turn() < turns and not game.is_over():
         turn = game.get_turn()
         player.play_turn(game=game, civilization=game.get_playing())
-        chronicle.note(game=game, turn=turn)
+        watchers = [chronicle] if log is None else [chronicle, log]
+        for watcher in watchers:
+            watcher.note(game=game, turn=turn)
         if game.get_turn() != turn:
-            chronicle.count(game)
+            for watcher in watchers:
+                watcher.count(game)
             if chronicle.turns_without_progress(game.get_turn()) >= stall_turns:
                 chronicle.set_stalled(True)
                 break

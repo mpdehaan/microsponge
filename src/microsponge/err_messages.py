@@ -159,3 +159,12 @@ ERR_LAYER_SHAPE = 'layer {layer} of the saved world is not {height} rows of {wid
 ERR_NO_SUCH_LAYER = 'a world has no layer {layer!r}'
 ERR_ROW_OFF_THE_MAP = 'a world does not wrap from north to south: a row is from 0 to {last}, got {value!r}'
 ERR_WORLD_SIZE = 'the {name} of a world must be a whole number of at least 1, got {value!r}'
+
+# engine/orders
+ERR_ORDER_INVALID = 'this order is invalid, because something the order is about is gone, and cannot be changed'
+ERR_NO_SUCH_DIVISION = 'there is no division {division}'
+ERR_ORDER_NOT_IN_THEME = '{theme} has no {order}'
+ERR_ORDER_RECEIVER = 'a {order} cannot be given to this'
+ERR_TOO_MANY_ARMIES = '{name} can have {most} armies'
+ERR_TOO_MANY_DIVISIONS = '{name} can have {most} divisions'
+ERR_OVER_CONTROL_POINTS = '{name} has {have} {points}, and the active orders take {cost}: disable orders before ending the turn'

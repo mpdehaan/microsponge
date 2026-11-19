@@ -74,24 +74,24 @@ no unit of caveman sets these, so their columns are left out: bypasses walls
 
 The buildings of caveman:
 
-| building             | world wonder | requires    | cost                  | turns | support    | produces   | research points | Policy | grows sooner | worked tile bonus | armor bonus | level bonus | beside water |
-| -------------------- | ------------ | ----------- | --------------------- | ----: | ---------- | ---------- | --------------: | -----: | -----------: | ----------------- | ----------: | ----------: | ------------ |
-| granary              | -            | agriculture | 30 currency           |     5 | 1 currency | -          |               - |      - |            1 | grassland: 1 food |           - |           - | -            |
-| great cave painting  | yes          | -           | 40 currency           |     8 | 1 currency | -          |               2 |      - |            - | -                 |           - |           - | -            |
-| arrangement of rocks | yes          | -           | 20 currency, 50 stone |    10 | 1 currency | 2 currency |               - |      1 |            - | -                 |           - |           - | -            |
-| barracks             | -            | discipline  | 30 currency           |     5 | 1 currency | -          |               - |      - |            - | -                 |           - |           1 | -            |
-| harbor               | -            | -           | 30 currency           |     5 | 1 currency | -          |               - |      - |            - | -                 |           - |           - | yes          |
-| watchtower           | -            | fire, flint | 20 currency           |     5 | 1 currency | -          |               - |      - |            - | -                 |           1 |           - | -            |
-| chieftain's hut      | -            | leadership  | 20 currency           |     4 | 1 currency | -          |               - |      2 |            - | -                 |           - |           - | -            |
+| building             | world wonder | requires    | cost                  | turns | support    | produces   | research points | control points | grows sooner | worked tile bonus | armor bonus | level bonus | beside water |
+| -------------------- | ------------ | ----------- | --------------------- | ----: | ---------- | ---------- | --------------: | -------------- | -----------: | ----------------- | ----------: | ----------: | ------------ |
+| granary              | -            | agriculture | 30 currency           |     5 | 1 currency | -          |               - | -              |            1 | grassland: 1 food |           - |           - | -            |
+| great cave painting  | yes          | -           | 40 currency           |     8 | 1 currency | -          |               2 | -              |            - | -                 |           - |           - | -            |
+| arrangement of rocks | yes          | -           | 20 currency, 50 stone |    10 | 1 currency | 2 currency |               - | 1 policy       |            - | -                 |           - |           - | -            |
+| barracks             | -            | discipline  | 30 currency           |     5 | 1 currency | -          |               - | -              |            - | -                 |           - |           1 | -            |
+| harbor               | -            | -           | 30 currency           |     5 | 1 currency | -          |               - | -              |            - | -                 |           - |           - | yes          |
+| watchtower           | -            | fire, flint | 20 currency           |     5 | 1 currency | -          |               - | 5 command      |            - | -                 |           1 |           - | -            |
+| chieftain's hut      | -            | leadership  | 20 currency           |     4 | 1 currency | -          |               - | 2 policy       |            - | -                 |           - |           - | -            |
 
 no building of caveman sets these, so their columns are left out: income bonus %, walls
 
 The world wonders of caveman:
 
-| world wonder         | cost                  | turns | support    | produces   | research points | Policy |
-| -------------------- | --------------------- | ----: | ---------- | ---------- | --------------: | -----: |
-| great cave painting  | 40 currency           |     8 | 1 currency | -          |               2 |      - |
-| arrangement of rocks | 20 currency, 50 stone |    10 | 1 currency | 2 currency |               - |      1 |
+| world wonder         | cost                  | turns | support    | produces   | research points | control points |
+| -------------------- | --------------------- | ----: | ---------- | ---------- | --------------: | -------------- |
+| great cave painting  | 40 currency           |     8 | 1 currency | -          |               2 | -              |
+| arrangement of rocks | 20 currency, 50 stone |    10 | 1 currency | 2 currency |               - | 1 policy       |
 
 no world wonder of caveman sets these, so their columns are left out: requires, income bonus %, grows sooner, worked tile bonus, armor bonus, level bonus, walls, beside water
 

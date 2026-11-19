@@ -18,6 +18,7 @@
 
 import unittest
 
+from microsponge.engine.kinds.control_points import Policy, points_given
 from microsponge.engine.kinds.bonuses import FREE, WHOLE, harvest_percent, unit_support_percent
 from microsponge.engine.kinds.building import Building, Wonder
 from microsponge.engine.kinds.catalog import Catalog
@@ -270,8 +271,8 @@ class TestCaveman(unittest.TestCase):
         self.assertIn(caveman_technologies.Leadership, Caveman.TECHNOLOGIES)
         self.assertFalse(issubclass(hut, Wonder))
         self.assertEqual(shown_name(hut), CHIEFTAINS_HUT)
-        self.assertGreater(hut.POLICY_POINTS, 0)
-        self.assertLess(hut.POLICY_POINTS, Caveman.POLICY_POINTS)
+        self.assertGreater(points_given(by=hut, points=Policy), 0)
+        self.assertLess(points_given(by=hut, points=Policy), points_given(by=Caveman, points=Policy))
 
     def test_the_raft_requires_a_harbor_and_only_the_harbor_requires_water_next_to_the_city_center(self):
         self.assertEqual(caveman_units.Raft.REQUIRES, (caveman_buildings.Harbor,))
@@ -478,7 +479,7 @@ class TestCaveman(unittest.TestCase):
         for wonder in wonders:
             with self.subTest(wonder=wonder):
                 self.assertTrue(issubclass(wonder, Wonder))
-                self.assertGreater(wonder.RESEARCH_POINTS + wonder.POLICY_POINTS, 0)
+                self.assertGreater(wonder.RESEARCH_POINTS + points_given(by=wonder, points=Policy), 0)
 
 
 class TestClassic(unittest.TestCase):

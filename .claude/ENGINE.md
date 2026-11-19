@@ -32,10 +32,22 @@ says where things are and how the parts fit, and is kept true with every change 
   what a civilization or a city lacks of what a kind requires, `research.py` is the static
   class for research, `strategic.py` the static class for strategic resources, `sight.py` the
   static class for the fog of war, and `view.py` the view of the map a player reads.
-- `players`: `helper_ai.py` is `HelperAI`, the layer every order for a unit or a city goes
-  through, for now a pass through to `Orders`. `traits.py` is the eight traits of a computer-played civilization, how they are
-  dealt and the named tendencies, and `computer_player.py` is `ComputerPlayer`, the algorithm
-  that plays a turn, which each theme's player subclasses (`themes/caveman/player.py`).
+- `orders`: standing orders. `order.py` has the kinds of order, definitions a theme lists in
+  `ORDERS` and may subclass (`PolicyOrder`, `CommandOrder`, `BuildTargetOrder`, `BuildOrder`,
+  `RaiseOrder`, `ExpandOrder`, `CivilOrder`, `SettlerOrder`, `ResearchOrder`, `GarrisonOrder`,
+  `MarchOrder`). `thing.py` names what gives and receives orders, `what.py` is what each kind
+  of order says and the targets an order mentions, `given_order.py` is `GivenOrder`, one order
+  in a game with its giver, receiver, what and reason for being inactive, `order_table.py` is a
+  civilization's `OrderTable`, `forces.py` its armies and divisions, `order_control.py` the
+  static class for giving an order, what orders cost, the limits on armies and divisions and
+  whether a turn may end, and `referee.py` the referee AI.
+- `players`: `helper_ai.py` is `HelperAI`, the single actions for a unit or a city, a pass
+  through to `Orders`. `hand.py` is `Hand`, the helper AI that carries out standing orders
+  through those actions. `knowledge.py` is `Knowledge`, what a civilization knows through its
+  view. `traits.py` is the eight traits of a computer-played civilization, how they are dealt
+  and the named tendencies, and `computer_player.py` is `ComputerPlayer`, the main AI, which
+  only gives standing orders, and which each theme's player subclasses
+  (`themes/caveman/player.py`).
 - `game`: `game.py`, the turn, whose turn it is, the civilizations, the worlds, the cities and
   the units of one game, whether the game is over, and the one source of random draws.
 - `turns`: `turn_control.py` is the static class that starts a game and does the work of ending
@@ -200,29 +212,54 @@ says where things are and how the parts fit, and is kept true with every change 
   `units_seen()` every unit on a tile, and reveals no land. Units inside a city are on no
   tile and are never seen. Classic has `SpySatellites` and fantasy `RemoteViewing`, with no
   numbers; caveman has none, and the tests add one to a later caveman.
+- Control points. `kinds/control_points.py` has `ControlPoints` with its two subclasses,
+  `Policy` and `Command`. A theme, its city spec and its buildings give them in
+  `CONTROL_POINTS`, a dictionary, and a city that builds nothing adds the city spec's
+  `IDLE_CONTROL_POINTS`. `TurnControl.control_points(game=, civilization=, points=)` adds them
+  up. A civilization still stores a pool of Policy, which a single action given directly
+  takes from; an action the Hand takes for a standing order is `led=True` and takes only the
+  unit's action points.
+- Standing orders. `OrderControl.give()` adds a `GivenOrder` to the civilization's table,
+  refused when the theme has no such kind or the receiver is the wrong type of thing.
+  `OrderControl.cost()` is the kind's `BASE_COST`, its `UNIT_COST` for each unit led (the
+  units of the division, or the count a garrison order keeps) and `LONE_UNIT_COST` for an
+  order to one unit; an inactive order and a realized order cost nothing.
+  `OrderControl.left()` is what a civilization has beyond what its active orders take, and
+  `Orders.end_turn()` is refused while that is below 0 for Policy or Command. An order is
+  active, or inactive with a `Reason`: completed, disabled, or invalid for good, which
+  `Referee.review()` sets when the giver, the receiver or the city to garrison is no longer
+  the civilization's. `OrderControl.add_army()` and `add_division()` keep the theme's
+  `CITIES_PER_ARMY` and `CITIES_PER_DIVISION`, rounding up, always at least one. The order
+  table and the forces are not in a saved game yet.
+- The Hand. `Hand.carry_out(game=, civilization=)` runs on the civilization's turn: the
+  referee reviews, `muster()` drops finished realized orders, takes dead units out of
+  divisions, puts each new fighter in the division of the raise order that wants its kind
+  and gives each new settler a realized `SettlerOrder` from the first city ordered to
+  expand; `research()` picks from the research order, or at random with none;
+  `direct_cities()` has each waiting or blocked city start what the order that has waited
+  longest wants (`GivenOrder.get_served()`); `direct_settlers()` settles; and
+  `direct_divisions()` fills garrisons and then marches, never moving a unit a garrison
+  order keeps. Units walk by `first_step()`, a breadth first search over what the
+  civilization remembers, at most `ROUTE_TILES` tiles, so a unit goes around a lake. A
+  march order's `bold` and `ignore_units` decide the fights on the way. Nothing happens for
+  a city or a unit with no order.
 - The computer players. A civilization with `Traits` is computer-played (`is_computer_played()`),
   and one without is a person's; the traits are in the saved game. `Traits.dealt(random)` deals
   40 to 60 percent of the 800 points there could be, `Traits.tending_to(tendency=, random=)`
   nudges a named tendency (`LOGICAL`, `CAMPAIGNER`, `PEACEFUL_BUILDER`), and
-  `Traits.favors(trait=, random=)` is the one draw every decision goes through, so a trait of 70
-  wins 70 times in 100. A theme names its player in `Theme.PLAYER`, and
-  `PLAYER.play_turn(game=, civilization=)` plays and ends a turn: pick research (science
-  trait chooses between the player's science and military orders), settle (found where the
-  settler stands, else walk to the nearest remembered site, `CityControl.problem_with_site()`
-  on the memory, else explore toward the nearest unseen tile outside known foreign land),
-  consider war (army of `GROUP_SIZE` ready, peace trait, first civilization met), command the
-  fighters (one stays inside each city, the rest garrison an empty city next to them, attack
-  what is next to them when `worth_attacking()`, by `attacks_to_kill()` and the boldness
-  trait, and march on the nearest known enemy city when the conquest trait says, hyperfocus
-  deciding whether they ignore enemy units on the way), and decide the builds (a defender for
-  a city with none, a settler by the expansion trait when none is alive, an economy building by
-  the economics trait, a fighter while the bank holds `RESERVE`, and something else instead of
-  a build that is blocked, `can_pay_a_part()` keeping a city off a build it cannot pay). Every
-  order for a unit or a city goes through `HelperAI`, and research, war and ending the turn
-  through `Orders`, inside `try_order()`, which `test/test_helper_ai.py` checks of every
-  player's file, so a refused order changes nothing and the
-  player tries the next thing. The player reads the map only through the `View` and the
-  `Memory`.
+  `Traits.favors(trait=, random=)` is the one draw every decision goes through. A theme names
+  its player in `Theme.PLAYER`, and `PLAYER.play_turn(game=, civilization=)` is `plan()`, then
+  `Hand.carry_out()`, then `Orders.end_turn()`. `plan()` tidies the table, gives the research
+  order once (science trait), a settler order to each settler of a civilization with no
+  city, a build order to each city and an expand order to the first city (active on the
+  turns the expansion trait says), keeps one army with one division, a raise order from the
+  division to each city (active up to the garrisons, and beyond them while the bank holds
+  `RESERVE` and the economics trait allows) and a garrison order for each city, declares
+  war on the first civilization met when the division is full (peace trait), gives a march
+  order on the nearest known enemy city (conquest trait, with boldness and aggressive
+  hyperfocus written into the order), and disables the orders given last until the active
+  orders fit the Policy and the Command. The main AI never names `HelperAI`, which
+  `test/test_helper_ai.py` checks.
 - The map generator. `world/generator.py` is the static class `MapGenerator`: `make(game=,
   width=, height=)` fills a world with the theme's `MAP.BASE_TERRAIN`, grows patches of each
   terrain in `MAP.TERRAIN_PERCENT` by a random walk of `PATCH_SIZE` steps, then scatters
@@ -284,6 +321,20 @@ says where things are and how the parts fit, and is kept true with every change 
   `report_lines()`: the story, the curve of the game, and tables of traits, technologies and
   units. `tools/scripted_game.py` is `make game THEME= SEED= CIVILIZATIONS= TURNS=`.
   `number_at()` in `support/theme_tools.py` reads a number from a tool's command line.
+- The game log. `support/game_log.py` is `GameLog`, which `play(log=)` has watch a game
+  beside the chronicle: `note()` after each civilization's turn follows every unit (tiles
+  moved, level, lost or built a city) and each new city, and `count()` at the end of each
+  turn adds a turn of life to each unit and records each `Series` of each civilization:
+  Policy and Command had and taken, military units inside a city, average level, buildings,
+  hit points, strength (hit points of military units plus technologies plus citizens plus
+  buildings, that turn) and the four scores that add those up over the turns, with their
+  sum. `as_data()` is what `write_log()` writes as JSON, with names from `Key`.
+  `support/game_log_report.py` works only from that data: `tables()`, `timelines()` and
+  `report_lines()`. `support/game_log_page.py` puts `page_data()` into the template
+  `game_log_page.html` beside it, which draws the charts with Chart.js loaded by the
+  browser. `tools/game_log.py` writes `logs/<theme>_seed<seed>.json`, and
+  `tools/game_report.py` prints the report, or with `--html` or `--open` writes the page.
+  `DEV_TOOLS.md` is the guide to them.
 - `support/guides.py` knows where each theme's guide is (`GUIDE_<THEME>.md`, from the saved
   name) and generates its appendix, the five reports as Markdown between `START_MARKER` and
   `END_MARKER`. `tools/theme_guides.py` refreshes every guide, or with `--check` says which

@@ -21,7 +21,7 @@
 PYTHON = .venv/bin/python
 NAME ?=
 
-.PHONY: help setup run test test-one pyflakes pep8 loose-strings balance unit-report building-report wonder-report tech-report guides map game hooks clean
+.PHONY: help setup run test test-one pyflakes pep8 loose-strings balance unit-report building-report wonder-report tech-report guides map game game-log game-report game-page hooks clean
 
 help:
 	@echo "make setup          make .venv and install microsponge into it"
@@ -37,6 +37,9 @@ help:
 	@echo "make wonder-report  every world wonder of a theme with its properties: THEME=caveman"
 	@echo "make tech-report    the tech tree of a theme with its properties: THEME=caveman"
 	@echo "make guides         refresh the generated appendix of every theme guide, GUIDE_<THEME>.md"
+	@echo "make game-log       have the computer players play a game and write its detailed log to logs/: THEME=caveman SEED=1 CIVILIZATIONS=3 TURNS=100"
+	@echo "make game-report    the timelines and tables of a log: THEME=caveman SEED=1, or LOG=logs/caveman_seed1.json; add FORMAT=--markdown"
+	@echo "make game-page      play a game, write its log and open the page with the charts in the browser: THEME=caveman SEED=1 CIVILIZATIONS=3 TURNS=100"
 	@echo "make game           have the computer players play a game and print its story: THEME=caveman SEED=1 CIVILIZATIONS=3 TURNS=100"
 	@echo "make map            preview a world the map generator makes: THEME=caveman SEED=1 CIVILIZATIONS=3"
 	@echo "make hooks          install the git pre-commit hook, which runs every test before a commit goes in"
@@ -92,6 +95,17 @@ TURNS ?= 100
 
 game:
 	$(PYTHON) tools/scripted_game.py $(THEME) $(SEED) $(CIVILIZATIONS) $(TURNS)
+
+LOG ?= logs/$(THEME)_seed$(SEED).json
+
+game-log:
+	$(PYTHON) tools/game_log.py $(THEME) $(SEED) $(CIVILIZATIONS) $(TURNS)
+
+game-report:
+	$(PYTHON) tools/game_report.py $(LOG) $(FORMAT)
+
+game-page: game-log
+	$(PYTHON) tools/game_report.py $(LOG) --open
 
 hooks:
 	ln -sf ../../tools/pre_commit.sh .git/hooks/pre-commit

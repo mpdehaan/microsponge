@@ -42,7 +42,7 @@ class Land:
         self._pieces = [[NO_PIECE] * self._world.get_width() for _ in range(self._world.get_height())]
         self._tiles = {}
         self._counts = {}
-        walkable = Land._walkable_terrains(game=game, kind=kind)
+        walkable = Land.walkable_terrains(game=game, kind=kind)
         piece = FIRST_PIECE
         for y in range(self._world.get_height()):
             for x in range(self._world.get_width()):
@@ -51,7 +51,7 @@ class Land:
                     piece += 1
 
     @staticmethod
-    def _walkable_terrains(*, game, kind):
+    def walkable_terrains(*, game, kind):
         """Return the ids of the terrains a kind of unit can be on."""
         catalog = game.get_catalog()
         return {catalog.get_id(category=Category.TERRAINS, kind=terrain) for terrain in game.get_theme().TERRAINS if UnitControl.can_be_on(kind=kind, terrain=terrain)}

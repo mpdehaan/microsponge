@@ -195,8 +195,14 @@ The user wants variance programmed in, so that no two computer players are the s
 The damage roll with dice and caveman's new numbers, the fog of war and the view a player reads,
 the players with their traits, the map generator with good starting sites, the helper AI as a
 pass through, and the scripted game with its report, a story, tables and charts, are built
-(`make game THEME=caveman SEED=1 CIVILIZATIONS=3 TURNS=300`). Next come the orders the helper
-AI carries out, with armies and divisions.
+(`make game THEME=caveman SEED=1 CIVILIZATIONS=3 TURNS=300`). The first standing orders are
+built too: the computer player now plays only by giving orders, for research, for what each
+village builds, for expanding, for raising one division, for a garrison in each village and
+for marching on an enemy village, within its Policy and its Command, and the helper AI
+carries the orders out. In six games of 400 turns with three civilizations, the civilizations
+expand, go to war and take villages from each other, and no civilization goes bankrupt, but
+only two civilizations were defeated and no game had a winner. Next come the cross checks
+between ways of giving orders, and the balancing.
 
 ## Not decided yet
 

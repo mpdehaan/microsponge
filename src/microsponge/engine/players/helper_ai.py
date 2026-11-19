@@ -35,40 +35,41 @@ from microsponge.engine.turns.orders import Orders
 class HelperAI:
     """Static: the orders for single units and single cities, which the helper AI gives to the game. It is never made into an object.
 
-    A refused order raises what the game raises, and changes nothing.
+    A refused order raises what the game raises, and changes nothing. An action for a unit that carries
+    out a standing order is led, and takes no Policy of its own, because the standing order takes its points.
     """
 
     __slots__ = ()
 
     @staticmethod
-    def move(*, game, unit, x, y):
+    def move(*, game, unit, x, y, led=False):
         """Move a unit to a tile next to the unit."""
-        Orders.move(game=game, unit=unit, x=x, y=y)
+        Orders.move(game=game, unit=unit, x=x, y=y, led=led)
 
     @staticmethod
-    def attack(*, game, unit, x, y):
+    def attack(*, game, unit, x, y, led=False):
         """Have a unit attack what is on a tile next to the unit, and return the outcome of the attack."""
-        return Orders.attack(game=game, unit=unit, x=x, y=y)
+        return Orders.attack(game=game, unit=unit, x=x, y=y, led=led)
 
     @staticmethod
-    def found_city(*, game, settler, name):
+    def found_city(*, game, settler, name, led=False):
         """Have a settler build a city where the settler stands, and return the city's id."""
-        return Orders.found_city(game=game, settler=settler, name=name)
+        return Orders.found_city(game=game, settler=settler, name=name, led=led)
 
     @staticmethod
-    def enter_city(*, game, unit, city):
+    def enter_city(*, game, unit, city, led=False):
         """Send a unit next to a city center into the city, which takes the city when the city belongs to an enemy and has no unit inside."""
-        Orders.enter_city(game=game, unit=unit, city=city)
+        Orders.enter_city(game=game, unit=unit, city=city, led=led)
 
     @staticmethod
-    def leave_city(*, game, unit, x, y):
+    def leave_city(*, game, unit, x, y, led=False):
         """Bring a unit out of its city onto a tile next to the city center."""
-        Orders.leave_city(game=game, unit=unit, x=x, y=y)
+        Orders.leave_city(game=game, unit=unit, x=x, y=y, led=led)
 
     @staticmethod
-    def build_improvement(*, game, unit, improvement):
+    def build_improvement(*, game, unit, improvement, led=False):
         """Set a unit to building an improvement on the tile the unit stands on."""
-        Orders.build_improvement(game=game, unit=unit, improvement=improvement)
+        Orders.build_improvement(game=game, unit=unit, improvement=improvement, led=led)
 
     @staticmethod
     def abandon_improvement(*, game, unit):

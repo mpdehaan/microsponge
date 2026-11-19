@@ -14,26 +14,26 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""The computer player: a whole game of caveman played by two computer players, and how the traits tip its decisions."""
+"""The computer player: a whole game of caveman played by two computer players through standing orders, and how the traits tip its decisions."""
 
 import time
 import unittest
 
-from caveman_game import FIRST_CIVILIZATION, THE_WORLD, computer_played_caveman_game, play_turns
-from microsponge.engine.cities.city_control import CityControl
-from microsponge.engine.cities.production import Production
+from caveman_game import FIRST_CIVILIZATION, computer_played_caveman_game, play_turns
 from microsponge.engine.civilizations.sight import Sight
-from microsponge.engine.players.computer_player import ComputerPlayer, distance, ring
-from microsponge.engine.players.traits import BOLDNESS, EXPANSION, LEAST, LOGICAL, MIDDLE, MOST, PEACE, TRAITS
-from microsponge.engine.units.unit_control import UnitControl
-from microsponge.themes.caveman.buildings import ArrangementOfRocks
+from microsponge.engine.kinds.control_points import CONTROL_POINTS
+from microsponge.engine.orders.order import BuildOrder, ExpandOrder, GarrisonOrder, MarchOrder, RaiseOrder, ResearchOrder, SettlerOrder
+from microsponge.engine.orders.order_control import OrderControl
+from microsponge.engine.players.computer_player import ComputerPlayer
+from microsponge.engine.players.knowledge import Knowledge
+from microsponge.engine.players.traits import AGGRESSIVE_HYPERFOCUS, BOLDNESS, CONQUEST, EXPANSION, LEAST, LOGICAL, MIDDLE, MOST, PEACE, SCIENCE, TRAITS
 from microsponge.themes.caveman.player import CavemanPlayer
 from microsponge.themes.caveman.theme import Caveman
-from microsponge.themes.caveman.units import CaptainCaveman, Settler, Warrior
 
 FIRST = FIRST_CIVILIZATION
 SECOND = FIRST + 1
 A_SEED = 7
+A_FEW_TURNS = 3
 TURNS = 60
 LONG_GAME = 100
 # A turn of two computer players on the test world should take far less than this, in seconds.
@@ -41,9 +41,17 @@ SLOW = 0.1
 EVERYTHING_MIDDLE = {trait: MIDDLE for trait in TRAITS}
 EXPANDING = {**EVERYTHING_MIDDLE, EXPANSION: MOST, PEACE: MOST}
 STAYING = {**EVERYTHING_MIDDLE, EXPANSION: LEAST, PEACE: MOST}
-WARLIKE = {**EVERYTHING_MIDDLE, PEACE: LEAST}
+WARLIKE = {**EVERYTHING_MIDDLE, PEACE: LEAST, CONQUEST: MOST}
 PACIFIST = {**EVERYTHING_MIDDLE, PEACE: MOST}
-A_TILE = (10, 10)
+RECKLESS = {**WARLIKE, BOLDNESS: MOST, AGGRESSIVE_HYPERFOCUS: MOST}
+CAREFUL = {**WARLIKE, BOLDNESS: LEAST, AGGRESSIVE_HYPERFOCUS: LEAST}
+SCIENTIST = {**EVERYTHING_MIDDLE, SCIENCE: MOST}
+SOLDIER = {**EVERYTHING_MIDDLE, SCIENCE: LEAST}
+
+
+def given(*, game, civilization, kind):
+    """Return the orders of a kind a civilization's player gave."""
+    return [order for order in game.get_civilization(civilization).get_orders().get_orders() if order.is_a(kind)]
 
 
 class TestComputerPlayer(unittest.TestCase):
@@ -51,7 +59,7 @@ class TestComputerPlayer(unittest.TestCase):
     def test_caveman_has_a_player_whose_kinds_are_cavemans(self):
         self.assertIs(Caveman.PLAYER, CavemanPlayer)
         self.assertTrue(issubclass(CavemanPlayer, ComputerPlayer))
-        for kind in (*CavemanPlayer.DEFENDERS, *CavemanPlayer.ATTACKERS):
+        for kind in CavemanPlayer.FIGHTERS:
             self.assertIn(kind, Caveman.UNITS)
         for kind in CavemanPlayer.ECONOMY:
             self.assertIn(kind, Caveman.BUILDINGS)
@@ -83,53 +91,60 @@ class TestComputerPlayer(unittest.TestCase):
         self.assertEqual(first.get_units().count(), second.get_units().count())
         self.assertEqual(first.get_civilization(FIRST).get_traits().get_values(), second.get_civilization(FIRST).get_traits().get_values())
 
+    def test_the_player_plays_only_by_giving_orders_and_gives_each_kind_where_it_belongs(self):
+        game = computer_played_caveman_game(seed=A_SEED, traits=(LOGICAL, LOGICAL))
+        CavemanPlayer.plan(game=game, civilization=FIRST)
+        self.assertEqual(len(given(game=game, civilization=FIRST, kind=ResearchOrder)), 1)
+        self.assertEqual(len(given(game=game, civilization=FIRST, kind=SettlerOrder)), 1)
+        self.assertEqual(game.get_cities_of(FIRST), [])
+        play_turns(game=game, turns=A_FEW_TURNS)
+        city = game.get_cities_of(FIRST)[0]
+        for kind in (BuildOrder, RaiseOrder, ExpandOrder, GarrisonOrder):
+            with self.subTest(kind=kind):
+                self.assertEqual(len(given(game=game, civilization=FIRST, kind=kind)), 1)
+        self.assertEqual(given(game=game, civilization=FIRST, kind=SettlerOrder), [])
+        self.assertEqual(given(game=game, civilization=FIRST, kind=GarrisonOrder)[0].get_what().place.city, city)
+        forces = game.get_civilization(FIRST).get_forces()
+        self.assertEqual((len(forces.get_armies()), len(forces.get_divisions())), (1, 1))
+        self.assertEqual(forces.get_divisions()[0].get_bases(), [city])
+
+    def test_the_player_never_ends_a_turn_with_orders_that_take_more_points_than_it_has(self):
+        game = computer_played_caveman_game(seed=A_SEED)
+        for _ in range(TURNS):
+            civilization = game.get_playing()
+            CavemanPlayer.plan(game=game, civilization=civilization)
+            for points in CONTROL_POINTS:
+                self.assertGreaterEqual(OrderControl.left(game=game, civilization=civilization, points=points), 0)
+            CavemanPlayer.play_turn(game=game, civilization=civilization)
+
+    def test_the_science_trait_decides_which_technologies_the_research_order_lists_first(self):
+        game = computer_played_caveman_game(seed=A_SEED, traits=(SCIENTIST, SOLDIER))
+        for civilization, first in ((FIRST, CavemanPlayer.SCIENCE_RESEARCH), (SECOND, CavemanPlayer.MILITARY_RESEARCH)):
+            CavemanPlayer.plan(game=game, civilization=civilization)
+            listed = given(game=game, civilization=civilization, kind=ResearchOrder)[0].get_what().kinds
+            self.assertEqual(listed[:len(first)], first)
+
     def test_a_player_that_favors_expansion_founds_more_cities_than_one_that_never_does(self):
         game = computer_played_caveman_game(seed=A_SEED, traits=(EXPANDING, STAYING))
         play_turns(game=game, turns=LONG_GAME)
         self.assertGreater(len(game.get_cities_of(FIRST)), 1)
         self.assertEqual(len(game.get_cities_of(SECOND)), 1)
-        self.assertFalse(any(ComputerPlayer.is_settler(game=game, unit=unit) for unit in Sight.units_of(game=game, civilization=SECOND)))
+        self.assertEqual(Knowledge.settlers_of(game=game, civilization=SECOND), [])
 
     def test_a_player_that_values_peace_never_declares_war_and_one_that_does_not_declares_it_once_its_army_is_ready(self):
         game = computer_played_caveman_game(seed=A_SEED, traits=(PACIFIST, PACIFIST))
         play_turns(game=game, turns=LONG_GAME)
         self.assertEqual(game.get_civilization(FIRST).get_wars(), [])
+        self.assertEqual(given(game=game, civilization=FIRST, kind=MarchOrder), [])
         game = computer_played_caveman_game(seed=A_SEED, traits=(WARLIKE, WARLIKE))
         play_turns(game=game, turns=LONG_GAME)
         self.assertEqual(game.get_civilization(FIRST).get_wars(), [SECOND])
 
-    def test_boldness_decides_an_attack_below_a_sure_win(self):
-        game = computer_played_caveman_game(seed=A_SEED, traits=({**EVERYTHING_MIDDLE, BOLDNESS: LEAST}, {**EVERYTHING_MIDDLE, BOLDNESS: MOST}))
-        x, y = A_TILE
-        weak = UnitControl.place(game=game, kind=Warrior, owner=FIRST, world=THE_WORLD, x=x, y=y)
-        strong = UnitControl.place(game=game, kind=CaptainCaveman, owner=SECOND, world=THE_WORLD, x=x + 1, y=y)
-        self.assertFalse(CavemanPlayer.worth_attacking(game=game, unit=weak, other=strong, civilization=FIRST))
-        self.assertTrue(CavemanPlayer.worth_attacking(game=game, unit=strong, other=weak, civilization=SECOND))
-        bold_weak = UnitControl.place(game=game, kind=Warrior, owner=SECOND, world=THE_WORLD, x=x + 2, y=y)
-        self.assertTrue(CavemanPlayer.worth_attacking(game=game, unit=bold_weak, other=weak, civilization=SECOND))
-
-    def test_a_city_whose_build_is_blocked_is_told_to_build_something_else(self):
-        game = computer_played_caveman_game(seed=A_SEED, traits=(LOGICAL, LOGICAL))
-        CavemanPlayer.play_turn(game=game, civilization=FIRST)
-        CavemanPlayer.play_turn(game=game, civilization=SECOND)
-        city = game.get_cities_of(FIRST)[0]
-        rocks = Production.item_of(game=game, kind=ArrangementOfRocks)
-        self.assertFalse(CavemanPlayer.can_pay_a_part(game=game, civilization=FIRST, kind=ArrangementOfRocks))
-        self.assertIsNot(CavemanPlayer.choose_build(game=game, city=city, civilization=FIRST), ArrangementOfRocks)
-        Production.switch(game=game, city=city, kind=ArrangementOfRocks)
-        play_turns(game=game, turns=game.get_turn() + 2)
-        self.assertNotIn(rocks, game.get_city(city).get_queue())
-        self.assertFalse(game.get_city(city).is_blocked())
-
-    def test_a_settler_looks_for_the_nearest_site_it_remembers_and_explores_toward_the_nearest_tile_never_seen(self):
-        game = computer_played_caveman_game(seed=A_SEED, traits=(LOGICAL, LOGICAL))
-        settler = [unit for unit in Sight.units_of(game=game, civilization=FIRST) if ComputerPlayer.is_settler(game=game, unit=unit)][0]
-        world, x, y = UnitControl.tile_of(game=game, unit=settler)
-        self.assertEqual(CavemanPlayer.nearest_site(game=game, unit=settler, civilization=FIRST), (x, y))
-        unseen = CavemanPlayer.nearest_unseen(game=game, unit=settler, civilization=FIRST)
-        self.assertFalse(game.get_civilization(FIRST).get_memory(THE_WORLD).has_seen(x=unseen[0], y=unseen[1]))
-        self.assertEqual(distance(world=game.get_world(THE_WORLD), from_x=x, from_y=y, to_x=unseen[0], to_y=unseen[1]), Settler.VISION + 1)
-        self.assertEqual(len(ring(x=x, y=y, reach=1)), 8)
-        self.assertEqual(len(ring(x=x, y=y, reach=3)), 24)
-        self.assertIsNone(CityControl.problem_with_site(game=game, tiles=game.get_civilization(FIRST).get_memory(THE_WORLD), x=x, y=y))
-        self.assertIsNotNone(CityControl.problem_with_site(game=game, tiles=game.get_civilization(FIRST).get_memory(THE_WORLD), x=unseen[0], y=unseen[1]))
+    def test_boldness_and_aggressive_hyperfocus_decide_how_an_order_to_march_tells_the_units_to_behave(self):
+        for traits, expected in ((RECKLESS, True), (CAREFUL, False)):
+            with self.subTest(expected=expected):
+                game = computer_played_caveman_game(seed=A_SEED, traits=(traits, traits))
+                play_turns(game=game, turns=A_FEW_TURNS)
+                what = CavemanPlayer.march_on(game=game, civilization=FIRST, city=game.get_cities_of(SECOND)[0])
+                self.assertEqual((what.bold, what.ignore_units), (expected, expected))
+                self.assertEqual(what.target.city, game.get_cities_of(SECOND)[0])

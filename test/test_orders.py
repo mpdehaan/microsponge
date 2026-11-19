@@ -23,6 +23,7 @@ from caveman_game import (
     resource_id, settler_of, started_caveman_game,
 )
 from refusals import Refusals
+from microsponge.engine.kinds.control_points import Policy, points_given
 from microsponge.engine.game.game import FIRST_TURN
 from microsponge.engine.kinds.catalog import NOTHING
 from microsponge.engine.kinds.city_spec import CitySpec
@@ -117,8 +118,8 @@ class TestMoving(OrdersCase):
         self.assertEqual(self.unit_at(x=x + ONE_STEP, y=y), self.settler)
         self.assertEqual(self.unit_at(x=x, y=y), NOTHING)
         self.assertEqual(self.points_of(self.settler), Settler.ACTION_POINTS - STRAIGHT)
-        self.assertEqual(self.first.get_policy_points(), Caveman.POLICY_POINTS - STRAIGHT)
-        self.assertEqual(self.second.get_policy_points(), Caveman.POLICY_POINTS)
+        self.assertEqual(self.first.get_policy_points(), points_given(by=Caveman, points=Policy) - STRAIGHT)
+        self.assertEqual(self.second.get_policy_points(), points_given(by=Caveman, points=Policy))
 
     def test_a_unit_moves_diagonally_for_the_diagonal_cost(self):
         x, y = SETTLER_TILES[0]
@@ -135,7 +136,7 @@ class TestMoving(OrdersCase):
         Orders.move(game=self.game, unit=climber, x=x, y=y)
         self.assertEqual(self.place_of(climber), (x, y))
         self.assertEqual(self.points_of(climber), Warrior.ACTION_POINTS - STRAIGHT * Mountains.MOVE_COST)
-        self.assertEqual(self.first.get_policy_points(), Caveman.POLICY_POINTS - STRAIGHT * Mountains.MOVE_COST)
+        self.assertEqual(self.first.get_policy_points(), points_given(by=Caveman, points=Policy) - STRAIGHT * Mountains.MOVE_COST)
         Orders.move(game=self.game, unit=tired, x=x - ONE_STEP, y=y + ONE_STEP)
         message = self.refused_and_unchanged(lambda: Orders.move(game=self.game, unit=tired, x=x, y=y + ONE_STEP))
         self.assertEqual(message, ERR_NO_ACTION_POINTS.format(unit=tired, left=Warrior.ACTION_POINTS - STRAIGHT, cost=STRAIGHT * Mountains.MOVE_COST))
@@ -205,7 +206,7 @@ class TestMoving(OrdersCase):
         self.assertEqual(self.place_of(self.settler), (beyond, y))
 
     def test_a_civilization_cannot_move_all_of_its_units_once_its_policy_points_run_out(self):
-        movers = [self.warrior(civilization=FIRST_CIVILIZATION, x=OPEN_COLUMN + TWO_STEPS * place, y=OPEN_ROW) for place in range(Caveman.POLICY_POINTS + ONE_STEP)]
+        movers = [self.warrior(civilization=FIRST_CIVILIZATION, x=OPEN_COLUMN + TWO_STEPS * place, y=OPEN_ROW) for place in range(points_given(by=Caveman, points=Policy) + ONE_STEP)]
         *moved, left_behind = movers
         for unit in moved:
             x, y = self.place_of(unit)
@@ -240,7 +241,7 @@ class TestVillageOrders(OrdersCase):
         self.assertEqual(self.game.get_cities_of(FIRST_CIVILIZATION), [city])
         self.assertEqual(self.game.get_cities_of(SECOND_CIVILIZATION), [])
         self.assertFalse(self.units.exists(self.settler))
-        self.assertEqual(self.first.get_policy_points(), Caveman.POLICY_POINTS - Caveman.ACTION_COST_BASE)
+        self.assertEqual(self.first.get_policy_points(), points_given(by=Caveman, points=Policy) - Caveman.ACTION_COST_BASE)
 
     def test_a_village_is_built_only_on_the_turn_of_the_settlers_civilization(self):
         message = self.refused_and_unchanged(lambda: Orders.found_city(game=self.game, settler=self.other_settler, name=ANOTHER_NAME))
@@ -361,6 +362,6 @@ class TestEndingTheTurn(OrdersCase):
 
     def test_a_village_built_this_turn_adds_its_policy_points_from_the_next_turn(self):
         Orders.found_city(game=self.game, settler=self.settler, name=A_NAME)
-        self.assertEqual(self.first.get_policy_points(), Caveman.POLICY_POINTS - Caveman.ACTION_COST_BASE)
+        self.assertEqual(self.first.get_policy_points(), points_given(by=Caveman, points=Policy) - Caveman.ACTION_COST_BASE)
         end_rounds(game=self.game, rounds=ONE_ROUND)
-        self.assertEqual(self.first.get_policy_points(), Caveman.POLICY_POINTS + Village.POLICY_POINTS)
+        self.assertEqual(self.first.get_policy_points(), points_given(by=Caveman, points=Policy) + points_given(by=Village, points=Policy) + Village.IDLE_CONTROL_POINTS[Policy])

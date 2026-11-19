@@ -16,6 +16,7 @@
 
 """The caveman theme."""
 
+from microsponge.engine.kinds.control_points import Command, Policy
 from microsponge.engine.kinds.theme import Theme
 from microsponge.themes.caveman.city import Village
 from microsponge.themes.caveman.buildings import ArrangementOfRocks, Barracks, ChieftainsHut, Granary, GreatCavePainting, Harbor, Watchtower
@@ -33,7 +34,9 @@ class Caveman(Theme):
     PRIMARY_RESOURCE = Currency
     FOOD = Food
     STARTS_WITH = {Currency: 50}
-    POLICY_POINTS = 4
+    CONTROL_POINTS = {Policy: 4, Command: 3}
+    CITIES_PER_ARMY = 4
+    CITIES_PER_DIVISION = 2
     LEVEL_HIT_POINTS_PERCENT = 2
     LAND_STARTS_EXPLORED = False
     PLAYER = CavemanPlayer

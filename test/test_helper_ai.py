@@ -32,7 +32,10 @@ from microsponge.engine.units.unit_control import UnitControl
 
 PACKAGE = pathlib.Path(microsponge.__file__).parent
 # The files that hold a player: the common computer player, and each theme's own.
-PLAYER_FILES = [PACKAGE / 'engine' / 'players' / 'computer_player.py', *sorted((PACKAGE / 'themes').glob('*/player.py'))]
+MAIN_AI_FILE = PACKAGE / 'engine' / 'players' / 'computer_player.py'
+PLAYER_FILES = [MAIN_AI_FILE, PACKAGE / 'engine' / 'players' / 'hand.py', *sorted((PACKAGE / 'themes').glob('*/player.py'))]
+# The name the main AI may not use, because the main AI cannot touch a unit or a city: only the Hand asks the helper for single actions.
+HELPER_NAME = HelperAI.__name__
 # The orders a player gives the game itself, because they are about the civilization as a whole and not about a unit or a city.
 CIVILIZATION_ORDERS = {'research', 'declare_war', 'end_turn'}
 ORDERS_NAME = 'Orders'
@@ -99,3 +102,8 @@ class TestHelperAI(Refusals, unittest.TestCase):
         for path in PLAYER_FILES:
             with self.subTest(path=path.name):
                 self.assertLessEqual(orders_given_directly(path), CIVILIZATION_ORDERS)
+
+    def test_the_main_ai_never_asks_for_a_single_action_of_a_unit_or_a_city(self):
+        for path in (MAIN_AI_FILE, *sorted((PACKAGE / 'themes').glob('*/player.py'))):
+            with self.subTest(path=path.name):
+                self.assertNotIn(HELPER_NAME, path.read_text())

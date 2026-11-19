@@ -48,9 +48,15 @@ turns and the saved game.
     war: what a civilization sees around its units and cities, what it remembers of each
     world, and the view of the map that a player, or a computer player, reads instead of the
     world itself.
-  - `players` has the computer players: the traits that make a computer-played civilization's
-    personality, and the player that plays a civilization's turn by them, which each theme
-    subclasses to say which of its kinds the player researches, defends with and attacks with.
+  - `orders` has the standing orders a civilization gives: the kinds of order, which a theme
+    lists and may subclass, an order given in a game, the table of a civilization's orders,
+    its armies and divisions, what orders cost in Policy and Command, and the referee that
+    marks an order invalid.
+  - `players` has the helper that carries out standing orders, called the Hand in the code,
+    and the computer players: the traits that make a computer-played civilization's
+    personality, and the main AI that plays a civilization's turn by giving standing orders
+    and nothing else, which each theme subclasses to say which of its kinds the player
+    researches, raises its division from and builds.
   - `game` ties one game together: the turn, whose turn it is, the civilizations, the worlds,
     the cities and the units.
   - `turns` starts a game, does the work of ending a turn, and has every order a civilization

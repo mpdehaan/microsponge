@@ -16,6 +16,7 @@
 
 """The base of a theme's city spec: the constants that say what a city means in the theme."""
 
+from microsponge.engine.kinds.control_points import Command, Policy
 from microsponge.ui_strings import MSG_CITIES, MSG_CITY
 
 
@@ -42,8 +43,10 @@ class CitySpec:
     CITIZEN_FOOD = 1
     # The currency each working citizen generates each turn.
     CITIZEN_CURRENCY = 1
-    # The Policy a city adds to its civilization each turn.
-    POLICY_POINTS = 0
+    # The control points a city adds to its civilization each turn: Policy and Command, each with its number.
+    CONTROL_POINTS = {}
+    # The control points a city that is building nothing adds on top of those each turn.
+    IDLE_CONTROL_POINTS = {Policy: 1, Command: 1}
     # The research points a city adds to its civilization's pool each turn.
     RESEARCH_POINTS = 0
     # The most units a city holds inside itself.

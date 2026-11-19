@@ -74,6 +74,14 @@ gained, so a level 20 warrior has 13 hit points and a level 20 captain caveman 2
   building, for one to a city, as with every building, and for a reasonably small amount,
   and Claude chose 2: caveman gives a civilization 4 Policy, each village 2 more, and the
   arrangement of rocks 1 more.
+- Command: caveman gives a civilization 3 Command and each village 2 more, which Claude
+  chose, and the watchtower 5 more, which the user chose. A village that builds nothing adds
+  1 Policy and 1 Command, which the user proposed for every theme.
+- Armies and divisions: a civilization may have 1 army for every 4 villages and 1 division
+  for every 2, rounding up and always 1 of each, which Claude chose because caveman's
+  civilizations are small.
+- Orders cost what the engine says for the first test: a policy order 1, a command order 1
+  for each unit, and an order for one unit alone 2 more.
 - forest: gives 1 wood, and costs 2 to move into.
 - watchtower: 20 currency, 5 turns, 1 currency to support. Requires fire, which takes 20
   research points, and flint within the borders. The watchtower makes the armor class of every

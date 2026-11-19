@@ -33,6 +33,52 @@ MSG_CHART_SHARED = '*'
 MSG_CHART_SHARED_LEGEND = '{mark} more than one'
 MSG_CHART_TURNS = '{indent}  0{last}'
 
+# game_log_page.py
+MSG_PAGE_CHART_BUILDINGS = 'Buildings'
+MSG_PAGE_CHART_CITIES = 'Cities'
+MSG_PAGE_CHART_CITIZENS = 'Citizens'
+MSG_PAGE_CHART_COMMAND = 'Command each civilization has'
+MSG_PAGE_CHART_COMMAND_TAKEN = 'Command the active orders take'
+MSG_PAGE_CHART_DEVELOPMENT_SCORE = 'Development score: buildings, added up every turn'
+MSG_PAGE_CHART_HIT_POINTS = 'Hit points of military units'
+MSG_PAGE_CHART_INSIDE = 'Military units inside a city'
+MSG_PAGE_CHART_LEVEL = 'Average level of military units'
+MSG_PAGE_CHART_MILITARY_SCORE = 'Military score: hit points of military units, added up every turn'
+MSG_PAGE_CHART_POLICY = 'Policy each civilization has'
+MSG_PAGE_CHART_POLICY_TAKEN = 'Policy the active orders take'
+MSG_PAGE_CHART_POPULATION_SCORE = 'Population score: citizens, added up every turn'
+MSG_PAGE_CHART_SCIENCE_SCORE = 'Science score: technologies known, added up every turn'
+MSG_PAGE_CHART_SCORE = 'Score: what may decide a winner'
+MSG_PAGE_CHART_STRENGTH = 'Strength each turn: the rise and fall of each civilization'
+MSG_PAGE_CHART_TECHNOLOGIES = 'Technologies known'
+MSG_PAGE_CHART_UNITS = 'Units'
+MSG_PAGE_CHART_WEALTH = 'Bank of the primary resource'
+MSG_PAGE_CHARTS_HEADING = 'Everything else, turn by turn'
+MSG_PAGE_NO_CHARTS = 'The charts could not be drawn, because the chart library could not be loaded from the internet. The tables below hold the same game.'
+MSG_PAGE_TABLES_HEADING = 'Tables'
+MSG_PAGE_TIMELINES_HEADING = 'What happened to each civilization'
+MSG_PAGE_TURN = 'turn {turn}'
+
+# game_log_report.py
+MSG_LOG_BUILDINGS_HEADING = 'building'
+MSG_LOG_BUILDINGS_TITLE = 'The buildings each civilization held at the end:'
+MSG_LOG_CITIES_HEADING = ['civilization', 'founded', 'took', 'lost', 'held at the end', 'citizens at the end', 'buildings at the end']
+MSG_LOG_CITIES_TITLE = 'The cities of each civilization:'
+MSG_LOG_POINTS_HEADING = ['civilization', 'Policy had', 'Policy taken', 'Command had', 'Command taken', 'units', 'military units inside a city']
+MSG_LOG_POINTS_TITLE = 'Control points and units, as the average over the turns each civilization played:'
+MSG_LOG_REPORT_USAGE = 'name the log file of a game, written by tools/game_log.py, and add --markdown for Markdown tables, --html to write the page with the charts, or --open to write the page and open it in the browser, like: logs/caveman_seed1.json --open'
+MSG_LOG_SCORES_HEADING = ['civilization', 'score', 'military', 'science', 'population', 'development', 'strength at the end', 'most strength', 'on turn', 'defeated']
+MSG_LOG_SCORES_TITLE = 'The scores at the end, the highest first. Each part of the score is what the part counts, added up over every turn:'
+MSG_LOG_TIMELINE_ENDED = '  Turn {turn}: {name} ended the game in place {place} of {of}, with a score of {score}.'
+MSG_LOG_TIMELINE_LOST_CITY = '  Turn {turn}: {name} lost the {city} {subject} to {other}.'
+MSG_LOG_TIMELINE_STRONGEST = '  Turn {turn}: {name} was at its strongest, with a strength of {strength}.'
+MSG_LOG_TIMELINE_TITLE = 'The timeline of {name}:'
+MSG_LOG_TIMELINE_WAR_DECLARED_ON = '  Turn {turn}: {other} declared war on {name}.'
+MSG_LOG_TITLE = 'A game of {theme} from seed {seed}: {civilizations} civilizations on a world of {width} by {height} tiles, played for {turns} turns.'
+MSG_LOG_UNITS_HEADING = ['civilization', 'unit', 'made', 'lost', 'built a city', 'alive at the end', 'turns lived', 'tiles moved', 'percent of turns inside a city', 'level at the end', 'highest level', 'percent that gained a level']
+MSG_LOG_UNITS_TITLE = 'The units of each civilization. Turns lived, tiles moved and the level are averages over the units of the kind:'
+MSG_LOG_WRITTEN = 'wrote {path}'
+
 # game_story.py
 MSG_CHART_CITIES = 'The {cities} of each civilization over the turns:'
 MSG_CHART_CITIZENS = 'The citizens of each civilization over the turns:'
@@ -46,6 +92,7 @@ MSG_CURVE_HEADING = 'The curve of the game:'
 MSG_CURVE_KNEW_EVERYTHING = '  The first civilization to know every technology was {name}, on turn {turn}.'
 MSG_CURVE_NEVER_KNEW_EVERYTHING = '  No civilization came to know every technology.'
 MSG_CURVE_NO_DEFEATS = '  No civilization was defeated.'
+MSG_GAME_LOG_USAGE = 'name one theme, then a seed, how many civilizations play and how many turns at most if you like, like: caveman 7 3 300. The log is written to logs/. The themes: {themes}'
 MSG_GAME_USAGE = 'name one theme, then a seed, how many civilizations play and how many turns at most if you like, like: caveman 7 3 300. The themes: {themes}'
 MSG_STORY_DECLARED_WAR = '  Turn {turn}: {name} declared war on {other}.'
 MSG_STORY_DECLINE = '  Turn {turn}: {name} started to lose, and was never again as strong as on this turn, with {citizens} citizens and {units} units.'
@@ -83,7 +130,7 @@ MSG_GUIDE_STALE = '{path} is out of date: run make guides'
 MSG_GUIDE_MISSING = '{path} is missing, and the appendix of a guide is only refreshed in a guide that exists'
 
 # kind_reports.py
-MSG_BUILDING_PROPERTIES = ('requires', 'cost', 'turns', 'support', 'produces', 'income bonus %', 'research points', 'Policy', 'grows sooner', 'worked tile bonus', 'armor bonus', 'level bonus', 'walls', 'beside water')
+MSG_BUILDING_PROPERTIES = ('requires', 'cost', 'turns', 'support', 'produces', 'income bonus %', 'research points', 'control points', 'grows sooner', 'worked tile bonus', 'armor bonus', 'level bonus', 'walls', 'beside water')
 MSG_BUILDINGS_HEADING = ('building', 'world wonder', *MSG_BUILDING_PROPERTIES)
 MSG_BUILDINGS_TITLE = 'The buildings of {theme}:'
 MSG_KIND_BUILDING = 'building'

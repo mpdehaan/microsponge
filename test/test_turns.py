@@ -23,6 +23,7 @@ from caveman_game import (
 )
 from later_caveman import later_caveman
 from refusals import Refusals
+from microsponge.engine.kinds.control_points import Policy, points_given
 from microsponge.engine.cities.city_control import CityControl
 from microsponge.engine.civilizations.civilization import Civilization
 from microsponge.engine.game.game import FIRST_TURN, Game
@@ -109,7 +110,7 @@ class TestStartingAGame(Refusals, unittest.TestCase):
             with self.subTest(civilization=civilization):
                 self.assertEqual(held(game=game, civilization=civilization, resource=Currency), STARTING_CURRENCY)
                 self.assertEqual(held(game=game, civilization=civilization, resource=Food), NOTHING_HELD)
-                self.assertEqual(game.get_civilization(civilization).get_policy_points(), Caveman.POLICY_POINTS)
+                self.assertEqual(game.get_civilization(civilization).get_policy_points(), points_given(by=Caveman, points=Policy))
                 settler = settler_of(game=game, civilization=civilization)
                 self.assertEqual(game.get_units().get_value(column=UnitColumn.ACTION_POINTS, unit=settler), Settler.ACTION_POINTS)
 
@@ -400,9 +401,9 @@ class TestEndingATurn(unittest.TestCase):
         self.first.set_policy_points(NO_POINTS)
         end_rounds(game=self.game, rounds=ONE_ROUND)
         self.assertEqual(self.units.get_value(column=UnitColumn.ACTION_POINTS, unit=warrior), Warrior.ACTION_POINTS)
-        self.assertEqual(self.first.get_policy_points(), Caveman.POLICY_POINTS + Village.POLICY_POINTS)
-        self.assertEqual(self.second.get_policy_points(), Caveman.POLICY_POINTS)
-        self.assertEqual(TurnControl.policy_points(game=self.game, civilization=FIRST_CIVILIZATION), Caveman.POLICY_POINTS + Village.POLICY_POINTS)
+        self.assertEqual(self.first.get_policy_points(), points_given(by=Caveman, points=Policy) + points_given(by=Village, points=Policy) + Village.IDLE_CONTROL_POINTS[Policy])
+        self.assertEqual(self.second.get_policy_points(), points_given(by=Caveman, points=Policy))
+        self.assertEqual(TurnControl.control_points(game=self.game, civilization=FIRST_CIVILIZATION, points=Policy), points_given(by=Caveman, points=Policy) + points_given(by=Village, points=Policy) + Village.IDLE_CONTROL_POINTS[Policy])
 
     def test_buildings_are_paid_for_each_turn_and_a_technology_takes_nothing_off_what_buildings_cost(self):
         city = self.village(ONE_CITIZEN)
@@ -453,11 +454,11 @@ class TestEndingATurn(unittest.TestCase):
     def test_a_building_can_add_policy_points_to_its_civilization(self):
         city = self.village(ONE_CITIZEN)
         give_building(game=self.game, city=city, building=ArrangementOfRocks)
-        expected = Caveman.POLICY_POINTS + Village.POLICY_POINTS + ArrangementOfRocks.POLICY_POINTS
-        self.assertEqual(TurnControl.policy_points(game=self.game, civilization=FIRST_CIVILIZATION), expected)
+        expected = points_given(by=Caveman, points=Policy) + points_given(by=Village, points=Policy) + Village.IDLE_CONTROL_POINTS[Policy] + points_given(by=ArrangementOfRocks, points=Policy)
+        self.assertEqual(TurnControl.control_points(game=self.game, civilization=FIRST_CIVILIZATION, points=Policy), expected)
         end_rounds(game=self.game, rounds=ONE_ROUND)
         self.assertEqual(self.first.get_policy_points(), expected)
-        self.assertEqual(self.second.get_policy_points(), Caveman.POLICY_POINTS)
+        self.assertEqual(self.second.get_policy_points(), points_given(by=Caveman, points=Policy))
 
     def test_units_are_paid_for_before_what_a_village_builds(self):
         city = self.village(TWO_CITIZENS)

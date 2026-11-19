@@ -16,6 +16,8 @@
 
 """One civilization in a game."""
 
+from microsponge.engine.orders.forces import Forces
+from microsponge.engine.orders.order_table import OrderTable
 from microsponge.engine.kinds.catalog import NOTHING, renumbered, renumbered_keys
 from microsponge.engine.kinds.category import Category
 from microsponge.engine.saving.keys import number_keys, text_keys
@@ -61,7 +63,7 @@ class Civilization:
     own. Resources, technologies and other civilizations go by their ids.
     """
 
-    __slots__ = ('_name', '_holdings', '_technologies', '_researching', '_research', '_policy_points', '_bankrupt_turns', '_wars', '_lost', '_cities_founded', '_memories', '_traits')
+    __slots__ = ('_name', '_holdings', '_technologies', '_researching', '_research', '_policy_points', '_bankrupt_turns', '_wars', '_lost', '_cities_founded', '_memories', '_traits', '_orders', '_forces')
 
     def __init__(self, name):
         self._name = check_name(name)
@@ -76,6 +78,8 @@ class Civilization:
         self._cities_founded = 0
         self._memories = []
         self._traits = None
+        self._orders = OrderTable()
+        self._forces = Forces()
 
     def get_name(self):
         return self._name
@@ -162,6 +166,14 @@ class Civilization:
 
     def lose(self):
         self._lost = True
+
+    def get_orders(self):
+        """Return the table of the civilization's standing orders. The table is not in a saved game yet."""
+        return self._orders
+
+    def get_forces(self):
+        """Return the civilization's armies and divisions. They are not in a saved game yet."""
+        return self._forces
 
     def get_traits(self):
         """Return the traits of a computer-played civilization, or None for a civilization a person plays."""

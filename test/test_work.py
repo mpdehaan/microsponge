@@ -21,6 +21,7 @@ import unittest
 from caveman_game import FOREST_TILE, GRASSLAND_TILE, MOUNTAIN_TILE, SETTLER_TILES, TARPIT_TILE, THE_WORLD, end_rounds, end_turn_by_order, found_village, game_facts, learn, started_caveman_game
 from later_caveman import later_caveman
 from refusals import Refusals
+from microsponge.engine.kinds.control_points import Policy, points_given
 from microsponge.engine.cities.city_control import CityControl
 from microsponge.engine.cities.harvest import Harvest
 from microsponge.engine.kinds.catalog import NOTHING
@@ -112,7 +113,7 @@ class TestBuildingAnImprovement(Refusals, unittest.TestCase):
         self.assertEqual(WorkControl.turns_left(game=self.game, unit=self.worker), Farm.BUILD_TURNS)
         self.assertIsNone(self.improvement_at(self.field))
         self.assertEqual(self.points_of(self.worker), Worker.ACTION_POINTS - Caveman.ACTION_COST_BASE)
-        self.assertEqual(self.first.get_policy_points(), Caveman.POLICY_POINTS - Caveman.ACTION_COST_BASE)
+        self.assertEqual(self.first.get_policy_points(), points_given(by=Caveman, points=Policy) - Caveman.ACTION_COST_BASE)
 
     def test_the_farm_is_on_the_tile_after_the_turns_a_farm_takes_and_not_a_turn_sooner(self):
         self.start_farm()
