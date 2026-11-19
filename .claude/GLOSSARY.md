@@ -69,13 +69,16 @@ term is added here when the user settles on the word.
   resources. Claude never writes "worker" for a citizen.
 - A purpose is what a building or a unit is for, like defense or science. A kind can serve
   many purposes.
-- A BuildTarget is one thing an order aims to have built, and BuildTargets are the list an
-  order holds. Class names like BuildTarget are fine to talk in for now, and the names a
+- Every order class has a name that ends in Order, because orders are modelled as object
+  oriented classes: BuildTargetOrder is the order class for what Claude had been calling a
+  BuildTarget, one thing an order aims to have built. Class names like BuildTarget are fine to talk in for now, and the names a
   screen shows are worked out later. Claude does not describe the model in words that assume
   a particular screen, like "row".
-- A MilitaryTarget is what a military order aims at, like taking a city, and a
-  ResourcesTarget is what the citizens are told to look for, like food first. Both are the
-  user's names, beside BuildTarget.
+- A MilitaryTarget is a location to attack. A MilitaryTarget is not an order: an order
+  mentions a MilitaryTarget. A target can be a city, a point or a region.
+- A ResourcesPolicyOrder is the order for what the citizens look for first, like food first.
+  The user first called this ResourcesTarget, and renamed the order so that "target" only
+  means something like a position on the map.
 - A BuildOrder is the order attached to a city that lists the buildings to build, in order
   of priority. Claude first called this a BuildingsOrder.
 - A base is a city that a division lists as a place that can build units for the division.

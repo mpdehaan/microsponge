@@ -892,6 +892,52 @@ single units, and are rewritten as the details are decided.
 - Which base builds which unit for a division can be specified in many ways, and all are
   possible: the helper AI figures the split out, the order gives a balance in percentages
   over a pool of cities, or the order is very specific about each city.
+- The purposes of the engine are science, command, defense, offense, growth, expansion,
+  engineering and exploration, and a theme can add purposes of its own later.
+- Every category a kind belongs to, like its purposes and being an anti-air unit, is stored
+  on the kind in the theme, so that the game reads all of the categories from the theme, and
+  a person can open the one class of a kind, like caveman's captain caveman, and change
+  everything about the kind in one place.
+- Orders are modelled as object oriented classes, and the name of every order class ends in
+  the word Order, like BuildTargetOrder. A military target is not an order: a military
+  target is a location to attack, and an order mentions a military target.
+- When an order names a category and a city can build several kinds that fit, the helper AI
+  chooses the kind, starting from the strongest kind the city can build. The helper AI
+  needs to be tuned to be reasonably smart about the choice, and the right tuning is not
+  known yet.
+- A single unit can take every type of order that an army or a division can take as a
+  military order, and beside those the orders for an engineer and for a settler, depending
+  on the type of unit.
+- A garrison order is a military order: the order makes sure that so many units of a kind
+  are in a place, however that is best resolved, which is different from an order to build
+  units in a city. A garrison order can influence what cities build too.
+- The orders for a settler and for an engineer, SettlerOrder and WorkOrder, are civil orders,
+  subclasses of CivilOrder. The research order and the resolution order are policy orders,
+  subclasses of PolicyOrder.
+- An order that aims at things being built holds a list, and costs Oversight once whatever
+  the length of the list.
+- The order for what the citizens look for first, like food first, is a policy order called
+  ResourcesPolicyOrder. The order is not called a target, because the order is not a target
+  like a position on the map.
+- A target can be a city, a point or a region. An order to expand takes a target sometimes,
+  and not always.
+- An order is not just a giver, a receiver and a what: an order has configuration of its
+  own.
+- A garrison order means that a certain number of units, maybe of a certain type or with a
+  certain property and maybe not, are wanted in a certain place. The giver is whoever makes
+  that call and does not matter much. What matters is how the order is fulfilled: by
+  building the units or by moving them. Moving is tricky, because moving takes units away
+  from places that have no garrison order keeping them. The receiver is really a selection
+  of where the units are garrisoned from, which could be the cities. The priority between
+  the two ways of fulfilling, which the user called buy versus build, is probably a
+  property of the order.
+- A target is one base class with a city, a point and a region beneath: a military target
+  is a target that a military order mentions as the location to attack, and the place of a
+  garrison order is a target too.
+- A garrison order holds a place, a number with an optional kind or category, the sources
+  the units come from, which are cities that can build and divisions that can give units
+  up, and the way of fulfilling, which says whether building or moving is tried first. The
+  helper AI never moves a unit that another garrison order is keeping in place.
 - A completed order is set disabled. A disabled order costs no Oversight and does nothing, and
   stays in the table as a convenience, so that a person can remove the order or modify the
   order. A computer player will probably just remove a disabled order.

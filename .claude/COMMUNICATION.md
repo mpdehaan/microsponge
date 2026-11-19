@@ -86,7 +86,8 @@ The key terms the user and Claude share, like the model, the helper AI and Overs
   running sequence, so that "1" means one thing. A reply that numbers its proposals 1 to 3 and
   its open questions 1 and 2 gets the answer "1 and 2", which can't be told apart.
 - A question that offers options gives each option a letter, A, B, C and so on, and says which
-  option Claude suggests, so that the user can answer "7 B". Each question starts with a tag
+  option Claude suggests, so that the user can answer "7 B". The option Claude suggests is
+  always written as option A. Each question starts with a tag
   that says what kind of question the question is: `[Confirm?]` when Claude asks the user to
   confirm something, and `[Choice]` when Claude asks the user to pick between options.
 - Claude is not allowed to assume an answer to a question because the user has not responded
