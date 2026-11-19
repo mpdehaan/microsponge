@@ -83,6 +83,12 @@ import, an undefined name or a name defined twice fails the tests; `pyflakes` is
   fixed test world, made by a simple map generator from the game's seeded random source, which
   makes a map one way for now: the user will later look at what the generator makes and ask for
   styles. The fixed test world stays for the unit tests.
+- **Cross checks between ways of playing.** The user wants many cross checks planned for, in
+  which computer players that give orders in different ways play each other under the same
+  Oversight: one that orders every unit alone, one that orders divisions and cities, and one
+  that gives only high level orders. The player that orders divisions and cities should win
+  most games. There is much to tune, and the user expects that finding good numbers will
+  almost require a search like simulated annealing, to avoid local maxima.
 - **A test may end a game that has stalled.** When nothing has been built and no unit has been
   produced in 200 turns, test code is allowed to end the game. That never happens to a game a
   person plays. With the rule that a game ends after 50 turns of bankruptcy in a row (the model,

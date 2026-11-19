@@ -938,6 +938,36 @@ single units, and are rewritten as the details are decided.
   the units come from, which are cities that can build and divisions that can give units
   up, and the way of fulfilling, which says whether building or moving is tried first. The
   helper AI never moves a unit that another garrison order is keeping in place.
+- An order for a single unit costs 2 more Oversight than the orders for armies and
+  divisions do, as a starter number, so that ordering every unit alone is the dear way.
+- Orders for armies and divisions also take Command, a second kind of points that a
+  civilization has fewer of. Cities provide Command, and military buildings add to what a
+  city provides: caveman's watchtower supplies 5 more Command each turn.
+- A civilization can have 1 army for every 10 cities and 1 division for every 5 cities.
+  These limits, like every such number, are constants of the theme and need tuning.
+- Oversight comes from buildings too, and how much is tuned with care: too much Oversight
+  makes the game no longer interesting and actually unfun, because there are then too many
+  orders in the tree, which is micromanaging again, like the turns at the end of a game of
+  Civilization II.
+- The tuning of all of these numbers needs many cross checks in which computer players that
+  give orders in different ways play each other, like one that orders every unit alone,
+  one that orders divisions and cities, and one that gives only high level orders. There is
+  much to tune, and finding good numbers will almost require a search like simulated
+  annealing, to avoid local maxima. The tools are planned for this.
+- With no precedence list, the order that has waited longest wins, and the conflict is still
+  flagged in the view of problematic orders. The user first chose a random winner and
+  changed that.
+- A unit in a division or an army costs 1 Oversight, so an order for a single unit costs 3.
+- The limits on armies and divisions round up, and a civilization with units always has at
+  least 1 army and 1 division. Each theme sets its own numbers: caveman, whose civilizations
+  are small, needs smaller numbers than 10 and 5, and classic and SciFi will differ again.
+- The classes of order are named for the points the orders take: an order that takes Policy
+  points is a PolicyOrder, and an order that takes Command is a CommandOrder. Policy is the
+  name the user proposed for the points called Oversight.
+- Which points an order for a single unit takes depends on the unit: moving a settler or an
+  engineer takes Policy, and military movements take Command. A command order takes Command
+  only. An order to raise units, which a division gives to a city, is a policy order,
+  because the city does the work.
 - A completed order is set disabled. A disabled order costs no Oversight and does nothing, and
   stays in the table as a convenience, so that a person can remove the order or modify the
   order. A computer player will probably just remove a disabled order.

@@ -50,6 +50,9 @@ term is added here when the user settles on the word.
 - Oversight is what a civilization spends on orders, and is what was called the
   civilization's action points and then oversight points. The screens and Claude say
   Oversight. When the user says oversight points, the user means Oversight.
+- Command, or command points, is what a civilization spends, beside Oversight, on orders for
+  armies and divisions. A civilization has less Command than Oversight. Cities provide
+  Command, and military buildings add to it.
 - AP is short for action points, which belong to a unit: what a unit spends to move and to
   attack. The user may write AP, and the screens may write AP too.
 - To micro, or to micromanage, is to give every unit its own orders every turn. The game is

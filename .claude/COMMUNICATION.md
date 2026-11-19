@@ -87,7 +87,9 @@ The key terms the user and Claude share, like the model, the helper AI and Overs
   its open questions 1 and 2 gets the answer "1 and 2", which can't be told apart.
 - A question that offers options gives each option a letter, A, B, C and so on, and says which
   option Claude suggests, so that the user can answer "7 B". The option Claude suggests is
-  always written as option A. Each question starts with a tag
+  always written as option A. What the user decided before does not influence which option
+  Claude suggests: the suggestion is Claude's own opinion of what is best, even when that
+  means suggesting a change to an earlier decision of the user's. Each question starts with a tag
   that says what kind of question the question is: `[Confirm?]` when Claude asks the user to
   confirm something, and `[Choice]` when Claude asks the user to pick between options.
 - Claude is not allowed to assume an answer to a question because the user has not responded

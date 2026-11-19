@@ -41,6 +41,9 @@ file, so it's in force in every session. `.claude/TESTING.md` says what caveman 
   can be built. Cutting the trees takes 3 turns, which Claude chose.
 - A technology called agriculture allows the granary and the worker, and what the user first
   called farming is agriculture.
+- The watchtower supplies 5 more Command each turn, once Command is built: the points that
+  orders for armies and divisions take beside Oversight ("Priorities and the helper AI" in
+  the model).
 - The land starts out unexplored in caveman, so that the tests cover exploring. Caveman has no
   technology that ends the fog of war; the tests add one to a later caveman where they need it.
 
