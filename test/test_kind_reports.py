@@ -71,7 +71,7 @@ class TestKindReports(unittest.TestCase):
         self.assertEqual(len(row), len(MSG_UNITS_HEADING))
         self.assertEqual(row[:3], [shown_name(SlingshotCaveman), Domain.LAND, shown_kinds((Clubs,))])
         self.assertEqual(row[MSG_UNITS_HEADING.index('attack dice')], SlingshotCaveman.ATTACK.shown())
-        self.assertEqual(row[MSG_UNITS_HEADING.index('extra dice')], MSG_EXTRA_DICE.format(dice=1, domain=Domain.AIR))
+        self.assertEqual(row[MSG_UNITS_HEADING.index('extra dice')], MSG_EXTRA_DICE.format(dice=SlingshotCaveman.EXTRA_DICE[Domain.AIR], domain=Domain.AIR))
         self.assertEqual(row[MSG_UNITS_HEADING.index('cannot hit')], MSG_NONE_MARK)
         self.assertEqual(unit_row(Clubber)[MSG_UNITS_HEADING.index('cannot hit')], Domain.AIR)
         self.assertEqual(unit_row(Worker)[MSG_UNITS_HEADING.index('attack dice')], MSG_NONE_MARK)

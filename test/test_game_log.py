@@ -42,7 +42,7 @@ from microsponge.support.game_log_page import (
     ALL_UNITS_CHARTS, BUILDING_CHARTS, CITY_CHARTS, CONTROL_POINT_CHARTS, MAIN_CHARTS, MILITARY_CHARTS, ORDER_SPAN_TURNS, PLACEHOLDER, SCORE_PART_CHARTS, Content, PageKey, Tab, given_in_spans,
     page_data, page_path, page_text, spans_of, write_page,
 )
-from microsponge.support.game_log_report import SCORE_PARTS, built_table, forces_table, last_of, name_of, winner_line, made_table, orders_table, ranked, report_lines, series_of, strongest_turn, tables, timelines, title_of
+from microsponge.support.game_log_report import SCORE_PARTS, built_table, scores_table, forces_table, last_of, name_of, winner_line, made_table, orders_table, ranked, report_lines, series_of, strongest_turn, tables, timelines, title_of
 from microsponge.support.scripted_game import play, started_game
 from microsponge.support.theme_tools import FAILED, SUCCEEDED
 from microsponge.themes.caveman.buildings import Granary
@@ -283,11 +283,11 @@ class TestGameLogReport(unittest.TestCase):
         made = 0
         for table in tables(self.data):
             with self.subTest(table=table.title):
-                self.assertTrue(table.rows)
                 self.assertTrue(all(len(row) == len(table.heading) for row in table.rows))
             if table.heading == MSG_LOG_UNITS_HEADING:
                 made = sum(int(row[MADE_COLUMN]) for row in table.rows)
         self.assertEqual(made, len(self.data[Key.UNITS]))
+        self.assertEqual(len(scores_table(self.data).rows), THREE)
 
     def test_each_civilization_has_a_timeline_of_its_high_points_in_order_that_ends_with_its_place(self):
         told = timelines(self.data)

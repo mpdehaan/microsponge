@@ -208,9 +208,9 @@ class CityControl:
 
     @staticmethod
     def armor_bonus(*, game, city, against):
-        """Return by how much a city's buildings make the armor class of every unit inside better against a kind of unit, like a watchtower's. City walls add nothing against a kind that bypasses walls."""
+        """Return by how much a city, and its buildings, make the armor class of every unit inside better against a kind of unit: what the theme's city spec gives every city, and what a building like a watchtower adds. City walls add nothing against a kind that bypasses walls."""
         buildings = CityControl.buildings_of(game=game, city=city)
-        return sum(building.ARMOR_BONUS for building in buildings if not (building.WALLS and against.BYPASSES_WALLS))
+        return game.get_theme().CITY.ARMOR_BONUS + sum(building.ARMOR_BONUS for building in buildings if not (building.WALLS and against.BYPASSES_WALLS))
 
     @staticmethod
     def capture(*, game, city, by):

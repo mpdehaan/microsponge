@@ -667,6 +667,8 @@ otherwise. What classic itself chooses, like its list of resources, is kept in
   changes hands with its buildings and its priorities as they are. Taking a city ends all of
   the city's current production, with no refund. City walls and other defenses may come later.
 - Destroying a unit does not move the attacker into the tile where the unit was destroyed.
+- Every city can boost the defense of the units inside it, with no building, by a number the
+  theme sets, like caveman's villages.
 - A building can boost the defense of its city, like the watchtower of caveman: the boost
   applies to every unit inside the city when the city is attacked. City walls, when they come,
   provide an additional boost, and will be talked about with the tests for classic.

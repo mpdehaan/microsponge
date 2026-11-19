@@ -52,7 +52,7 @@ class Watchtower(Building):
     COST = {Currency: 20}
     BUILD_TURNS = 5
     SUPPORT = {Currency: 2}
-    ARMOR_BONUS = 1
+    ARMOR_BONUS = 2
     CONTROL_POINTS = {Command: 5}
 
 
@@ -91,17 +91,20 @@ class TradingPost(Building):
 
 
 class GreatCavePainting(Wonder):
-    COST = {Currency: 40}
-    BUILD_TURNS = 8
+    COST = {Currency: 120}
+    BUILD_TURNS = 16
     SUPPORT = {Currency: 2}
-    RESEARCH_POINTS = 2
+    RESEARCH_POINTS = 4
+    CONTROL_POINTS = {Policy: 2}
+    INCOME_BONUS = 10
 
 
 class ArrangementOfRocks(Wonder):
     REQUIRES = (Astrology,)
-    COST = {Currency: 20, Stone: 50}
-    BUILD_TURNS = 10
+    COST = {Currency: 60, Stone: 30}
+    BUILD_TURNS = 16
     SUPPORT = {Currency: 2}
     PRODUCES = {Currency: 2}
-    CONTROL_POINTS = {Policy: 1}
+    CONTROL_POINTS = {Policy: 3, Command: 3}
+    ARMOR_BONUS = 1
     UNIT_SUPPORT_DISCOUNT = {Currency: 1}

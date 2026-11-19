@@ -34,6 +34,8 @@ class CitySpec:
     # The citizens a new city has, and the most a city grows to.
     STARTING_CITIZENS = 1
     MAX_CITIZENS = 10
+    # By how much every city makes the armor class of every unit inside better when the city is attacked, with no building.
+    ARMOR_BONUS = 0
     # A city stores this much food for each of its citizens, and grows a citizen when the store is full.
     STORE_FOOD = 10
     # The food each citizen eats each turn.

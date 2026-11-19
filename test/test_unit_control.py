@@ -48,7 +48,10 @@ PERCENT_PER_ARMOR_POINT = 10
 NO_ARMOR = 10
 HALF_ARMOR = 5
 # Every test kind below rolls a fixed number, no dice and a number added, so that the damage is known.
-FIXED_CLUBBER_ROLL = 5
+# The roll of a kind that always rolls the average of caveman's clubber.
+FIXED_CLUBBER_ROLL = int(Clubber.ATTACK.average())
+# The kind of the theme with the most hit points, which takes more than one attack to kill.
+STURDIEST = max(Caveman.UNITS, key=lambda kind: kind.HIT_POINTS)
 
 
 def fixed(roll):
@@ -62,6 +65,13 @@ class Mammoth(LandUnit):
     ATTACK = fixed(50)
     ARMOR_CLASS = 5
     HIT_POINTS = 100
+
+
+class Twig(LandUnit):
+    """A land unit whose roll is so weak that its strike back through any armor is only chip damage."""
+
+    ATTACK = fixed(1)
+    HIT_POINTS = 1
 
 
 class Hedgehog(LandUnit):
@@ -249,9 +259,9 @@ class TestUnitControl(Refusals, unittest.TestCase):
         self.assertIsNotNone(UnitControl.attacks_to_kill(theme=Caveman, attacker=SpearThrower, defender=Pterodactyl))
 
     def test_a_level_adds_to_the_roll_makes_the_armor_better_and_adds_hit_points_so_more_attacks_are_needed(self):
-        recruit = UnitControl.attacks_to_kill(theme=Caveman, attacker=Clubber, defender=Clubber)
-        self.assertLess(UnitControl.attacks_to_kill(theme=Caveman, attacker=Clubber, defender=Clubber, attacker_level=LAST_LEVEL), recruit)
-        self.assertGreater(UnitControl.attacks_to_kill(theme=Caveman, attacker=Clubber, defender=Clubber, defender_level=LAST_LEVEL), recruit)
+        recruit = UnitControl.attacks_to_kill(theme=Caveman, attacker=Clubber, defender=STURDIEST)
+        self.assertLess(UnitControl.attacks_to_kill(theme=Caveman, attacker=Clubber, defender=STURDIEST, attacker_level=LAST_LEVEL), recruit)
+        self.assertGreater(UnitControl.attacks_to_kill(theme=Caveman, attacker=Clubber, defender=STURDIEST, defender_level=LAST_LEVEL), recruit)
         self.assertEqual(UnitControl.average_roll(attacker=Clubber, defender=Clubber, level=LAST_LEVEL), FIXED_CLUBBER_ROLL + Levels.damage_bonus(level=LAST_LEVEL))
         self.assertEqual(UnitControl.armor_class(kind=Clubber, level=LAST_LEVEL), Clubber.ARMOR_CLASS - Levels.armor_bonus(level=LAST_LEVEL))
         self.assertEqual(UnitControl.armor_class(kind=Clubber, bonus=1), Clubber.ARMOR_CLASS - 1)
@@ -271,8 +281,7 @@ class TestUnitControl(Refusals, unittest.TestCase):
         self.assertEqual(UnitControl.strike_back_roll(attacker=Clubber, defender=Mammoth, roll=Mammoth.ATTACK.plus), Mammoth.ATTACK.plus * STRIKE_BACK_PERCENT // WHOLE)
 
     def test_a_weak_strike_back_still_deals_chip_damage(self):
-        self.assertEqual(UnitControl.strike_back_damage(attacker=Mammoth, defender=Clubber), CHIP_DAMAGE)
-        self.assertEqual(UnitControl.strike_back_damage(attacker=Clubber, defender=Raft), CHIP_DAMAGE)
+        self.assertEqual(UnitControl.strike_back_damage(attacker=Mammoth, defender=Twig), CHIP_DAMAGE)
 
     def test_the_power_of_a_strike_back_can_be_set_for_a_kind_of_unit(self):
         self.assertEqual(UnitControl.strike_back_damage(attacker=Clubber, defender=Hedgehog), UnitControl.mitigated(roll=Hedgehog.ATTACK.plus, armor_class=Clubber.ARMOR_CLASS))

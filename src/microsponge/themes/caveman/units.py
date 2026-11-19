@@ -42,7 +42,7 @@ class Clubber(CavemanUnit, LandUnit):
     REQUIRES = (Clubs,)
     COST = {Currency: 15}
     BUILD_TURNS = 3
-    ATTACK = Dice(count=2, sides=4)
+    ATTACK = Dice(count=2, sides=6)
     ARMOR_CLASS = 8
     HIT_POINTS = 10
     EXPERIENCE_WORTH = 2
@@ -52,11 +52,11 @@ class SlingshotCaveman(CavemanUnit, LandUnit):
     REQUIRES = (Clubs,)
     COST = {Currency: 20}
     BUILD_TURNS = 3
-    ATTACK = Dice(count=1, sides=6)
-    EXTRA_DICE = {Domain.AIR: 1}
+    ATTACK = Dice(count=2, sides=4)
+    EXTRA_DICE = {Domain.AIR: 2}
     CAN_HIT_AIR = True
     ARMOR_CLASS = 8
-    HIT_POINTS = 10
+    HIT_POINTS = 8
     EXPERIENCE_WORTH = 2
 
 
@@ -64,20 +64,20 @@ class WildClubber(CavemanUnit, LandUnit):
     REQUIRES = (ChurchOfTheCaveBear, Poppies)
     COST = {Currency: 30}
     BUILD_TURNS = 5
-    ATTACK = Dice(count=4, sides=4)
+    ATTACK = Dice(count=3, sides=6)
     ARMOR_CLASS = 8
-    HIT_POINTS = 20
-    EXPERIENCE_WORTH = 4
+    HIT_POINTS = 13
+    EXPERIENCE_WORTH = 3
 
 
 class CaptainCaveman(CavemanUnit, LandUnit):
     REQUIRES = (Barracks,)
     COST = {Currency: 40}
     BUILD_TURNS = 6
-    ATTACK = Dice(count=6, sides=4)
+    ATTACK = Dice(count=4, sides=6)
     ARMOR_CLASS = 8
-    HIT_POINTS = 30
-    EXPERIENCE_WORTH = 6
+    HIT_POINTS = 15
+    EXPERIENCE_WORTH = 4
 
 
 class Worker(CavemanUnit, LandUnit):
@@ -92,14 +92,16 @@ class Raft(CavemanUnit, SeaUnit):
     REQUIRES = (Harbor,)
     COST = {Currency: 15, Wood: 10}
     BUILD_TURNS = 4
-    ATTACK = Dice(count=1, sides=6)
+    ATTACK = Dice(count=2, sides=4)
     ARMOR_CLASS = 9
-    HIT_POINTS = 5
+    HIT_POINTS = 8
 
 
 class AngryBird(CavemanUnit, AirUnit):
     COST = {Currency: 15}
     BUILD_TURNS = 2
-    ATTACK = Dice(count=1, sides=6)
-    HIT_POINTS = 5
+    ATTACK = Dice(count=2, sides=4)
+    HIT_POINTS = 6
     TAKES_CITIES = False
+    ACTION_POINTS = 6
+    VISION = 7

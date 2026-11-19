@@ -126,13 +126,17 @@ cost and the turns to build. Every unit costs 2 currency to support each turn an
 gained, so a level 20 warrior has 13 hit points and a level 20 captain caveman 27.
 
 - settler: no attack, 10, 5, worth 1. 10 currency and a citizen, 6 turns.
-- clubber, which was called the warrior: 2d4, 8, 10, worth 2. Requires clubs.
+- clubber, which was called the warrior: 2d6, 8, 10, worth 2. 15 currency, 3 turns. Requires clubs.
 - worker: no attack, 10, 5, worth 1. 10 currency, 3 turns. Requires agriculture.
-- captain caveman: requires a barracks.
-- slingshot caveman: 1d6, and 1 extra die against air units, 8, 10, worth 2. 15 currency,
+- captain caveman: 4d6, 8, 15, worth 4. 40 currency, 6 turns. Requires a barracks.
+- wild clubber: 3d6, 8, 13, worth 3. 30 currency, 5 turns. Requires church of the cave bear
+  and poppies. Claude read "twice as good" as twice the attack times the hit points of the
+  clubber, and captain caveman as half again that of the wild clubber.
+- slingshot caveman: 2d4, and 2 extra dice against air units, 8, 8, worth 2. 20 currency,
   3 turns. Requires clubs.
-- raft: 1d6, 9, 5, worth 1. 10 currency and 10 wood, 4 turns. Requires a harbor.
-- angry bird: 1d6, 10, 5, worth 1. 10 currency, 2 turns.
+- raft: 2d4, 9, 8, worth 1. 15 currency and 10 wood, 4 turns. Requires a harbor.
+- angry bird: 2d4, 10, 6, worth 1, 6 action points and a vision of 7, because the user
+  wants air units to fly a lot. 15 currency, 2 turns.
 - barracks: 30 currency, 5 turns, 1 currency to support. Requires discipline, which takes 40
   research points. The barracks starts the units built in its city at level 2, which the user
   decided for caveman as for classic.
@@ -163,16 +167,23 @@ gained, so a level 20 warrior has 13 hit points and a level 20 captain caveman 2
 
 ## Balance
 
-The user finds 5 warrior-to-warrior battle turns far too long, and the properties of the units
-are to be tweaked so that they make sense, together with the damage roll the model asks for
-("Combat"): evenly matched units kill one another in a few turns, and unmatched units often fall
-in one turn unless fortified.
+The user finds 5 warrior-to-warrior battle turns far too long, and wants units to die in a
+reasonable number of attacks, usually 3 at most rather than the 8 that was possible: evenly
+matched units kill one another in a few attacks, and unmatched units often fall in one unless
+fortified.
 
 `tools/balance.py caveman` shows how many attacks each unit needs against each other unit on
-average rolls. With the numbers above, a warrior needs 3 attacks against a warrior and 5 against
-captain caveman, and captain caveman needs 2 against a warrior and 3 against captain caveman. A
-warrior finishes a settler, a worker or a raft in one attack, and slingshot caveman and the angry
-bird each need 7 attacks against captain caveman, which is what being weak against land and super
-weak come to. A level 20 warrior needs 2 attacks against a level 1 warrior, and a level 1 warrior
-5 against a level 20. The user does not know yet whether 5 hit points is right for the settler,
-the worker, the raft and the angry bird, and will find out by playing.
+average rolls. With the numbers above, no fight between level 1 units takes more than 4
+attacks: a clubber needs 2 against a clubber and 3 against captain caveman or the wild clubber,
+captain caveman needs 1 against a clubber and 2 against captain caveman, and slingshot caveman,
+the raft and the angry bird need 4 against captain caveman.
+
+City defense, which the user asked to be stronger: every village makes the armor class of every
+unit inside 1 better with no building, the watchtower 2 better, and the arrangement of rocks 1
+better in its village.
+
+World wonders, which the user found gave too little: the great cave painting costs 120
+currency over 16 turns and gives 4 research points, 2 Policy and 10 percent more currency in
+its village; the arrangement of rocks costs 60 currency and 30 stone over 16 turns and gives 2
+currency, 3 Policy, 3 Command, 1 better armor class in its village and 1 currency off every
+unit's upkeep.

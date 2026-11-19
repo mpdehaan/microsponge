@@ -359,8 +359,9 @@ class TestAttackingACity(CityCombatCase):
     def test_a_watchtower_makes_the_armor_class_of_every_unit_inside_better(self):
         clubber = self.put_inside(Clubber)
         give_building(game=self.game, city=self.city, building=Watchtower)
-        self.assertEqual(CityControl.armor_bonus(game=self.game, city=self.city, against=Clubber), Watchtower.ARMOR_BONUS)
-        self.assertEqual(UnitControl.armor_class_of(game=self.game, unit=clubber, bonus=Watchtower.ARMOR_BONUS), Clubber.ARMOR_CLASS - Watchtower.ARMOR_BONUS)
+        bonus = Caveman.CITY.ARMOR_BONUS + Watchtower.ARMOR_BONUS
+        self.assertEqual(CityControl.armor_bonus(game=self.game, city=self.city, against=Clubber), bonus)
+        self.assertEqual(UnitControl.armor_class_of(game=self.game, unit=clubber, bonus=bonus), Clubber.ARMOR_CLASS - bonus)
         self.game.set_seed(A_SEED)
         outcome = self.raid()
         self.assertWithin(value=outcome.damage, bounds=damage_range(attacker=Clubber, defender=Clubber, armor_bonus=Watchtower.ARMOR_BONUS))
@@ -454,17 +455,17 @@ class TestCityWalls(CityCombatCase):
 
     def test_city_walls_add_their_armor_against_a_unit_that_does_not_bypass_them(self):
         bonus = CityControl.armor_bonus(game=self.game, city=self.city, against=Clubber)
-        self.assertEqual(bonus, Palisade.ARMOR_BONUS + Watchtower.ARMOR_BONUS)
+        self.assertEqual(bonus, Caveman.CITY.ARMOR_BONUS + Palisade.ARMOR_BONUS + Watchtower.ARMOR_BONUS)
         outcome = self.raid()
         self.assertWithin(value=outcome.damage, bounds=damage_range(attacker=Clubber, defender=Clubber, armor_bonus=bonus))
-        self.assertLess(damage_range(attacker=Clubber, defender=Clubber, armor_bonus=bonus)[1], damage_range(attacker=Clubber, defender=Clubber, armor_bonus=Watchtower.ARMOR_BONUS)[1])
+        self.assertLess(damage_range(attacker=Clubber, defender=Clubber, armor_bonus=bonus)[1], damage_range(attacker=Clubber, defender=Clubber, armor_bonus=Caveman.CITY.ARMOR_BONUS + Watchtower.ARMOR_BONUS)[1])
 
     def test_a_unit_that_bypasses_city_walls_ignores_the_walls_but_not_the_other_buildings(self):
-        self.assertEqual(CityControl.armor_bonus(game=self.game, city=self.city, against=Rockthrower), Watchtower.ARMOR_BONUS)
+        self.assertEqual(CityControl.armor_bonus(game=self.game, city=self.city, against=Rockthrower), Caveman.CITY.ARMOR_BONUS + Watchtower.ARMOR_BONUS)
         x, y = self.east
         thrower = self.place(kind=Rockthrower, civilization=SECOND_CIVILIZATION, x=x, y=y + ONE_STEP)
         outcome = Orders.attack(game=self.game, unit=thrower, x=x - ONE_STEP, y=y + ONE_STEP)
-        self.assertWithin(value=outcome.damage, bounds=damage_range(attacker=Rockthrower, defender=Clubber, armor_bonus=Watchtower.ARMOR_BONUS))
+        self.assertWithin(value=outcome.damage, bounds=damage_range(attacker=Rockthrower, defender=Clubber, armor_bonus=Caveman.CITY.ARMOR_BONUS + Watchtower.ARMOR_BONUS))
 
 
 class TestTakingACity(CityCombatCase):

@@ -147,15 +147,6 @@ class TestResearch(ResearchCase):
         self.assertTrue(Research.must_choose(game=self.game, civilization=FIRST_CIVILIZATION))
         self.assertEqual(self.available(), researchable(theme=Caveman, known=(Clubs,)))
 
-    def test_the_points_past_what_a_technology_takes_are_lost(self):
-        give_building(game=self.game, city=self.city, building=GreatCavePainting)
-        self.research(Agriculture)
-        rounds = divided_rounding_up(amount=Agriculture.RESEARCH, by=PAINTING_POINTS)
-        self.rounds(rounds)
-        self.assertTrue(self.knows(Agriculture))
-        self.assertGreater(PAINTING_POINTS * rounds - Agriculture.RESEARCH, NO_POINTS)
-        self.assertEqual(self.first.get_research(), NO_POINTS)
-
     def test_points_do_not_gather_while_nothing_is_researched_and_a_technology_is_left_to_pick(self):
         currency = held(game=self.game, civilization=FIRST_CIVILIZATION, resource=Currency)
         self.rounds(HALF_THE_ROUNDS)
@@ -251,3 +242,26 @@ class TestATechnologyThatRequiresAnother(ResearchCase):
         self.assertIn(Pottery, self.available())
         self.research(Pottery)
         self.assertIs(self.researching(), Pottery)
+
+
+class Knapping(Technology):
+    """A technology whose research points a city with the great cave painting does not reach in a whole number of turns."""
+
+    RESEARCH = PAINTING_POINTS * 2 + 1
+
+
+KNAPPING_CAVEMAN = later_caveman({Category.TECHNOLOGIES: (*Caveman.TECHNOLOGIES, Knapping)})
+
+
+class TestPointsPastATechnology(ResearchCase):
+
+    THEME = KNAPPING_CAVEMAN
+
+    def test_the_points_past_what_a_technology_takes_are_lost(self):
+        give_building(game=self.game, city=self.city, building=GreatCavePainting)
+        self.research(Knapping)
+        rounds = divided_rounding_up(amount=Knapping.RESEARCH, by=PAINTING_POINTS)
+        self.rounds(rounds)
+        self.assertTrue(self.knows(Knapping))
+        self.assertGreater(PAINTING_POINTS * rounds - Knapping.RESEARCH, NO_POINTS)
+        self.assertEqual(self.first.get_research(), NO_POINTS)

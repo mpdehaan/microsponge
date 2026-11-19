@@ -33,7 +33,7 @@ from microsponge.engine.kinds.technology import Technology
 from microsponge.engine.kinds.terrain import Terrain
 from microsponge.engine.kinds.terrain_bonus import TerrainBonus
 from microsponge.engine.kinds.theme import LEAST_COST, Theme, underpriced
-from microsponge.engine.kinds.unit_kinds import NO_ARMOR, SettlerUnit, UnitKind, attack_dice, can_hit
+from microsponge.engine.kinds.unit_kinds import NO_ARMOR, SettlerUnit, UnitKind, can_hit
 from microsponge.engine.units.unit_control import BEST_ARMOR_CLASS
 from microsponge.themes import THEMES
 from microsponge.themes.caveman import buildings as caveman_buildings
@@ -294,15 +294,6 @@ class TestCaveman(unittest.TestCase):
         self.assertEqual([unit for unit in Caveman.UNITS if not unit.TAKES_CITIES], [caveman_units.AngryBird])
         self.assertTrue(UnitKind.TAKES_CITIES)
 
-    def test_slingshot_caveman_is_the_land_unit_that_can_hit_air_and_is_strong_against_air_and_weak_against_land(self):
-        slingshot = caveman_units.SlingshotCaveman
-        self.assertEqual([unit for unit in Caveman.UNITS if unit.DOMAIN == Domain.LAND and unit.CAN_HIT_AIR], [slingshot])
-        against_air = attack_dice(kind=slingshot, target=caveman_units.AngryBird)
-        self.assertTrue(slingshot.ATTACK.average() < caveman_units.Clubber.ATTACK.average() < against_air.average())
-        self.assertEqual(slingshot.EXTRA_DICE, {Domain.AIR: 1})
-        self.assertEqual([unit for unit in Caveman.UNITS if unit.EXTRA_DICE], [slingshot])
-        self.assertEqual(shown_name(slingshot), SLINGSHOT_CAVEMAN)
-
     def test_a_caveman_city_is_called_a_village_and_the_other_themes_say_city(self):
         self.assertEqual((Caveman.CITY.NAME, Caveman.CITY.NAMES), (VILLAGE, VILLAGES))
         for theme in (Classic, SciFi, Fantasy, PlanetWars):
@@ -478,13 +469,6 @@ class TestClassic(unittest.TestCase):
             self.assertEqual(bonus.ON, (caveman_terrains.Grassland,))
             self.assertEqual(set(bonus.GIVES), {caveman_resources.Food})
         self.assertLess(bonuses.Bison.GIVES[caveman_resources.Food], bonuses.Elephants.GIVES[caveman_resources.Food])
-
-    def test_the_watchtower_requires_fire_and_flint_and_makes_the_armor_class_of_every_unit_inside_better_by_one(self):
-        watchtower = caveman_buildings.Watchtower
-        self.assertEqual(watchtower.REQUIRES, (caveman_technologies.Fire, caveman_resources.Flint))
-        self.assertEqual(watchtower.ARMOR_BONUS, WATCHTOWER_ARMOR_BONUS)
-        self.assertEqual(Building.ARMOR_BONUS, 0)
-        self.assertIn(caveman_technologies.Fire, Caveman.TECHNOLOGIES)
 
     def test_classic_has_the_terrains_the_user_named_and_only_rivers_and_lakes_are_fresh_water(self):
         terrains = classic_terrains

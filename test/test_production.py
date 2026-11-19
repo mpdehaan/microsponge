@@ -650,6 +650,7 @@ class TestBuildingBuildings(ProductionCase):
         self.assertEqual(message, ERR_ALREADY_BUILT.format(name=A_NAME, building=shown_name(Granary)))
 
     def test_a_world_wonder_that_stands_somewhere_cannot_be_built_again_by_anyone(self):
+        self.give(resource=Currency, amount=PLENTY)
         self.build(GreatCavePainting)
         self.rounds(GreatCavePainting.BUILD_TURNS)
         self.assertEqual(CityControl.buildings_of(game=self.game, city=self.city_id), [GreatCavePainting])
@@ -662,6 +663,8 @@ class TestBuildingBuildings(ProductionCase):
 
     def test_when_two_civilizations_build_the_same_world_wonder_the_first_to_finish_has_it_and_the_other_loses_what_it_paid(self):
         self.assertEqual(Production.wonder_builders(game=self.game, wonder=GreatCavePainting), [])
+        self.give(resource=Currency, amount=PLENTY)
+        self.game.get_civilization(SECOND_CIVILIZATION).add(resource=resource_id(game=self.game, resource=Currency), amount=PLENTY)
         self.build(GreatCavePainting)
         end_turn_by_order(game=self.game, civilization=FIRST_CIVILIZATION)
         self.assertEqual(Production.wonder_builders(game=self.game, wonder=GreatCavePainting), [self.city_id])
@@ -674,7 +677,7 @@ class TestBuildingBuildings(ProductionCase):
         self.assertEqual(CityControl.buildings_of(game=self.game, city=self.other_id), [])
         self.assertEqual((self.other.get_queue(), self.other.get_progress()), ([], NO_PROGRESS))
         self.assertEqual(Production.waiting_cities(game=self.game, civilization=SECOND_CIVILIZATION), [self.other_id])
-        self.assertLess(held(game=self.game, civilization=SECOND_CIVILIZATION, resource=Currency), STARTING_CURRENCY)
+        self.assertLess(held(game=self.game, civilization=SECOND_CIVILIZATION, resource=Currency), STARTING_CURRENCY + PLENTY)
         self.assertEqual(Production.wonder_builders(game=self.game, wonder=GreatCavePainting), [])
 
 
