@@ -864,13 +864,24 @@ single units, and are rewritten as the details are decided.
   researches its current targets, or a random technology when no target is set.
 - An order for a planet can be a high level objective, like increase settlements here,
   conquer the cities in this area, or eliminate the units in this area. Such objectives can
-  be given at lower levels too. Very high level objectives more or less make a player as
-  smart as the helper AI, so they are controlled in a special way: an order costs more
-  Oversight the higher up the chain the order is applied. This goes against the wariness of
-  micromanagement in an acceptable way: a player who works at it and makes good orders at
-  the middle levels can beat a player who relies on the helper AI through high level orders,
-  or who wastes Oversight on low level orders. The same is true of computer players against
-  computer players.
+  be given at lower levels too. An order higher up the chain does not cost more Oversight, which the
+  user first proposed and then changed. A high level order is instead probably a poor
+  choice, because the order leaves everything up to the helper AI, and the helper AI is
+  made dumber than a computer player's main AI and than a person: the helper AI is like a
+  sergeant beside a general, and can follow orders but cannot strategize well. Given an
+  order for a whole planet to attack a city, the helper AI would for example build units all
+  over the place and start moving each across the map whenever the unit could, rather than
+  bring in a squadron of bombers from the closest point. So a player who makes good orders
+  at the middle levels can beat a player who relies on high level orders, and the same is
+  true of computer players against computer players.
+- An order for a division costs the number of units in the division, and an order for an
+  army the number of units in the army, counting every unit. Every order keeps a base cost
+  beside the cost for each unit, and the base cost is 0 so far. In the first test of the
+  game every order costs 1, an order for an army or a division costs 1 for each unit with
+  no base cost, and a resolution order costs 0.
+- A civilization whose active orders cost more than its Oversight must disable orders
+  before ending its turn, a person and a computer player alike. Oversight that is not
+  spent in a turn is lost.
 - What an order says is made of targets. Taking a city is a form of military target, and
   food first is a resources target, beside the build targets.
 - A resolution order can be set a fourth way, balanced, which alternates one build for the
@@ -878,6 +889,9 @@ single units, and are rewritten as the details are decided.
 - A city with no order builds nothing, and a unit with no order stands still and only
   strikes back. So every city needs a build order attached: the buildings to build, in
   order of priority. A long build order costs no more Oversight than a short one.
+- Which base builds which unit for a division can be specified in many ways, and all are
+  possible: the helper AI figures the split out, the order gives a balance in percentages
+  over a pool of cities, or the order is very specific about each city.
 - A completed order is set disabled. A disabled order costs no Oversight and does nothing, and
   stays in the table as a convenience, so that a person can remove the order or modify the
   order. A computer player will probably just remove a disabled order.
