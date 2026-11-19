@@ -31,6 +31,7 @@ from microsponge.engine.kinds.resource import StrategicResource
 from microsponge.engine.orders.order_control import OrderControl
 from microsponge.engine.orders.order import RetireOrder
 from microsponge.engine.orders.thing import city_thing, division_thing
+from microsponge.engine.players.appraisal import Appraisal
 from microsponge.engine.players.hand import Hand
 from microsponge.engine.orders.what import NoDetails
 from microsponge.engine.turns.orders import Orders
@@ -427,7 +428,7 @@ class TestWhatTheLogCountsOfForces(unittest.TestCase):
         army = OrderControl.add_army(game=game, civilization=FIRST)
         division = OrderControl.add_division(game=game, civilization=FIRST, army=army)
         log.note(game=game, turn=A_TURN)
-        unit = UnitControl.place(game=game, kind=game.get_theme().PLAYER.FIGHTERS[-1], owner=FIRST, world=THE_WORLD, x=A_TILE[0], y=A_TILE[1])
+        unit = UnitControl.place(game=game, kind=Appraisal.fighters(game.get_theme())[-1], owner=FIRST, world=THE_WORLD, x=A_TILE[0], y=A_TILE[1])
         division.add_unit(unit)
         log.note(game=game, turn=A_TURN)
         OrderControl.give(game=game, civilization=FIRST, kind=RetireOrder, giver=city_thing(city), receiver=division_thing(division.get_id()), what=NoDetails())

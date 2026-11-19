@@ -160,18 +160,25 @@ class CombatCase(Refusals, unittest.TestCase):
         target = self.place(kind=defender, civilization=SECOND_CIVILIZATION, x=OPEN_COLUMN + ONE_STEP, y=OPEN_ROW)
         return attacker, target
 
+    def sturdy(self, unit):
+        """Give a unit more hit points than a clubber's highest roll can take, so that one attack never kills it, and return its hit points."""
+        hit_points = Clubber.ATTACK.count * Clubber.ATTACK.sides + Clubber.ATTACK.plus + 1
+        self.units.set_value(column=UnitColumn.HIT_POINTS, unit=unit, value=hit_points)
+        return hit_points
+
 
 class TestAttackingAUnit(CombatCase):
 
     def test_an_attack_rolls_the_dice_through_the_armor_of_the_defender_and_the_defender_strikes_back_through_the_armor_of_the_attacker(self):
         attacker, target = self.two_clubbers()
+        sturdy = self.sturdy(target)
         outcome = self.attack(unit=attacker, x=OPEN_COLUMN + ONE_STEP, y=OPEN_ROW)
         self.assertEqual(outcome.defender, target)
         self.assertWithin(value=outcome.damage, bounds=damage_range(attacker=Clubber, defender=Clubber))
         self.assertWithin(value=outcome.strike_back, bounds=strike_back_range(attacker=Clubber, defender=Clubber))
         self.assertEqual(outcome.striker, target)
         self.assertEqual((outcome.defender_killed, outcome.attacker_killed), (False, False))
-        self.assertEqual(self.hit_points(target), Clubber.HIT_POINTS - outcome.damage)
+        self.assertEqual(self.hit_points(target), sturdy - outcome.damage)
         self.assertEqual(self.hit_points(attacker), Clubber.HIT_POINTS - outcome.strike_back)
         self.assertEqual(self.points_of(attacker), Clubber.ACTION_POINTS - STRAIGHT)
         self.assertEqual(self.game.get_civilization(FIRST_CIVILIZATION).get_policy_points(), points_given(by=Caveman, points=Policy) - STRAIGHT)
@@ -238,6 +245,7 @@ class TestAttackingAUnit(CombatCase):
     def test_an_attacker_can_be_killed_by_the_strike_back(self):
         attacker, target = self.two_clubbers()
         self.units.set_value(column=UnitColumn.HIT_POINTS, unit=attacker, value=CHIP_DAMAGE)
+        self.sturdy(target)
         outcome = self.attack(unit=attacker, x=OPEN_COLUMN + ONE_STEP, y=OPEN_ROW)
         self.assertEqual((outcome.defender_killed, outcome.attacker_killed), (False, True))
         self.assertFalse(self.units.exists(attacker))
@@ -388,6 +396,7 @@ class TestExperienceAndLevels(CombatCase):
 
     def test_an_attack_gives_the_attacker_and_a_surviving_defender_a_little_experience(self):
         attacker, target = self.two_clubbers()
+        self.sturdy(target)
         self.attack(unit=attacker, x=OPEN_COLUMN + ONE_STEP, y=OPEN_ROW)
         self.assertEqual(self.experience_of(attacker), ATTACK_EXPERIENCE)
         self.assertEqual(self.experience_of(target), SURVIVAL_EXPERIENCE)
@@ -405,12 +414,14 @@ class TestExperienceAndLevels(CombatCase):
     def test_a_striker_that_kills_the_attacker_gets_the_prize_and_the_dead_attacker_gets_nothing(self):
         attacker, target = self.two_clubbers()
         self.units.set_value(column=UnitColumn.HIT_POINTS, unit=attacker, value=CHIP_DAMAGE)
+        self.sturdy(target)
         outcome = self.attack(unit=attacker, x=OPEN_COLUMN + ONE_STEP, y=OPEN_ROW)
         self.assertTrue(outcome.attacker_killed)
         self.assertEqual(self.experience_of(target), SURVIVAL_EXPERIENCE + Clubber.EXPERIENCE_WORTH + FIRST_LEVEL)
 
     def test_experience_that_reaches_a_level_raises_the_level_and_adds_the_hit_points_on_top_of_the_wounds(self):
         attacker, target = self.two_clubbers()
+        self.sturdy(target)
         needed = Levels.experience_for(level=FIRST_LEVEL + ONE_LEVEL)
         self.units.set_value(column=UnitColumn.EXPERIENCE, unit=attacker, value=needed - ATTACK_EXPERIENCE)
         outcome = self.attack(unit=attacker, x=OPEN_COLUMN + ONE_STEP, y=OPEN_ROW)

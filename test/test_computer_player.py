@@ -20,19 +20,28 @@ import time
 import unittest
 
 from caveman_game import FIRST_CIVILIZATION, THE_WORLD, computer_played_caveman_game, found_village, play_turns, started_caveman_game
-from microsponge.engine.kinds.control_points import CONTROL_POINTS
+from microsponge.engine.kinds.control_points import CONTROL_POINTS, Policy
+from microsponge.engine.orders.thing import city_thing
+from microsponge.engine.orders.what import NoDetails
+from microsponge.engine.turns.orders import Orders
 from microsponge.engine.kinds.category import Category
 from microsponge.engine.orders.order import BuildOrder, ExpandOrder, GarrisonOrder, MarchOrder, RaiseOrder, ResearchOrder, RetireOrder, SettlerOrder
 from microsponge.engine.orders.order_control import OrderControl
-from microsponge.engine.players.computer_player import ComputerPlayer
+from microsponge.engine.kinds.dice import NO_DICE
+from microsponge.engine.kinds.domain import Domain
+from microsponge.engine.players.appraisal import Appraisal
+from microsponge.engine.players.computer_player import ComputerPlayer, Weights
 from microsponge.engine.players.knowledge import Knowledge
 from microsponge.engine.units.unit_control import UnitControl
 from microsponge.engine.players.traits import AGGRESSIVE_HYPERFOCUS, BOLDNESS, CONQUEST, EXPANSION, LEAST, LOGICAL, MIDDLE, MOST, PEACE, SCIENCE, TRAITS
-from microsponge.themes.caveman.player import CavemanPlayer
 from microsponge.themes.caveman.theme import Caveman
 
 FIRST = FIRST_CIVILIZATION
 A_NAME = 'Bedrock'
+# Currency enough that a civilization can raise its division whatever the theme's economy, so that a test sees only what a trait decides.
+WEALTH = 10000
+# A kind of unit of the theme that requires nothing and uses up no citizen, which any city can build.
+FREE_UNIT = next(kind for kind in Caveman.UNITS if not kind.REQUIRES and not kind.CITIZENS)
 # Open tiles near the first civilization's first village, as (x, y), for fighters beyond its garrison.
 SPARE_TILES = ((9, 10), (9, 12), (9, 14))
 SECOND = FIRST + 1
@@ -65,15 +74,19 @@ def given(*, game, civilization, kind):
 
 class TestComputerPlayer(unittest.TestCase):
 
-    def test_caveman_has_a_player_whose_kinds_are_cavemans(self):
-        self.assertIs(Caveman.PLAYER, CavemanPlayer)
-        self.assertTrue(issubclass(CavemanPlayer, ComputerPlayer))
-        for kind in CavemanPlayer.FIGHTERS:
-            self.assertIn(kind, Caveman.UNITS)
-        for kind in CavemanPlayer.ECONOMY:
-            self.assertIn(kind, Caveman.BUILDINGS)
-        for technology in (*CavemanPlayer.SCIENCE_RESEARCH, *CavemanPlayer.MILITARY_RESEARCH):
-            self.assertIn(technology, Caveman.TECHNOLOGIES)
+    def test_the_computer_player_knows_no_theme_and_reads_every_kind_from_the_themes_properties(self):
+        self.assertIs(Caveman.PLAYER, ComputerPlayer)
+        theme = Caveman
+        for kind in Appraisal.fighters(theme):
+            self.assertTrue(kind.TAKES_CITIES and kind.DOMAIN == Domain.LAND and kind.ATTACK is not NO_DICE)
+        fighters = Appraisal.fighters(theme)
+        self.assertEqual(fighters, sorted(fighters, key=Appraisal.unit_worth, reverse=True))
+        for kind in Appraisal.flyers(theme):
+            self.assertEqual(kind.DOMAIN, Domain.AIR)
+        for kind in Appraisal.engineers(theme):
+            self.assertTrue(kind.BUILDS)
+        self.assertEqual(set(Appraisal.ranked_buildings(theme=theme, weights=Weights)), set(theme.BUILDINGS))
+        self.assertEqual(set(Appraisal.ranked_technologies(theme=theme, weights=Weights)), set(theme.TECHNOLOGIES))
 
     def test_two_computer_players_play_a_whole_game_founding_cities_researching_and_building_units_quickly(self):
         game = computer_played_caveman_game(seed=A_SEED)
@@ -101,7 +114,7 @@ class TestComputerPlayer(unittest.TestCase):
 
     def test_the_player_plays_only_by_giving_orders_and_gives_each_kind_where_it_belongs(self):
         game = computer_played_caveman_game(seed=A_SEED, traits=(LOGICAL, LOGICAL))
-        CavemanPlayer.plan(game=game, civilization=FIRST)
+        ComputerPlayer.plan(game=game, civilization=FIRST)
         self.assertEqual(len(given(game=game, civilization=FIRST, kind=ResearchOrder)), 1)
         self.assertEqual(len(given(game=game, civilization=FIRST, kind=SettlerOrder)), 1)
         self.assertEqual(game.get_cities_of(FIRST), [])
@@ -120,17 +133,18 @@ class TestComputerPlayer(unittest.TestCase):
         game = computer_played_caveman_game(seed=A_SEED)
         for _ in range(TURNS):
             civilization = game.get_playing()
-            CavemanPlayer.plan(game=game, civilization=civilization)
+            ComputerPlayer.plan(game=game, civilization=civilization)
             for points in CONTROL_POINTS:
                 self.assertGreaterEqual(OrderControl.left(game=game, civilization=civilization, points=points), 0)
-            CavemanPlayer.play_turn(game=game, civilization=civilization)
+            ComputerPlayer.play_turn(game=game, civilization=civilization)
 
     def test_the_science_trait_decides_which_technologies_the_research_order_lists_first(self):
         game = computer_played_caveman_game(seed=A_SEED, traits=(SCIENTIST, SOLDIER))
-        for civilization, first in ((FIRST, CavemanPlayer.SCIENCE_RESEARCH), (SECOND, CavemanPlayer.MILITARY_RESEARCH)):
-            CavemanPlayer.plan(game=game, civilization=civilization)
+        for civilization, weights in ((FIRST, ComputerPlayer.SCIENCE_WEIGHTS), (SECOND, ComputerPlayer.MILITARY_WEIGHTS)):
+            ComputerPlayer.plan(game=game, civilization=civilization)
             listed = given(game=game, civilization=civilization, kind=ResearchOrder)[0].get_what().kinds
-            self.assertEqual(listed[:len(first)], first)
+            self.assertEqual(listed, tuple(Appraisal.ranked_technologies(theme=Caveman, weights=weights)))
+        self.assertNotEqual(Appraisal.ranked_technologies(theme=Caveman, weights=ComputerPlayer.SCIENCE_WEIGHTS), Appraisal.ranked_technologies(theme=Caveman, weights=ComputerPlayer.MILITARY_WEIGHTS))
 
     def test_a_player_that_favors_expansion_founds_more_cities_than_one_that_never_does(self):
         game = computer_played_caveman_game(seed=A_SEED, traits=(EXPANDING, STAYING))
@@ -140,20 +154,22 @@ class TestComputerPlayer(unittest.TestCase):
         self.assertEqual(Knowledge.settlers_of(game=game, civilization=SECOND), [])
 
     def test_a_player_that_values_peace_never_declares_war_and_one_that_does_not_declares_it_once_its_army_is_ready(self):
-        game = computer_played_caveman_game(seed=A_SEED, traits=(PACIFIST, PACIFIST))
-        play_turns(game=game, turns=LONG_GAME)
-        self.assertEqual(game.get_civilization(FIRST).get_wars(), [])
-        self.assertEqual(given(game=game, civilization=FIRST, kind=MarchOrder), [])
-        game = computer_played_caveman_game(seed=A_SEED, traits=(WARLIKE, WARLIKE))
-        play_turns(game=game, turns=LONG_GAME)
-        self.assertEqual(game.get_civilization(FIRST).get_wars(), [SECOND])
+        for traits, wars in (((PACIFIST, PACIFIST), []), ((WARLIKE, WARLIKE), [SECOND])):
+            with self.subTest(wars=wars):
+                game = computer_played_caveman_game(seed=A_SEED, traits=traits)
+                for civilization in (FIRST, SECOND):
+                    game.get_civilization(civilization).add(resource=currency_of(game), amount=WEALTH)
+                play_turns(game=game, turns=LONG_GAME)
+                self.assertEqual(game.get_civilization(FIRST).get_wars(), wars)
+                if not wars:
+                    self.assertEqual(given(game=game, civilization=FIRST, kind=MarchOrder), [])
 
     def test_boldness_and_aggressive_hyperfocus_decide_how_an_order_to_march_tells_the_units_to_behave(self):
         for traits, expected in ((RECKLESS, True), (CAREFUL, False)):
             with self.subTest(expected=expected):
                 game = computer_played_caveman_game(seed=A_SEED, traits=(traits, traits))
                 play_turns(game=game, turns=A_FEW_TURNS)
-                what = CavemanPlayer.march_on(game=game, civilization=FIRST, city=game.get_cities_of(SECOND)[0])
+                what = ComputerPlayer.march_on(game=game, civilization=FIRST, city=game.get_cities_of(SECOND)[0])
                 self.assertEqual((what.bold, what.ignore_units), (expected, expected))
                 self.assertEqual(what.target.city, game.get_cities_of(SECOND)[0])
 
@@ -167,7 +183,7 @@ class TestRetiringToSaveTheIncome(unittest.TestCase):
         player.plan_division(game=game, civilization=FIRST)
         division = player.division_of(game=game, civilization=FIRST)
         for x, y in SPARE_TILES:
-            division.add_unit(UnitControl.place(game=game, kind=player.FIGHTERS[-1], owner=FIRST, world=THE_WORLD, x=x, y=y))
+            division.add_unit(UnitControl.place(game=game, kind=Appraisal.fighters(game.get_theme())[-1], owner=FIRST, world=THE_WORLD, x=x, y=y))
         self.assertGreater(len(division.get_units()), len(game.get_cities_of(FIRST)))
         holder = game.get_civilization(FIRST)
         holder.pay(resource=currency_of(game), amount=holder.get_amount(currency_of(game)))
@@ -181,3 +197,18 @@ class TestRetiringToSaveTheIncome(unittest.TestCase):
         player.plan_retirement(game=game, civilization=FIRST)
         self.assertEqual(len(given(game=game, civilization=FIRST, kind=RetireOrder)), 1)
         self.assertIn(city, game.get_cities_of(FIRST))
+
+
+class TestPointsAfterTheHandActs(unittest.TestCase):
+
+    def test_a_city_that_starts_to_build_loses_its_idle_points_and_the_player_still_ends_its_turn_within_its_points(self):
+        game = computer_played_caveman_game(seed=A_SEED)
+        city = found_village(game=game, civilization=FIRST, name=A_NAME)
+        ComputerPlayer.plan(game=game, civilization=FIRST)
+        while OrderControl.left(game=game, civilization=FIRST, points=Policy) > 0:
+            here = city_thing(city)
+            OrderControl.give(game=game, civilization=FIRST, kind=ExpandOrder, giver=here, receiver=here, what=NoDetails())
+        Orders.build(game=game, city=city, kind=FREE_UNIT)
+        self.assertLess(OrderControl.left(game=game, civilization=FIRST, points=Policy), 0)
+        ComputerPlayer.keep_within_points(game=game, civilization=FIRST)
+        self.assertGreaterEqual(OrderControl.left(game=game, civilization=FIRST, points=Policy), 0)

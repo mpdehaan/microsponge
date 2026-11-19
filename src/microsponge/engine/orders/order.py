@@ -70,6 +70,10 @@ class ExpandOrder(BuildTargetOrder):
     """A city builds a settler, which the helper AI sends to build a city."""
 
 
+class ImproveOrder(BuildTargetOrder):
+    """A city builds an engineer, which the helper AI sends to build improvements on the city's tiles."""
+
+
 class CivilOrder(PolicyOrder):
     """An order for one unit that is not military."""
 
@@ -78,6 +82,10 @@ class CivilOrder(PolicyOrder):
 
 class SettlerOrder(CivilOrder):
     """A settler finds a site and builds a city."""
+
+
+class WorkOrder(CivilOrder):
+    """An engineer builds improvements on the tiles of a city."""
 
 
 class ResearchOrder(PolicyOrder):
@@ -107,4 +115,4 @@ class RetireOrder(PolicyOrder):
 
 
 # The orders every theme has unless the theme lists its own.
-ORDERS = (BuildOrder, RaiseOrder, ExpandOrder, SettlerOrder, ResearchOrder, GarrisonOrder, MarchOrder, RetireOrder)
+ORDERS = (BuildOrder, RaiseOrder, ExpandOrder, ImproveOrder, SettlerOrder, WorkOrder, ResearchOrder, GarrisonOrder, MarchOrder, RetireOrder)

@@ -21,7 +21,7 @@
 PYTHON = .venv/bin/python
 NAME ?=
 
-.PHONY: help setup run test test-one pyflakes pep8 loose-strings balance unit-report building-report wonder-report tech-report guides map game game-log game-report game-page hooks clean
+.PHONY: help setup run test test-one pyflakes pep8 loose-strings balance unit-report building-report wonder-report tech-report guides map game balance-test game-log game-report game-page hooks clean
 
 help:
 	@echo "make setup          make .venv and install microsponge into it"
@@ -37,6 +37,7 @@ help:
 	@echo "make wonder-report  every world wonder of a theme with its properties: THEME=caveman"
 	@echo "make tech-report    the tech tree of a theme with its properties: THEME=caveman"
 	@echo "make guides         refresh the generated appendix of every theme guide, GUIDE_<THEME>.md"
+	@echo "make balance-test   caveman's balance tests: the computer players play six games, and every building, technology and unit should be used; a failure is for discussion"
 	@echo "make game-log       have the computer players play a game and write its detailed log to logs/: THEME=caveman SEED=1 CIVILIZATIONS=3 TURNS=100"
 	@echo "make game-report    the timelines and tables of a log: THEME=caveman SEED=1, or LOG=logs/caveman_seed1.json; add FORMAT=--markdown"
 	@echo "make game-page      play a game, write its log and open the page with the charts in the browser: THEME=caveman SEED=1 CIVILIZATIONS=3 TURNS=100"
@@ -106,6 +107,9 @@ game-report:
 
 game-page: game-log
 	$(PYTHON) tools/game_report.py $(LOG) --open
+
+balance-test:
+	cd test/balance && ../../$(PYTHON) -m unittest -v test_caveman_balance
 
 hooks:
 	ln -sf ../../tools/pre_commit.sh .git/hooks/pre-commit

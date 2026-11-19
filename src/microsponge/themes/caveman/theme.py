@@ -18,6 +18,7 @@
 
 from microsponge.engine.kinds.control_points import Command, Policy
 from microsponge.engine.kinds.theme import Theme
+from microsponge.engine.players.computer_player import ComputerPlayer
 from microsponge.themes.caveman.city import Village
 from microsponge.themes.caveman.buildings import ArrangementOfRocks, Barracks, CaveBearShrine, ChieftainsHut, CityWalls, Granary, GreatCavePainting, Harbor, TradingPost, Watchtower
 from microsponge.themes.caveman.improvements import Clearing, Farm
@@ -26,7 +27,6 @@ from microsponge.themes.caveman.technologies import Agriculture, Astrology, Bart
 from microsponge.themes.caveman.terrain_bonuses import Bison, Elephants
 from microsponge.themes.caveman.terrains import Forest, Grassland, Mountains, Tarpit, Water
 from microsponge.themes.caveman.map import CavemanMap
-from microsponge.themes.caveman.player import CavemanPlayer
 from microsponge.themes.caveman.units import AngryBird, CaptainCaveman, Raft, Settler, SlingshotCaveman, Clubber, WildClubber, Worker
 
 
@@ -40,7 +40,7 @@ class Caveman(Theme):
     LEVEL_HIT_POINTS_PERCENT = 2
     LAND_STARTS_EXPLORED = False
     RESEARCH_TO_CURRENCY = 0
-    PLAYER = CavemanPlayer
+    PLAYER = ComputerPlayer
     CITY = Village
     MAP = CavemanMap
     TERRAINS = (Grassland, Mountains, Water, Forest, Tarpit)

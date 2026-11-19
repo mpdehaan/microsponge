@@ -106,6 +106,18 @@ import, an undefined name or a name defined twice fails the tests; `pyflakes` is
   choice, and where the choice is the user's, ask them.
 - **Tests and scripts never fetch anything from the internet.**
 
+## Balance tests
+
+The user wants caveman, a toy game that is mostly for the tests but can be played for fun, to
+be better balanced even than the complex themes, which may have clear strategies: caveman is
+more open ended. So caveman has balance tests, in `test/balance/test_caveman_balance.py`: the
+computer players play six games, and every building, world wonder, technology and kind of unit
+of caveman should be used in at least one of them. These are the one place a test may be
+about caveman itself. A failing balance test is not a bug to fix in the test: it is a subject
+for discussion with the user, and its message names what no computer player used. The balance
+tests live in a folder of their own, which the suite's discovery does not reach, so that they
+never stop a commit; `make balance-test` runs them.
+
 ## How tests are written
 
 **Tests follow every rule the program does**, and the user requires it: `__slots__`, keyword-only
@@ -161,7 +173,7 @@ beside them:
   and the view a player reads), `test/test_traits.py` (the traits of a computer-played
   civilization), `test/test_helper_ai.py` (the helper AI passing every order for a unit or a city to
   the game, and no player giving such an order directly), `test/test_standing_orders.py` (the kinds of standing order, giving one, what each costs in Policy and Command, armies and divisions, and the referee AI), `test/test_hand.py` (the Hand carrying out standing orders, and doing nothing no order asks for), `test/test_computer_player.py` (two computer players playing a whole game of
-  caveman, and the traits tipping their decisions), `test/test_scripted_game.py` (the chronicle kept of a game, the scripted game the
+  caveman, the computer player reading every kind from the theme's properties, and the traits tipping their decisions), `test/test_scripted_game.py` (the chronicle kept of a game, the scripted game the
   computer players play, the report with its story, and the tool), `test/test_game_log.py` (the detailed log of a scripted game, with the units of each kind and the improvements on the tiles of the city radii counted each turn, its report with tables and timelines, its page of charts in tabs, and the two tools), `test/test_charts.py`
   (charts drawn in plain characters), `test/test_generator.py` (the map
   generator, where civilizations start, and the map preview tool), `test/test_saving.py` (the saved game, also loaded into later

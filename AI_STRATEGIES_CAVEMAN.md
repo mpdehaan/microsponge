@@ -126,8 +126,10 @@ The user wants variance programmed in, so that no two computer players are the s
   ignore enemy units that are not in the way. Grudge is stored and used by nothing yet.
 - The first computer player is simple on purpose, and is in `src/microsponge/engine/players/`:
   `ComputerPlayer` walks the priority list above once a turn, reading the map only through the
-  `View`, and `CavemanPlayer` in the caveman theme says which technologies, defenders,
-  attackers and economy buildings are caveman's. Workers and improvements are not played yet.
+  `View`. The computer player knows no theme: it reads which kinds fight, fly, hit air units
+  and improve tiles, and what each is worth, from the theme's properties
+  (`src/microsponge/engine/players/appraisal.py`). Workers improve tiles through the improve
+  order, and air units join a division when the enemy units seen cannot hit them.
 - No player is ever lazy: every one tries to win, each by a different strategy. One strategy
   looks at what the player knows about the map and adapts to it.
 - The players of each theme are subclasses of a common player, so the flavors and the ideas

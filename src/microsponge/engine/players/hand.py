@@ -30,21 +30,24 @@ from collections import deque
 
 from microsponge.engine.cities.city_control import CityControl
 from microsponge.engine.cities.production import Production
+from microsponge.engine.civilizations.requirements import missing_requirements
 from microsponge.engine.civilizations.research import Research
 from microsponge.engine.civilizations.sight import Sight
 from microsponge.engine.kinds.catalog import NOTHING
 from microsponge.engine.kinds.category import Category
 from microsponge.engine.kinds.unit_kinds import SettlerUnit
-from microsponge.engine.orders.order import BuildOrder, BuildTargetOrder, ExpandOrder, GarrisonOrder, MarchOrder, RaiseOrder, ResearchOrder, RetireOrder, SettlerOrder
+from microsponge.engine.orders.order import BuildOrder, BuildTargetOrder, ExpandOrder, GarrisonOrder, ImproveOrder, MarchOrder, RaiseOrder, ResearchOrder, RetireOrder, SettlerOrder, WorkOrder
 from microsponge.engine.orders.order_control import OrderControl
 from microsponge.engine.orders.referee import Referee
 from microsponge.engine.orders.thing import ThingType, city_thing, unit_thing
-from microsponge.engine.orders.what import NoDetails
+from microsponge.engine.orders.what import CityTarget, NoDetails
+from microsponge.engine.players.appraisal import Appraisal
 from microsponge.engine.players.helper_ai import HelperAI
 from microsponge.engine.players.knowledge import Knowledge, distance
 from microsponge.engine.turns.orders import Orders
 from microsponge.engine.units.unit_column import UnitColumn
 from microsponge.engine.units.unit_control import UnitControl
+from microsponge.engine.units.work_control import WorkControl
 from microsponge.engine.world.land import NEIGHBORS, Land
 from microsponge.engine.world.layer import Layer
 from microsponge.ui_strings import MSG_CITY_NUMBERED
@@ -80,6 +83,7 @@ class Hand:
         cls.research(game=game, civilization=civilization)
         cls.direct_cities(game=game, civilization=civilization)
         cls.direct_settlers(game=game, civilization=civilization)
+        cls.direct_engineers(game=game, civilization=civilization)
         cls.direct_divisions(game=game, civilization=civilization)
 
     @classmethod
@@ -139,10 +143,15 @@ class Hand:
                 if unit not in alive:
                     division.remove_unit(unit)
         led = [order.get_receiver().id for order in cls.table_of(game=game, civilization=civilization).active(SettlerOrder)]
+        working = [order.get_receiver().id for order in cls.table_of(game=game, civilization=civilization).active(WorkOrder)]
+        engineers = Appraisal.engineers(game.get_theme())
         for unit in alive:
             if Knowledge.is_settler(game=game, unit=unit):
                 if unit not in led:
                     cls.send_settler(game=game, civilization=civilization, unit=unit)
+            elif UnitControl.kind_of(game=game, unit=unit) in engineers:
+                if unit not in working:
+                    cls.send_engineer(game=game, civilization=civilization, unit=unit)
             elif Knowledge.is_fighter(game=game, unit=unit) and forces.division_of(unit) is None:
                 cls.enlist(game=game, civilization=civilization, unit=unit)
 
@@ -153,6 +162,15 @@ class Hand:
         expanding = cls.table_of(game=game, civilization=civilization).active(ExpandOrder)
         if kind is not None and expanding:
             OrderControl.give(game=game, civilization=civilization, kind=kind, giver=expanding[0].get_receiver(), receiver=unit_thing(unit), what=NoDetails(), realized=True)
+
+    @classmethod
+    def send_engineer(cls, *, game, civilization, unit):
+        """Give an engineer no order leads a realized order to work the tiles of the first city ordered to improve. With no such city the engineer waits."""
+        kind = cls.theme_order(game=game, kind=WorkOrder)
+        improving = cls.table_of(game=game, civilization=civilization).active(ImproveOrder)
+        if kind is not None and improving:
+            city = improving[0].get_receiver()
+            OrderControl.give(game=game, civilization=civilization, kind=kind, giver=city, receiver=unit_thing(unit), what=CityTarget(city=city.id), realized=True)
 
     @classmethod
     def count_of(cls, *, game, division, target):
@@ -230,7 +248,9 @@ class Hand:
 
         A build order wants its first building the city lacks. A raise order wants the first
         kind of its first unmet build target, and is completed when every target is met. An
-        expand order wants a settler while the civilization has none alive or being built.
+        improve order wants an engineer while the civilization has fewer engineers than cities
+        ordered to improve. An expand order wants a settler while the civilization has none
+        alive or being built.
         """
         what = order.get_what()
         if order.is_a(BuildOrder):
@@ -241,10 +261,22 @@ class Hand:
                 order.complete()
                 return None
             return cls.buildable(game=game, city=city, kinds=target.kinds, except_for=except_for)
+        if order.is_a(ImproveOrder):
+            return cls.wanted_engineer(game=game, civilization=civilization, city=city, except_for=except_for)
         settlers = cls.settler_kinds(game=game)
         if Knowledge.settlers_of(game=game, civilization=civilization) or cls.being_built(game=game, civilization=civilization, kinds=settlers):
             return None
         return cls.buildable(game=game, city=city, kinds=settlers, except_for=except_for)
+
+    @classmethod
+    def wanted_engineer(cls, *, game, civilization, city, except_for):
+        """Return an engineer for a city ordered to improve to build, while the civilization has fewer engineers alive or being built than cities ordered to improve, or None."""
+        engineers = Appraisal.engineers(game.get_theme())
+        alive = [unit for unit in Knowledge.units_of(game=game, civilization=civilization) if UnitControl.kind_of(game=game, unit=unit) in engineers]
+        improving = cls.table_of(game=game, civilization=civilization).active(ImproveOrder)
+        if len(alive) + cls.being_built(game=game, civilization=civilization, kinds=engineers) >= len(improving):
+            return None
+        return cls.buildable(game=game, city=city, kinds=engineers, except_for=except_for)
 
     @classmethod
     def orders_for_city(cls, *, game, civilization, city):
@@ -396,6 +428,50 @@ class Hand:
     def next_city_name(cls, *, game, civilization):
         holder = game.get_civilization(civilization)
         return MSG_CITY_NUMBERED.format(civilization=holder.get_name(), number=holder.get_cities_founded() + FIRST_CITY_NUMBER)
+
+    # Engineers
+
+    @classmethod
+    def direct_engineers(cls, *, game, civilization):
+        """Carry out each order for an engineer: improve the tile the engineer stands on, or walk toward the nearest tile of the city that can be improved. An order with no such tile left is completed."""
+        for order in cls.table_of(game=game, civilization=civilization).active(WorkOrder):
+            unit = order.get_receiver().id
+            if WorkControl.improvement_of(game=game, unit=unit) is not None:
+                continue
+            if not cls.improve(game=game, civilization=civilization, unit=unit, city=order.get_what().city):
+                order.complete()
+
+    @classmethod
+    def improvement_for(cls, *, game, civilization, unit, world, x, y):
+        """Return the improvement an engineer would build on a tile, the one that adds most that the civilization can build and the tile's terrain takes, or None."""
+        terrain = game.get_terrain(world=world, x=x, y=y)
+        if not terrain.BUILDABLE or game.get_world(world).get_value(layer=Layer.IMPROVEMENT, x=x, y=y) != NOTHING:
+            return None
+        for improvement in Appraisal.lasting_improvements(UnitControl.kind_of(game=game, unit=unit)):
+            if terrain in improvement.ON and not missing_requirements(game=game, civilization=civilization, kind=improvement):
+                return improvement
+        return None
+
+    @classmethod
+    def improvable(cls, *, game, civilization, unit, tiles, world, x, y):
+        """Return whether a tile among a city's tiles, outside its center, could take an improvement from an engineer."""
+        if (x, y) not in tiles or game.get_world(world).get_value(layer=Layer.CITY_CENTER, x=x, y=y) != NOTHING:
+            return False
+        return cls.improvement_for(game=game, civilization=civilization, unit=unit, world=world, x=x, y=y) is not None
+
+    @classmethod
+    def improve(cls, *, game, civilization, unit, city):
+        """Have an engineer start an improvement where it stands, or leave its city or step toward a tile of the city it could improve, and return whether there was anything to do."""
+        if city not in game.get_cities_of(civilization):
+            return False
+        if Knowledge.city_of(game=game, unit=unit) != NOTHING:
+            return cls.leave_city(game=game, unit=unit)
+        tiles = set(CityControl.radius_tiles(game=game, city=city))
+        world, x, y = UnitControl.tile_of(game=game, unit=unit)
+        if cls.improvable(game=game, civilization=civilization, unit=unit, tiles=tiles, world=world, x=x, y=y):
+            improvement = cls.improvement_for(game=game, civilization=civilization, unit=unit, world=world, x=x, y=y)
+            return try_order(lambda: HelperAI.build_improvement(game=game, unit=unit, improvement=improvement, led=True))
+        return cls.walk(game=game, unit=unit, civilization=civilization, arrived=lambda to_x, to_y: cls.improvable(game=game, civilization=civilization, unit=unit, tiles=tiles, world=world, x=to_x, y=to_y))
 
     # Divisions
 

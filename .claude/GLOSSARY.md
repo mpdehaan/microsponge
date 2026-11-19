@@ -29,7 +29,9 @@ term is added here when the user settles on the word.
 ## The players
 
 - AI, about the game, is the computer players: algorithms that the user and Claude choose and
-  write by hand in this project. It never means machine learning, a language model or Claude.
+  write by hand in this project. It never means machine learning, a language model or Claude:
+  no opaque model file whose knowledge is not code. Tuning the numbers of the hand-written
+  algorithms by searching, like simulated annealing, is allowed.
 - The helper AI is the layer that carries out orders: the helper AI is what touches the units
   and the cities, for a person and for a computer player alike. For now the helper AI is
   mostly a pass through.
@@ -89,6 +91,8 @@ term is added here when the user settles on the word.
 - A ResourcesPolicyOrder is the order for what the citizens look for first, like food first.
   The user first called this ResourcesTarget, and renamed the order so that "target" only
   means something like a position on the map.
+- An ImproveOrder is the order for a city to build an engineer, which the helper AI sends to
+  improve the city's tiles.
 - A BuildOrder is the order attached to a city that lists the buildings to build, in order
   of priority. Claude first called this a BuildingsOrder.
 - A base is a city that a division lists as a place that can build units for the division.

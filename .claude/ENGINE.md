@@ -45,9 +45,10 @@ says where things are and how the parts fit, and is kept true with every change 
   through to `Orders`. `hand.py` is `Hand`, the helper AI that carries out standing orders
   through those actions. `knowledge.py` is `Knowledge`, what a civilization knows through its
   view. `traits.py` is the eight traits of a computer-played civilization, how they are dealt
-  and the named tendencies, and `computer_player.py` is `ComputerPlayer`, the main AI, which
-  only gives standing orders, and which each theme's player subclasses
-  (`themes/caveman/player.py`).
+  and the named tendencies, `appraisal.py` is `Appraisal`, which reads a theme's kinds by
+  their properties and ranks them by worth, and `computer_player.py` is `ComputerPlayer`, the
+  main AI, which only gives standing orders and knows no theme. Caveman's `PLAYER` is
+  `ComputerPlayer` itself; a theme may subclass it only to change its weights.
 - `game`: `game.py`, the turn, whose turn it is, the civilizations, the worlds, the cities and
   the units of one game, whether the game is over, and the one source of random draws.
 - `turns`: `turn_control.py` is the static class that starts a game and does the work of ending
@@ -257,20 +258,30 @@ says where things are and how the parts fit, and is kept true with every change 
   `direct_divisions()` fills garrisons and then marches, never moving a unit a garrison
   order keeps. Units walk by `first_step()`, a breadth first search over what the
   civilization remembers, at most `ROUTE_TILES` tiles, so a unit goes around a lake. A
-  march order's `bold` and `ignore_units` decide the fights on the way. Nothing happens for
-  a city or a unit with no order.
+  march order's `bold` and `ignore_units` decide the fights on the way. An `ImproveOrder` has a
+  city build an engineer while the civilization has fewer than cities ordered to improve, and
+  `muster()` gives each new engineer a realized `WorkOrder`; `direct_engineers()` walks it to
+  the nearest tile of the city it can improve and builds the lasting improvement that adds
+  most. Nothing happens for a city or a unit with no order.
 - The computer players. A civilization with `Traits` is computer-played (`is_computer_played()`),
   and one without is a person's; the traits are in the saved game. `Traits.dealt(random)` deals
   40 to 60 percent of the 800 points there could be, `Traits.tending_to(tendency=, random=)`
   nudges a named tendency (`LOGICAL`, `CAMPAIGNER`, `PEACEFUL_BUILDER`), and
   `Traits.favors(trait=, random=)` is the one draw every decision goes through. A theme names
   its player in `Theme.PLAYER`, and `PLAYER.play_turn(game=, civilization=)` is `plan()`, then
-  `Hand.carry_out()`, then `Orders.end_turn()`. `plan()` tidies the table, gives the research
-  order once (science trait), a settler order to each settler of a civilization with no
-  city, a build order to each city and an expand order to the first city (active on the
-  turns the expansion trait says), keeps one army with one division, a raise order from the
-  division to each city (active up to the garrisons, and beyond them while the bank holds
-  `RESERVE` and the economics trait allows) and a garrison order for each city, declares
+  `Hand.carry_out()`, `keep_within_points()` again, then `Orders.end_turn()`. `plan()` tidies
+  the table, gives the research order once (the technologies ranked by `Appraisal` with the
+  `ScienceWeights` or the `MilitaryWeights`, as the science trait says), a settler order to
+  each settler of a civilization with no city, a build order to each city (the buildings
+  ranked by worth, leaving out a world wonder another civilization started unless the
+  boldness trait gambles), an improve order to the first city and every city of
+  `IMPROVING_CITIZENS`, and an expand order to the first city (active on the turns the
+  expansion trait says), keeps one army with one division, a raise order from the division
+  to each city (`division_wanted()`: a unit that hits air for each enemy air unit seen, an
+  air unit when the enemy units seen cannot hit air, and fighters that take cities for the
+  rest; active up to the garrisons, and beyond them while the bank holds `RESERVE` and the
+  economics trait allows), retires a fighter beyond the garrisons while starved, and a
+  garrison order for each city, declares
   war on the first civilization met when the division is full (peace trait), gives a march
   order on the nearest known enemy city (conquest trait, with boldness and aggressive
   hyperfocus written into the order), and disables the orders given last until the active

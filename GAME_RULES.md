@@ -1018,6 +1018,9 @@ single units, and are rewritten as the details are decided.
   and making a new army 5 Command, each a number the theme sets. These are a type of order
   called an ImmediateReorganization: each is carried out once and paid once, out of the
   Command of the turn it is carried out, and is not given again each turn.
+- An ImproveOrder is a build target order for a city: the city builds an engineer, which the
+  helper AI sends to build improvements on the tiles of the city, the way an expand order has
+  a city build a settler that the helper AI sends to found a city.
 - Orders can defend arbitrary areas, not only cities.
 - A completed order is set disabled. A disabled order costs no Policy and does nothing, and
   stays in the table as a convenience, so that a person can remove the order or modify the
@@ -1138,6 +1141,16 @@ single units, and are rewritten as the details are decided.
   civilization has started it: it starts something else when another civilization started
   the wonder first, unless its boldness makes it gamble that the earlier builder is blocked or
   loses the city.
+- The main AI is a utility AI: each decision it could make is scored from curves over what the
+  civilization knows, the traits are the weights on the curves, and a goal the main AI commits
+  to keeps a bonus for some turns, so that it does not change its mind every turn.
+- The helper AI breaks each kind of order down into tasks, a task network; reads influence maps
+  of strength, threat and borders, refreshed once a turn; moves units by Dijkstra maps, one
+  map for each destination; and checks the odds of a fight before each attack.
+- The numbers of these algorithms may be tuned by searching, like simulated annealing over many
+  games the computer players play. What is not allowed is an opaque model file whose knowledge
+  is not code, like a language model or a model a machine learning library produces: why the
+  computer player does what it does must always be readable in the code.
 
 ## Not decided yet
 

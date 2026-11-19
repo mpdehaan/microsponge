@@ -22,8 +22,10 @@ its army and its division, within the Policy and the Command the civilization ha
 Hand (`hand.py`) carries the orders out. The main AI reads only the orders it gave, never the
 orders the Hand realized, and reads the map only through the civilization's view. What a
 civilization decides as a whole, whom to declare war on and when to end the turn, goes to
-`Orders`. Each trait tips one decision through `Traits.favors()`. The players of each theme
-are subclasses that say which kinds are the theme's: `CavemanPlayer` is the first.
+`Orders`. Each trait tips one decision through `Traits.favors()`. The player never knows a theme: it
+reads every kind it raises, builds and researches from the theme's properties, through the
+appraisal (`appraisal.py`), so that it plays any theme. A theme may subclass it to change its
+weights.
 """
 
 from microsponge.engine.cities.harvest import Harvest
@@ -31,30 +33,72 @@ from microsponge.engine.kinds.category import Category
 from microsponge.engine.kinds.catalog import NOTHING
 from microsponge.engine.kinds.control_points import CONTROL_POINTS, Command
 from microsponge.engine.orders.given_order import Reason
-from microsponge.engine.orders.order import BuildOrder, ExpandOrder, GarrisonOrder, MarchOrder, RaiseOrder, ResearchOrder, RetireOrder, SettlerOrder
+from microsponge.engine.cities.production import Production
+from microsponge.engine.civilizations.sight import Sight
+from microsponge.engine.orders.order import BuildOrder, ExpandOrder, GarrisonOrder, ImproveOrder, MarchOrder, RaiseOrder, ResearchOrder, RetireOrder, SettlerOrder
 from microsponge.engine.orders.order_control import OrderControl
 from microsponge.engine.orders.thing import city_thing, civilization_thing, division_thing, unit_thing
 from microsponge.engine.orders.what import BuildTarget, Buildings, CityTarget, Garrison, March, NoDetails, Technologies, Units
+from microsponge.engine.players.appraisal import Appraisal, hits_air
 from microsponge.engine.players.hand import Hand
 from microsponge.engine.players.knowledge import Knowledge, distance
 from microsponge.engine.players.traits import AGGRESSIVE_HYPERFOCUS, BOLDNESS, CONQUEST, ECONOMICS, EXPANSION, PEACE, SCIENCE
 from microsponge.engine.turns.orders import Orders
 from microsponge.engine.turns.turn_control import TurnControl
+from microsponge.engine.units.unit_control import UnitControl
 
 # Each city keeps this many units of the division inside.
 GARRISON = 1
+# A division asks for this many air units when the enemy units seen cannot hit air units.
+AIR_UNITS = 1
+NONE_WANTED = 0
+
+
+class Weights:
+    """What a computer player counts each effect of a kind as worth, when it ranks kinds against each other. A theme's player may subclass these."""
+
+    RESEARCH_WEIGHT = 4
+    CONTROL_WEIGHT = 2
+    INCOME_WEIGHT = 1
+    GROWTH_WEIGHT = 3
+    TILE_WEIGHT = 3
+    ARMOR_WEIGHT = 3
+    LEVEL_WEIGHT = 3
+    PRODUCE_WEIGHT = 2
+    UPKEEP_WEIGHT = 4
+    # What a building that allows a unit counts of the best unit's worth, and what a technology counts of the units it allows.
+    ALLOWS_WEIGHT = 10
+    UNIT_WEIGHT = 10
+    # What a technology counts of the bonuses it gives itself, and of what the technologies it opens allow.
+    BONUS_WEIGHT = 1
+    OPENS_WEIGHT = 0.5
+
+
+class ScienceWeights(Weights):
+    """The weights of a player whose science trait wins: research and the economy count more than units."""
+
+    RESEARCH_WEIGHT = 8
+    UNIT_WEIGHT = 4
+
+
+class MilitaryWeights(Weights):
+    """The weights of a player whose science trait loses: units count more than research."""
+
+    RESEARCH_WEIGHT = 2
+    UNIT_WEIGHT = 20
+    ALLOWS_WEIGHT = 20
 
 
 class ComputerPlayer:
     """Static: plays a turn for a computer-played civilization. A theme's player subclasses it and sets what is the theme's."""
 
     __slots__ = ()
-    # The technologies worth researching, in order, for a player that favors science and for one that favors the army.
-    SCIENCE_RESEARCH = ()
-    MILITARY_RESEARCH = ()
-    # The kinds of unit the division is raised from, best first, and the buildings a city builds, in order.
-    FIGHTERS = ()
-    ECONOMY = ()
+    # The weights for ranking kinds: for buildings, and for research by a player that favors science and by one that does not.
+    BUILDING_WEIGHTS = Weights
+    SCIENCE_WEIGHTS = ScienceWeights
+    MILITARY_WEIGHTS = MilitaryWeights
+    # A city with at least this many citizens is ordered to improve its tiles, as the first city always is.
+    IMPROVING_CITIZENS = 3
     # How many fighters beyond the garrisons gather before the army marches, when the Command allows that many.
     GROUP_SIZE = 3
     # The currency a civilization keeps before it raises another fighter, so that it does not go bankrupt.
@@ -62,10 +106,11 @@ class ComputerPlayer:
 
     @classmethod
     def play_turn(cls, *, game, civilization):
-        """Play a civilization's whole turn: set the orders, have the Hand carry them out, and end the turn, unless carrying them out won the game."""
+        """Play a civilization's whole turn: set the orders, have the Hand carry them out, and end the turn, unless carrying them out won the game. The orders are kept within the points again before the turn ends, because a city that starts to build stops adding what an idle city adds."""
         cls.plan(game=game, civilization=civilization)
         Hand.carry_out(game=game, civilization=civilization)
         if not game.is_over():
+            cls.keep_within_points(game=game, civilization=civilization)
             Orders.end_turn(game=game, civilization=civilization)
 
     @classmethod
@@ -138,11 +183,12 @@ class ComputerPlayer:
 
     @classmethod
     def plan_research(cls, *, game, civilization):
-        """Give the research order once: the science order first or the military order first, as the science trait decides."""
+        """Give the research order once: the theme's technologies ranked by what they are worth, with the science weights or the military weights as the science trait decides."""
         if cls.given(game=game, civilization=civilization, kind=ResearchOrder):
             return
         science_first = cls.favors(game=game, civilization=civilization, trait=SCIENCE)
-        order = (*cls.SCIENCE_RESEARCH, *cls.MILITARY_RESEARCH) if science_first else (*cls.MILITARY_RESEARCH, *cls.SCIENCE_RESEARCH)
+        weights = cls.SCIENCE_WEIGHTS if science_first else cls.MILITARY_WEIGHTS
+        order = tuple(Appraisal.ranked_technologies(theme=game.get_theme(), weights=weights))
         me = civilization_thing(civilization)
         cls.give(game=game, civilization=civilization, kind=ResearchOrder, giver=me, receiver=me, what=Technologies(kinds=order))
 
@@ -158,12 +204,17 @@ class ComputerPlayer:
 
     @classmethod
     def plan_cities(cls, *, game, civilization):
-        """Give every city its build order, and the first city the order to expand, which is active on the turns the expansion trait says."""
+        """Give every city its build order, with the buildings worth most first, the first city and every large city the order to improve its tiles, and the first city the order to expand, which is active on the turns the expansion trait says."""
         cities = game.get_cities_of(civilization)
+        buildings = Buildings(kinds=cls.buildings_wanted(game=game, civilization=civilization))
         for city in cities:
             here = city_thing(city)
-            if not cls.given(game=game, civilization=civilization, kind=BuildOrder, receiver=here):
-                cls.give(game=game, civilization=civilization, kind=BuildOrder, giver=here, receiver=here, what=Buildings(kinds=cls.ECONOMY))
+            orders = cls.given(game=game, civilization=civilization, kind=BuildOrder, receiver=here)
+            order = orders[0] if orders else cls.give(game=game, civilization=civilization, kind=BuildOrder, giver=here, receiver=here, what=buildings)
+            order.set_what(buildings)
+            improving = city == cities[0] or game.get_city(city).get_citizens() >= cls.IMPROVING_CITIZENS
+            if improving and Appraisal.engineers(game.get_theme()) and not cls.given(game=game, civilization=civilization, kind=ImproveOrder, receiver=here):
+                cls.give(game=game, civilization=civilization, kind=ImproveOrder, giver=here, receiver=here, what=NoDetails())
         if not cities:
             return
         expanding = cls.given(game=game, civilization=civilization, kind=ExpandOrder)
@@ -172,6 +223,20 @@ class ComputerPlayer:
             expanding = [cls.give(game=game, civilization=civilization, kind=ExpandOrder, giver=first, receiver=first, what=NoDetails())]
         if not cls.favors(game=game, civilization=civilization, trait=EXPANSION):
             expanding[0].disable()
+
+    @classmethod
+    def buildings_wanted(cls, *, game, civilization):
+        """Return the theme's buildings worth most first, leaving out each world wonder another civilization started building first, unless the boldness trait gambles that the earlier builder fails."""
+        ranked = Appraisal.ranked_buildings(theme=game.get_theme(), weights=cls.BUILDING_WEIGHTS)
+        return tuple(building for building in ranked if not cls.is_raced(game=game, civilization=civilization, building=building))
+
+    @classmethod
+    def is_raced(cls, *, game, civilization, building):
+        """Return whether a building is a world wonder another civilization is building, which the warning about world wonders tells every player, and the player does not gamble on it."""
+        if not Appraisal.is_wonder(building):
+            return False
+        others = [city for city in Production.wonder_builders(game=game, wonder=building) if game.get_city(city).get_owner() != civilization]
+        return bool(others) and not cls.favors(game=game, civilization=civilization, trait=BOLDNESS)
 
     # The division
 
@@ -209,7 +274,7 @@ class ComputerPlayer:
         division = cls.division_of(game=game, civilization=civilization)
         division.set_bases(cities)
         me = division_thing(division.get_id())
-        wanted = Units(targets=(BuildTarget(kinds=cls.FIGHTERS, count=cls.wanted_size(game=game, civilization=civilization)),))
+        wanted = cls.division_wanted(game=game, civilization=civilization)
         raising = cls.wants_fighters(game=game, civilization=civilization, division=division)
         for city in cities:
             here = city_thing(city)
@@ -253,6 +318,25 @@ class ComputerPlayer:
         outside = [unit for unit in fighters if Knowledge.city_of(game=game, unit=unit) == NOTHING]
         unit = (outside or fighters)[-1]
         cls.give(game=game, civilization=civilization, kind=RetireOrder, giver=division_thing(division.get_id()), receiver=unit_thing(unit), what=NoDetails())
+
+    @classmethod
+    def division_wanted(cls, *, game, civilization):
+        """Return what the division is raised to: a unit that can hit air units for each enemy air unit seen, an air unit when the enemy units seen cannot hit air units, and fighters that can take cities for the rest."""
+        theme = game.get_theme()
+        size = cls.wanted_size(game=game, civilization=civilization)
+        seen = [UnitControl.kind_of(game=game, unit=unit) for unit in Sight.view(game=game, civilization=civilization).units_seen()]
+        flyers = Appraisal.flyers(theme)
+        anti_air = Appraisal.anti_air(theme)
+        enemy_air = len([kind for kind in seen if kind in flyers])
+        anti_count = min(enemy_air, size // 2) if anti_air else NONE_WANTED
+        air_count = AIR_UNITS if flyers and any(not hits_air(kind) for kind in seen) else NONE_WANTED
+        targets = []
+        if anti_count:
+            targets.append(BuildTarget(kinds=tuple(anti_air), count=anti_count))
+        if air_count:
+            targets.append(BuildTarget(kinds=tuple(flyers), count=air_count))
+        targets.append(BuildTarget(kinds=tuple(Appraisal.fighters(theme)), count=max(size - anti_count - air_count, GARRISON)))
+        return Units(targets=tuple(targets))
 
     @classmethod
     def given_garrison(cls, *, game, civilization, city):
