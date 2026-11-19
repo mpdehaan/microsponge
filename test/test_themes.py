@@ -263,15 +263,15 @@ class TestCaveman(unittest.TestCase):
         self.assertEqual([terrain for terrain in Caveman.TERRAINS if caveman_resources.Wood in terrain.GIVES], [caveman_terrains.Forest])
         self.assertTrue(NO_ATTACK < raft.ATTACK.average() < caveman_units.Warrior.ATTACK.average())
 
-    def test_the_chieftains_hut_is_a_building_that_gives_a_small_amount_of_oversight(self):
+    def test_the_chieftains_hut_is_a_building_that_gives_a_small_amount_of_policy(self):
         hut = caveman_buildings.ChieftainsHut
         self.assertIn(hut, Caveman.BUILDINGS)
         self.assertEqual(hut.REQUIRES, (caveman_technologies.Leadership,))
         self.assertIn(caveman_technologies.Leadership, Caveman.TECHNOLOGIES)
         self.assertFalse(issubclass(hut, Wonder))
         self.assertEqual(shown_name(hut), CHIEFTAINS_HUT)
-        self.assertGreater(hut.OVERSIGHT_POINTS, 0)
-        self.assertLess(hut.OVERSIGHT_POINTS, Caveman.OVERSIGHT_POINTS)
+        self.assertGreater(hut.POLICY_POINTS, 0)
+        self.assertLess(hut.POLICY_POINTS, Caveman.POLICY_POINTS)
 
     def test_the_raft_requires_a_harbor_and_only_the_harbor_requires_water_next_to_the_city_center(self):
         self.assertEqual(caveman_units.Raft.REQUIRES, (caveman_buildings.Harbor,))
@@ -478,7 +478,7 @@ class TestCaveman(unittest.TestCase):
         for wonder in wonders:
             with self.subTest(wonder=wonder):
                 self.assertTrue(issubclass(wonder, Wonder))
-                self.assertGreater(wonder.RESEARCH_POINTS + wonder.OVERSIGHT_POINTS, 0)
+                self.assertGreater(wonder.RESEARCH_POINTS + wonder.POLICY_POINTS, 0)
 
 
 class TestClassic(unittest.TestCase):

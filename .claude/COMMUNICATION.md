@@ -6,7 +6,7 @@ apart from the rules for the code (`.claude/STYLE.md`) so that they can be revie
 
 ## The user's words
 
-The key terms the user and Claude share, like the model, the helper AI and Oversight, are in
+The key terms the user and Claude share, like the model, the helper AI and Policy, are in
 `.claude/GLOSSARY.md`, which Claude keeps as the user settles on words.
 
 ## Who decides what
@@ -67,8 +67,10 @@ The key terms the user and Claude share, like the model, the helper AI and Overs
   its topic.
 - Claude asks the user before creating a file in `.claude/`, and before changing one the user
   has not approved. The user has approved Claude maintaining these as features are discussed
-  and built: this file, `.claude/GLOSSARY.md`, `.claude/THEMES_CAVEMAN.md`, `.claude/ENGINE.md`
-  and `.claude/TESTING.md`.
+  and built: this file, `.claude/GLOSSARY.md`, `.claude/ENGINE.md`, `.claude/TESTING.md` and
+  every theme's file, `.claude/THEMES_*.md`. A theme's file is updated from what the user
+  says in discussion, never proactively, and never from a suggestion of The Game Expert
+  that the user has not agreed to.
 - Claude's queue of upcoming work, which is what the user tells Claude about and what Claude
   plans to do next, is never tracked in git. Keeping the queue on disk is fine: Claude may
   keep the queue in `QUEUE.md` at the top of the repository, which `.gitignore` lists.

@@ -47,11 +47,13 @@ term is added here when the user settles on the word.
 - The giver of an order is the thing in the game the order comes from, and the receiver is
   the thing ordered to do something. An order is never from the player. A destination or a
   target is part of what the order says, and is not the receiver.
-- Oversight is what a civilization spends on orders, and is what was called the
-  civilization's action points and then oversight points. The screens and Claude say
-  Oversight. When the user says oversight points, the user means Oversight.
-- Command, or command points, is what a civilization spends, beside Oversight, on orders for
-  armies and divisions. A civilization has less Command than Oversight. Cities provide
+- Policy, or policy points, is what a civilization spends on policy orders, and is what was
+  called the civilization's action points, then oversight points and then Oversight. The
+  screens and Claude say Policy. When the user says Oversight or oversight points, the user
+  means Policy.
+- Command, or command points, is what a civilization spends on command orders: the military
+  orders for armies, divisions and single military units. A civilization has less Command
+  than Policy. Cities provide
   Command, and military buildings add to it.
 - AP is short for action points, which belong to a unit: what a unit spends to move and to
   attack. The user may write AP, and the screens may write AP too.
@@ -72,6 +74,8 @@ term is added here when the user settles on the word.
   resources. Claude never writes "worker" for a citizen.
 - A purpose is what a building or a unit is for, like defense or science. A kind can serve
   many purposes.
+- A PolicyOrder is an order that takes Policy, and a CommandOrder is an order that takes
+  Command.
 - Every order class has a name that ends in Order, because orders are modelled as object
   oriented classes: BuildTargetOrder is the order class for what Claude had been calling a
   BuildTarget, one thing an order aims to have built. Class names like BuildTarget are fine to talk in for now, and the names a

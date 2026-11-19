@@ -42,7 +42,7 @@ file, so it's in force in every session. `.claude/TESTING.md` says what caveman 
 - A technology called agriculture allows the granary and the worker, and what the user first
   called farming is agriculture.
 - The watchtower supplies 5 more Command each turn, once Command is built: the points that
-  orders for armies and divisions take beside Oversight ("Priorities and the helper AI" in
+  orders for armies and divisions take beside Policy ("Priorities and the helper AI" in
   the model).
 - The land starts out unexplored in caveman, so that the tests cover exploring. Caveman has no
   technology that ends the fog of war; the tests add one to a later caveman where they need it.
@@ -70,9 +70,9 @@ gained, so a level 20 warrior has 13 hit points and a level 20 captain caveman 2
   research points, which Claude chose, between fire at 20 and agriculture at 30. Caveman now
   has five technologies: clubs, agriculture, leadership, discipline and fire.
 - chieftain's hut: 20 currency, 4 turns, 1 currency to support. Requires leadership. The
-  chieftain's hut gives its civilization 2 more Oversight each turn. The user asked for the
+  chieftain's hut gives its civilization 2 more Policy each turn. The user asked for the
   building, for one to a city, as with every building, and for a reasonably small amount,
-  and Claude chose 2: caveman gives a civilization 4 Oversight, each village 2 more, and the
+  and Claude chose 2: caveman gives a civilization 4 Policy, each village 2 more, and the
   arrangement of rocks 1 more.
 - forest: gives 1 wood, and costs 2 to move into.
 - watchtower: 20 currency, 5 turns, 1 currency to support. Requires fire, which takes 20

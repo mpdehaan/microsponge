@@ -33,7 +33,7 @@ class Caveman(Theme):
     PRIMARY_RESOURCE = Currency
     FOOD = Food
     STARTS_WITH = {Currency: 50}
-    OVERSIGHT_POINTS = 4
+    POLICY_POINTS = 4
     LEVEL_HIT_POINTS_PERCENT = 2
     LAND_STARTS_EXPLORED = False
     PLAYER = CavemanPlayer

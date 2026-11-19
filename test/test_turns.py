@@ -103,13 +103,13 @@ HOTHOUSE_CAVEMAN = later_caveman({Category.BUILDINGS: (*Caveman.BUILDINGS, Hotho
 
 class TestStartingAGame(Refusals, unittest.TestCase):
 
-    def test_a_started_game_gives_each_civilization_what_the_theme_starts_with_and_its_oversight_points(self):
+    def test_a_started_game_gives_each_civilization_what_the_theme_starts_with_and_its_policy_points(self):
         game = started_caveman_game()
         for civilization in (FIRST_CIVILIZATION, SECOND_CIVILIZATION):
             with self.subTest(civilization=civilization):
                 self.assertEqual(held(game=game, civilization=civilization, resource=Currency), STARTING_CURRENCY)
                 self.assertEqual(held(game=game, civilization=civilization, resource=Food), NOTHING_HELD)
-                self.assertEqual(game.get_civilization(civilization).get_oversight_points(), Caveman.OVERSIGHT_POINTS)
+                self.assertEqual(game.get_civilization(civilization).get_policy_points(), Caveman.POLICY_POINTS)
                 settler = settler_of(game=game, civilization=civilization)
                 self.assertEqual(game.get_units().get_value(column=UnitColumn.ACTION_POINTS, unit=settler), Settler.ACTION_POINTS)
 
@@ -393,16 +393,16 @@ class TestEndingATurn(unittest.TestCase):
         TurnControl.end_turn(self.game)
         self.assertEqual(self.hit_points(warrior), HURT + Warrior.HEAL)
 
-    def test_all_points_refill_at_the_end_of_a_turn_and_each_village_adds_to_its_civilizations_oversight_points(self):
+    def test_all_points_refill_at_the_end_of_a_turn_and_each_village_adds_to_its_civilizations_policy_points(self):
         self.village(ONE_CITIZEN)
         warrior, = self.warriors(civilization=FIRST_CIVILIZATION, count=ONE_WARRIOR)
         self.units.set_value(column=UnitColumn.ACTION_POINTS, unit=warrior, value=NO_POINTS)
-        self.first.set_oversight_points(NO_POINTS)
+        self.first.set_policy_points(NO_POINTS)
         end_rounds(game=self.game, rounds=ONE_ROUND)
         self.assertEqual(self.units.get_value(column=UnitColumn.ACTION_POINTS, unit=warrior), Warrior.ACTION_POINTS)
-        self.assertEqual(self.first.get_oversight_points(), Caveman.OVERSIGHT_POINTS + Village.OVERSIGHT_POINTS)
-        self.assertEqual(self.second.get_oversight_points(), Caveman.OVERSIGHT_POINTS)
-        self.assertEqual(TurnControl.oversight_points(game=self.game, civilization=FIRST_CIVILIZATION), Caveman.OVERSIGHT_POINTS + Village.OVERSIGHT_POINTS)
+        self.assertEqual(self.first.get_policy_points(), Caveman.POLICY_POINTS + Village.POLICY_POINTS)
+        self.assertEqual(self.second.get_policy_points(), Caveman.POLICY_POINTS)
+        self.assertEqual(TurnControl.policy_points(game=self.game, civilization=FIRST_CIVILIZATION), Caveman.POLICY_POINTS + Village.POLICY_POINTS)
 
     def test_buildings_are_paid_for_each_turn_and_a_technology_takes_nothing_off_what_buildings_cost(self):
         city = self.village(ONE_CITIZEN)
@@ -450,14 +450,14 @@ class TestEndingATurn(unittest.TestCase):
         end_rounds(game=game, rounds=LEAST_GROWTH_TURNS)
         self.assertEqual(game.get_city(city).get_citizens(), ONE_CITIZEN + 1)
 
-    def test_a_building_can_add_oversight_points_to_its_civilization(self):
+    def test_a_building_can_add_policy_points_to_its_civilization(self):
         city = self.village(ONE_CITIZEN)
         give_building(game=self.game, city=city, building=ArrangementOfRocks)
-        expected = Caveman.OVERSIGHT_POINTS + Village.OVERSIGHT_POINTS + ArrangementOfRocks.OVERSIGHT_POINTS
-        self.assertEqual(TurnControl.oversight_points(game=self.game, civilization=FIRST_CIVILIZATION), expected)
+        expected = Caveman.POLICY_POINTS + Village.POLICY_POINTS + ArrangementOfRocks.POLICY_POINTS
+        self.assertEqual(TurnControl.policy_points(game=self.game, civilization=FIRST_CIVILIZATION), expected)
         end_rounds(game=self.game, rounds=ONE_ROUND)
-        self.assertEqual(self.first.get_oversight_points(), expected)
-        self.assertEqual(self.second.get_oversight_points(), Caveman.OVERSIGHT_POINTS)
+        self.assertEqual(self.first.get_policy_points(), expected)
+        self.assertEqual(self.second.get_policy_points(), Caveman.POLICY_POINTS)
 
     def test_units_are_paid_for_before_what_a_village_builds(self):
         city = self.village(TWO_CITIZENS)

@@ -236,7 +236,7 @@ def civilization_facts(*, game, civilization):
         civilization.get_name(), by_resource_name(game=game, amounts=civilization.get_holdings()),
         sorted(names_of(game=game, category=Category.TECHNOLOGIES, kind_ids=civilization.get_technologies())),
         name_of(game=game, category=Category.TECHNOLOGIES, kind_id=civilization.get_researching()), civilization.get_research(),
-        civilization.get_oversight_points(), civilization.get_bankrupt_turns(), civilization.get_wars(), civilization.has_lost(),
+        civilization.get_policy_points(), civilization.get_bankrupt_turns(), civilization.get_wars(), civilization.has_lost(),
         [memory_facts(game=game, memory=memory) for memory in civilization.get_memories()],
         None if civilization.get_traits() is None else civilization.get_traits().get_values(),
     )

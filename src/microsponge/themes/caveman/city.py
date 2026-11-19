@@ -26,5 +26,5 @@ class Village(CitySpec):
     PRODUCES = {Food: 2}
     GROWTH_FOOD = 5
     CITIZEN_CURRENCY = 2
-    OVERSIGHT_POINTS = 2
+    POLICY_POINTS = 2
     RESEARCH_POINTS = 1

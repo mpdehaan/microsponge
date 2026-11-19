@@ -173,7 +173,7 @@ class TestAttackingAUnit(CombatCase):
         self.assertEqual(self.hit_points(target), Warrior.HIT_POINTS - outcome.damage)
         self.assertEqual(self.hit_points(attacker), Warrior.HIT_POINTS - outcome.strike_back)
         self.assertEqual(self.points_of(attacker), Warrior.ACTION_POINTS - STRAIGHT)
-        self.assertEqual(self.game.get_civilization(FIRST_CIVILIZATION).get_oversight_points(), Caveman.OVERSIGHT_POINTS - STRAIGHT)
+        self.assertEqual(self.game.get_civilization(FIRST_CIVILIZATION).get_policy_points(), Caveman.POLICY_POINTS - STRAIGHT)
 
     def test_the_same_seed_rolls_the_same_fight(self):
         outcomes = []

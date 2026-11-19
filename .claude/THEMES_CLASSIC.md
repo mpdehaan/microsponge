@@ -145,6 +145,12 @@ The world wonders of classic are these, and that's it for now:
   stone. Claude chose a cost of 30 stone, and city walls make the armor class of every unit
   inside 2 better, to be balanced later. City walls are bypassed by the catapult, the cannon
   and the howitzer.
+- A military base is a building that gives its civilization Command. A hangar is a building
+  that requires an airport in its city, and gives Command too. So classic has at least the
+  military base, the hangar and the airport. These are examples the user gave, with no
+  numbers, and none is in the code.
+- A city hall and a courthouse are buildings that give Policy, as examples the user gave,
+  with no numbers, and neither is in the code.
 
 ## Visibility
 

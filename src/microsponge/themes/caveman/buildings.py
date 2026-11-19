@@ -60,7 +60,7 @@ class ChieftainsHut(Building):
     COST = {Currency: 20}
     BUILD_TURNS = 4
     SUPPORT = {Currency: 1}
-    OVERSIGHT_POINTS = 2
+    POLICY_POINTS = 2
 
 
 class GreatCavePainting(Wonder):
@@ -75,4 +75,4 @@ class ArrangementOfRocks(Wonder):
     BUILD_TURNS = 10
     SUPPORT = {Currency: 1}
     PRODUCES = {Currency: 2}
-    OVERSIGHT_POINTS = 1
+    POLICY_POINTS = 1

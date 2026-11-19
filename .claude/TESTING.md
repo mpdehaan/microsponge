@@ -85,7 +85,7 @@ import, an undefined name or a name defined twice fails the tests; `pyflakes` is
   styles. The fixed test world stays for the unit tests.
 - **Cross checks between ways of playing.** The user wants many cross checks planned for, in
   which computer players that give orders in different ways play each other under the same
-  Oversight: one that orders every unit alone, one that orders divisions and cities, and one
+  Policy: one that orders every unit alone, one that orders divisions and cities, and one
   that gives only high level orders. The player that orders divisions and cities should win
   most games. There is much to tune, and the user expects that finding good numbers will
   almost require a search like simulated annealing, to avoid local maxima.

@@ -112,7 +112,7 @@ class TestBuildingAnImprovement(Refusals, unittest.TestCase):
         self.assertEqual(WorkControl.turns_left(game=self.game, unit=self.worker), Farm.BUILD_TURNS)
         self.assertIsNone(self.improvement_at(self.field))
         self.assertEqual(self.points_of(self.worker), Worker.ACTION_POINTS - Caveman.ACTION_COST_BASE)
-        self.assertEqual(self.first.get_oversight_points(), Caveman.OVERSIGHT_POINTS - Caveman.ACTION_COST_BASE)
+        self.assertEqual(self.first.get_policy_points(), Caveman.POLICY_POINTS - Caveman.ACTION_COST_BASE)
 
     def test_the_farm_is_on_the_tile_after_the_turns_a_farm_takes_and_not_a_turn_sooner(self):
         self.start_farm()
@@ -146,9 +146,9 @@ class TestBuildingAnImprovement(Refusals, unittest.TestCase):
         x, y = self.field
         self.start_farm()
         end_rounds(game=self.game, rounds=Farm.BUILD_TURNS - ONE_ROUND)
-        pool = self.first.get_oversight_points()
+        pool = self.first.get_policy_points()
         Orders.abandon_improvement(game=self.game, unit=self.worker)
-        self.assertEqual((self.first.get_oversight_points(), self.points_of(self.worker)), (pool, Worker.ACTION_POINTS))
+        self.assertEqual((self.first.get_policy_points(), self.points_of(self.worker)), (pool, Worker.ACTION_POINTS))
         self.assertIsNone(WorkControl.improvement_of(game=self.game, unit=self.worker))
         end_rounds(game=self.game, rounds=ONE_ROUND)
         self.assertIsNone(self.improvement_at(self.field))

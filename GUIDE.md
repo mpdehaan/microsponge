@@ -96,12 +96,12 @@ refill every turn. Moving one tile costs 1, or more onto hard terrain like mount
 attacking costs 1; building a city, starting an improvement, and going into or out of a city each
 cost 1.
 
-## Oversight
+## Policy
 
-A civilization has Oversight, which the theme sets, and which each city and some buildings add
-to. Oversight refills every turn. An order for a unit costs as much Oversight as the order
+A civilization has Policy, which the theme sets, and which each city and some buildings add
+to. Policy refills every turn. An order for a unit costs as much Policy as the order
 costs the unit in action points. Choosing what to build, choosing what to research, setting a
-city's priority, declaring war and ending the turn are free. Because Oversight is small, a
+city's priority, declaring war and ending the turn are free. Because Policy is small, a
 civilization cannot direct every unit every turn, and has to choose.
 
 ## Units

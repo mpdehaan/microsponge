@@ -27,7 +27,7 @@ says where things are and how the parts fit, and is kept true with every change 
   is the static class for attacks, experience and who has lost, and `levels.py` is the static
   class for what a level takes and adds.
 - `civilizations`: `civilization.py` is one civilization: its name, what it holds of each
-  resource, the technologies it knows, its Oversight (`get_oversight_points()`), its bankrupt turns, its wars,
+  resource, the technologies it knows, its Policy (`get_policy_points()`), its bankrupt turns, its wars,
   what it researches, whether it has lost and its memory of each world. `requirements.py` says
   what a civilization or a city lacks of what a kind requires, `research.py` is the static
   class for research, `strategic.py` the static class for strategic resources, `sight.py` the
@@ -68,14 +68,14 @@ says where things are and how the parts fit, and is kept true with every change 
 - What a city is called comes from the theme's city spec (`NAME`, `NAMES`): caveman says
   village. Messages a player can meet take the word as `{city}`.
 - Time is the turn, a whole number from 0. There are no years.
-- `TurnControl.start()` gives each civilization the theme's `STARTS_WITH` and its Oversight
-  (`TurnControl.oversight_points()`: the theme's `OVERSIGHT_POINTS`, the city spec's for each
+- `TurnControl.start()` gives each civilization the theme's `STARTS_WITH` and its Policy
+  (`TurnControl.policy_points()`: the theme's `POLICY_POINTS`, the city spec's for each
   city and each building's, like caveman's chieftain's hut).
   The civilizations play in the order they joined, and the turn number goes up after the last.
 - `TurnControl.end_turn()` does, for the civilization playing and in this order: building units
   go on building, the cities collect, the citizens eat, the units and buildings are paid for,
   the cities go on with what they build, the cities grow, the units heal, research goes on, and
-  all action points and the Oversight refill. Then the turn passes to the next civilization that has not
+  all action points and the Policy refill. Then the turn passes to the next civilization that has not
   lost.
 - `Harvest` gives each working citizen one tile of the city's radius outside the center. A
   citizen with a priority takes the tile that gives the most of that resource, every other
@@ -150,7 +150,7 @@ says where things are and how the parts fit, and is kept true with every change 
   adds the new hit points on top of the wounds. A building's `LEVEL_BONUS` raises the level a
   unit built in its city starts at (`CityControl.starting_level()`), like caveman's barracks.
 - Every `Orders` method checks that the game is being played and that the turn belongs to the
-  civilization, then the action points of the unit and the Oversight of the civilization, then the model
+  civilization, then the action points of the unit and the Policy of the civilization, then the model
   object's own rule, and charges the points last, so a refused order changes nothing.
 - A unit that is building has the improvement's id and the turns left in two unit columns.
   `WorkControl.problem_starting()` returns the reason a unit cannot start, or `None`.
@@ -297,7 +297,7 @@ says where things are and how the parts fit, and is kept true with every change 
   many cities it has founded and its memories, one per world, each with its remembered layers
   and the owners of the cities it has seen. Layers and columns are keyed by their numbers, and `names` records the name of every
   id in every category. Memories arrived with version 0.0.5, and a civilization's `oversight_points` took the place of
-  its `action_points` in version 0.0.9, which `REQUIRED_VERSION` moved to.
+  its `action_points` in version 0.0.9, and `policy_points` took the place of those in version 0.0.12, which `REQUIRED_VERSION` moved to.
 - Loading matches the saved names to the current theme's catalog and renumbers the layers and
   columns that hold kind ids (`LAYER_CATEGORIES`, `COLUMN_CATEGORIES`), in the memories too, only where an id differs,
   and the resources, technologies, buildings and queued kinds that civilizations and cities

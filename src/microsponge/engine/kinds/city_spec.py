@@ -42,8 +42,8 @@ class CitySpec:
     CITIZEN_FOOD = 1
     # The currency each working citizen generates each turn.
     CITIZEN_CURRENCY = 1
-    # The Oversight a city adds to its civilization each turn.
-    OVERSIGHT_POINTS = 0
+    # The Policy a city adds to its civilization each turn.
+    POLICY_POINTS = 0
     # The research points a city adds to its civilization's pool each turn.
     RESEARCH_POINTS = 0
     # The most units a city holds inside itself.

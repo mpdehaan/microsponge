@@ -527,14 +527,15 @@ otherwise. What classic itself chooses, like its list of resources, is kept in
 
 ## Action points
 
-- Each unit has a pool of action points. A civilization has Oversight, which is what was
-  first called the civilization's pool of action points and then oversight points ("Priorities
+- Each unit has a pool of action points. A civilization has Policy, which is what was
+  first called the civilization's pool of action points, then oversight points and then
+  Oversight ("Priorities
   and the helper AI"). A city has neither.
-- All action points and all Oversight refill every turn.
+- All action points and all Policy refill every turn.
 - A unit has a very small number of action points.
 - A unit still needs action points: a move consumes some, and an attack consumes some. For
   now, whatever a unit is ordered to do tile by tile costs the unit action points and costs
-  the unit's civilization the same number of Oversight.
+  the unit's civilization the same number of Policy.
 - A kind of unit can also have a limit on how many times a unit attacks in a turn, set for
   each class of unit attacked: an anti-air unit might attack air units 3 times a turn and
   ground units 0 times. The limit is not built yet.
@@ -557,10 +558,10 @@ otherwise. What classic itself chooses, like its list of resources, is kept in
   as it does the cost of a move.
 - A unit attacks a unit on a tile next to its own, for now. That is true of every kind of unit,
   so a land unit can hit a sea unit only when the two are next to each other.
-- The idea of Oversight is that a civilization cannot direct all of its units in a turn, only
+- The idea of Policy is that a civilization cannot direct all of its units in a turn, only
   so many, so that a player has to make good choices.
-- A theme configures where the Oversight of a civilization comes from. Each city that is
-  built could come with some Oversight, and buildings could give Oversight too, like
+- A theme configures where the Policy of a civilization comes from. Each city that is
+  built could come with some Policy, and buildings could give Policy too, like
   caveman's chieftain's hut.
 
 ## Combat
@@ -738,10 +739,10 @@ single units, and are rewritten as the details are decided.
 - Units cannot stack on the map, so an army is not a thing on a tile. An army is a control
   system for the helper AI. An army may show statistics and help to tell a story, even after
   the army is disbanded and its units are reassigned.
-- An order costs Oversight every turn while the order is in the table. The moves and attacks
+- An order costs Policy every turn while the order is in the table. The moves and attacks
   that the helper AI makes to carry an order out cost only the action points of the units. A
   direct order for one unit, tile by tile, counts as an order in the table for that turn.
-  Sending a single unit across the map is likely a very small Oversight tax, like 1.
+  Sending a single unit across the map is likely a very small Policy tax, like 1.
 - No cost of an order is hard coded: every cost is in the common settings of the engine or in
   the theme, which are Python, like everything else a theme defines.
 - The orders are heavily object oriented. An order is a class, with subclasses for the thing
@@ -759,7 +760,7 @@ single units, and are rewritten as the details are decided.
 - A unit and a city are each a thing that takes orders. A thing that takes orders can look at
   every order that points at the thing, and can have orders of its own that help the thing to
   decide what to do. An order on a city could be to prioritize military builds, and such an
-  order might even cost no Oversight.
+  order might even cost no Policy.
 - A city can be given build priorities. Without them a city builds mostly random things, and
   stalls when the city has nothing to do. Build priorities rest on the types of things a city
   builds, which the user has sketched and which are still being discussed: types of building
@@ -770,9 +771,9 @@ single units, and are rewritten as the details are decided.
   improving offensive potential.
 - An order can set what the citizens of a city look for first, like 20 percent more toward
   food, on one city or, as a planet order, on every city of a planet. Such orders cost very
-  little Oversight, some orders for a city may be free, and orders for armies cost more.
+  little Policy, some orders for a city may be free, and orders for armies cost more.
 - A division can take most of the orders an army can, and an army most of the orders a
-  division can: divisions make control easier. The Oversight an order for an army or a
+  division can: divisions make control easier. The Policy an order for an army or a
   division costs may depend on the number of units, which is probably the easiest first rule.
 - There is an order to expand, which may take an area, to be defined. The order can be given
   for a planet, and also to a city, because a city has to produce settlers to expand toward
@@ -797,9 +798,9 @@ single units, and are rewritten as the details are decided.
   belongs to something: a division of an army, or a city. A unit that belongs to a city can
   be given a new home in another city, which moves any upkeep the unit has, like its food,
   to the new city.
-- Oversight is meant to have a lot of points, to make the costs easy to set. An order for an
+- Policy is meant to have a lot of points, to make the costs easy to set. An order for an
   army might cost something like 10 points plus 1 for each unit in the army. A city offers
-  some Oversight for free, and a building like the chieftain's hut offers more; how much is
+  some Policy for free, and a building like the chieftain's hut offers more; how much is
   not decided.
 - What an order aims to have built is its build targets: each is a build target. The class
   names are used in discussion for now, and the names a screen shows come later.
@@ -834,7 +835,7 @@ single units, and are rewritten as the details are decided.
   may never be valid because their targets do not exist. That last kind is tricky because of
   the fog of war: when a target city has been destroyed where the civilization cannot see,
   the player is not told that the order is invalid, because the player does not know. Such an
-  order stays active in the civilization's view and keeps costing Oversight, until one of the
+  order stays active in the civilization's view and keeps costing Policy, until one of the
   civilization's units or cities sees that the target is gone. The referee AI knows the
   truth, and each civilization's view shows only what that civilization has seen.
 - A build target may name an exact kind of unit, or a general category for now: a purpose,
@@ -855,16 +856,16 @@ single units, and are rewritten as the details are decided.
   giver and its receiver, and the destination is inside the what: the destination is not the
   receiver, because the destination is not the thing being ordered to do something.
 - The Hand has a realized tree of orders of its own, which is how the Hand interprets the
-  orders a civilization has given. The realized tree costs no Oversight. A person who plays
+  orders a civilization has given. The realized tree costs no Policy. A person who plays
   does not see the realized tree, though a test may need to, and a main AI cannot see the
   realized tree either, as part of what the main AI knows when deciding.
-- The Hand does nothing that Oversight has not asked for. What no order leads does its
+- The Hand does nothing that Policy has not asked for. What no order leads does its
   default natural thing, for a computer player's civilization and a person's alike, which
   is mostly absolutely nothing: units defend themselves if attacked, and the civilization
   researches its current targets, or a random technology when no target is set.
 - An order for a planet can be a high level objective, like increase settlements here,
   conquer the cities in this area, or eliminate the units in this area. Such objectives can
-  be given at lower levels too. An order higher up the chain does not cost more Oversight, which the
+  be given at lower levels too. An order higher up the chain does not cost more Policy, which the
   user first proposed and then changed. A high level order is instead probably a poor
   choice, because the order leaves everything up to the helper AI, and the helper AI is
   made dumber than a computer player's main AI and than a person: the helper AI is like a
@@ -879,8 +880,8 @@ single units, and are rewritten as the details are decided.
   beside the cost for each unit, and the base cost is 0 so far. In the first test of the
   game every order costs 1, an order for an army or a division costs 1 for each unit with
   no base cost, and a resolution order costs 0.
-- A civilization whose active orders cost more than its Oversight must disable orders
-  before ending its turn, a person and a computer player alike. Oversight that is not
+- A civilization whose active orders cost more than its Policy must disable orders
+  before ending its turn, a person and a computer player alike. Policy that is not
   spent in a turn is lost.
 - What an order says is made of targets. Taking a city is a form of military target, and
   food first is a resources target, beside the build targets.
@@ -888,7 +889,7 @@ single units, and are rewritten as the details are decided.
   divisions and one build for the city.
 - A city with no order builds nothing, and a unit with no order stands still and only
   strikes back. So every city needs a build order attached: the buildings to build, in
-  order of priority. A long build order costs no more Oversight than a short one.
+  order of priority. A long build order costs no more Policy than a short one.
 - Which base builds which unit for a division can be specified in many ways, and all are
   possible: the helper AI figures the split out, the order gives a balance in percentages
   over a pool of cities, or the order is very specific about each city.
@@ -914,7 +915,7 @@ single units, and are rewritten as the details are decided.
 - The orders for a settler and for an engineer, SettlerOrder and WorkOrder, are civil orders,
   subclasses of CivilOrder. The research order and the resolution order are policy orders,
   subclasses of PolicyOrder.
-- An order that aims at things being built holds a list, and costs Oversight once whatever
+- An order that aims at things being built holds a list, and costs Policy once whatever
   the length of the list.
 - The order for what the citizens look for first, like food first, is a policy order called
   ResourcesPolicyOrder. The order is not called a target, because the order is not a target
@@ -938,14 +939,14 @@ single units, and are rewritten as the details are decided.
   the units come from, which are cities that can build and divisions that can give units
   up, and the way of fulfilling, which says whether building or moving is tried first. The
   helper AI never moves a unit that another garrison order is keeping in place.
-- An order for a single unit costs 2 more Oversight than the orders for armies and
+- An order for a single unit costs 2 more Policy than the orders for armies and
   divisions do, as a starter number, so that ordering every unit alone is the dear way.
 - Orders for armies and divisions also take Command, a second kind of points that a
   civilization has fewer of. Cities provide Command, and military buildings add to what a
   city provides: caveman's watchtower supplies 5 more Command each turn.
 - A civilization can have 1 army for every 10 cities and 1 division for every 5 cities.
   These limits, like every such number, are constants of the theme and need tuning.
-- Oversight comes from buildings too, and how much is tuned with care: too much Oversight
+- Policy comes from buildings too, and how much is tuned with care: too much Policy
   makes the game no longer interesting and actually unfun, because there are then too many
   orders in the tree, which is micromanaging again, like the turns at the end of a game of
   Civilization II.
@@ -957,23 +958,23 @@ single units, and are rewritten as the details are decided.
 - With no precedence list, the order that has waited longest wins, and the conflict is still
   flagged in the view of problematic orders. The user first chose a random winner and
   changed that.
-- A unit in a division or an army costs 1 Oversight, so an order for a single unit costs 3.
+- A unit in a division or an army costs 1 Policy, so an order for a single unit costs 3.
 - The limits on armies and divisions round up, and a civilization with units always has at
   least 1 army and 1 division. Each theme sets its own numbers: caveman, whose civilizations
   are small, needs smaller numbers than 10 and 5, and classic and SciFi will differ again.
 - The classes of order are named for the points the orders take: an order that takes Policy
   points is a PolicyOrder, and an order that takes Command is a CommandOrder. Policy is the
-  name the user proposed for the points called Oversight.
+  name the user gave the points that were first called Oversight.
 - Which points an order for a single unit takes depends on the unit: moving a settler or an
   engineer takes Policy, and military movements take Command. A command order takes Command
   only. An order to raise units, which a division gives to a city, is a policy order,
   because the city does the work.
-- A completed order is set disabled. A disabled order costs no Oversight and does nothing, and
+- A completed order is set disabled. A disabled order costs no Policy and does nothing, and
   stays in the table as a convenience, so that a person can remove the order or modify the
   order. A computer player will probably just remove a disabled order.
 - The referee AI, which is a kind of global part of the engine and belongs to no player,
   marks an order invalid when the order can no longer work, like an order whose target city
-  was destroyed. An invalid order costs no Oversight and does nothing until the order is
+  was destroyed. An invalid order costs no Policy and does nothing until the order is
   changed. Disabled and invalid are nearly the same thing, and are modelled as one for now:
   an order is active or inactive, and an inactive order records why.
 - An order holds references to the things the order is about, like a target city. When one
@@ -989,16 +990,16 @@ single units, and are rewritten as the details are decided.
   computer player that can micromanage every unit beats a person who cannot, because a person
   is only in one place at a time. A computer player is not to micromanage: the main AI passes
   orders for armies and divisions to the helper AI.
-- Oversight keeps any player from micromanaging. An order consumes Oversight every turn that
+- Policy keeps any player from micromanaging. An order consumes Policy every turn that
   the order is kept in the table of orders, different orders take different amounts, and a
-  player can only use so much each turn. Oversight is the civilization's pool of action
-  points under its lasting name, and the screens say Oversight.
-- Mostly the same orders are available in every theme. What each order costs in Oversight is
+  player can only use so much each turn. Policy is the civilization's pool of action
+  points under its lasting name, and the screens say Policy.
+- Mostly the same orders are available in every theme. What each order costs in Policy is
   written in one main document, which a theme overrides: a theme could even make the orders
   for armies free, though probably none will. The document is Python: each order is a class
   with its cost, and a theme overrides a cost on the theme's own class.
 - Tuning the strategy of the computer players matters, and the game is also balanced through
-  the costs of the tech tree, the costs of units, the resources, and Oversight.
+  the costs of the tech tree, the costs of units, the resources, and Policy.
 - The test games pit a computer player that uses armies and divisions against one that does
   not, to see what the groups are worth.
 - No screen for the settings is built yet. A panel that shows the tree can be imagined.

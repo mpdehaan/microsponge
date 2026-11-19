@@ -87,7 +87,7 @@ ERR_NO_PLAYER = 'the theme {theme} has no computer player yet, so its games cann
 
 # orders.py
 ERR_NO_ACTION_POINTS = 'the unit {unit} has {left} action points left, and this costs {cost}'
-ERR_NO_OVERSIGHT_POINTS = '{name} has {left} Oversight left, and this costs {cost}'
+ERR_NO_POLICY_POINTS = '{name} has {left} Policy left, and this costs {cost}'
 ERR_NOT_AT_WAR = 'that tile belongs to {name}: declare war on {name} first'
 ERR_NOT_NEXT_TO_UNIT = 'the tile at {x!r}, {y!r} is not next to the unit {unit}'
 ERR_NOT_YOUR_TURN = 'it is not the turn of {name}'

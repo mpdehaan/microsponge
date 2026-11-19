@@ -85,7 +85,7 @@ The buildings of classic:
 | the lighthouse of alexandria     | yes          | -             | -        |     1 |              - |           - | -     |
 | the manhattan project            | yes          | -             | -        |     1 |              - |           - | -     |
 
-no building of classic sets these, so their columns are left out: support, produces, research points, Oversight, grows sooner, worked tile bonus, level bonus, beside water
+no building of classic sets these, so their columns are left out: support, produces, research points, Policy, grows sooner, worked tile bonus, level bonus, beside water
 
 The world wonders of classic:
 
@@ -102,7 +102,7 @@ The world wonders of classic:
 | the lighthouse of alexandria     |     1 |
 | the manhattan project            |     1 |
 
-no world wonder of classic sets these, so their columns are left out: requires, cost, support, produces, income bonus %, research points, Oversight, grows sooner, worked tile bonus, armor bonus, level bonus, walls, beside water
+no world wonder of classic sets these, so their columns are left out: requires, cost, support, produces, income bonus %, research points, Policy, grows sooner, worked tile bonus, armor bonus, level bonus, walls, beside water
 
 The tech tree of classic:
 
