@@ -218,8 +218,19 @@ says where things are and how the parts fit, and is kept true with every change 
   order goes through `Orders` inside `try_order()`, so a refused order changes nothing and the
   player tries the next thing. The player reads the map only through the `View` and the
   `Memory`.
-- Not built yet: satellites, the colony ship,
-  putting strategic resources on the map when a world is made, the technology given after
+- The map generator. `world/generator.py` is the static class `MapGenerator`: `make(game=,
+  width=, height=)` fills a world with the theme's `MAP.BASE_TERRAIN`, grows patches of each
+  terrain in `MAP.TERRAIN_PERCENT` by a random walk of `PATCH_SIZE` steps, then scatters
+  strategic resources (`STRATEGIC_PERCENT` of the tiles whose terrain `CAN_HAVE` one) and
+  terrain bonuses (`TERRAIN_BONUS_PERCENT` of the tiles each is `ON`), all from
+  `Game.get_random()`. `place_civilizations()` puts each civilization's settler on a site
+  where `problem_with_site()` passes, searched on every `SITE_STEP` tile, the first at random
+  and each next the farthest from those chosen, refusing when two would be closer than a city
+  radius. `kinds/map_spec.py` is `MapSpec`, the theme's `MAP`, and caveman's is
+  `themes/caveman/map.py`; a theme with no base terrain cannot have its maps made yet.
+  `support/map_preview.py` and `tools/map_preview.py` (`make map THEME= SEED= CIVILIZATIONS=`)
+  print a world as a grid of throwaway letters with a legend, for talking about the generator.
+- Not built yet: satellites, the colony ship, styles of map, the technology given after
   6000 turns, trading technology, and a technology that reveals land without exploring.
 
 ## The reports and the guides

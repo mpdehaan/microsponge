@@ -17,6 +17,7 @@
 """The base of a theme: the kind of game being played, as lists of its kinds."""
 
 from microsponge.engine.kinds.city_spec import CitySpec
+from microsponge.engine.kinds.map_spec import MapSpec
 
 # The least currency any unit or building costs to build, in every theme.
 LEAST_COST = 10
@@ -51,6 +52,8 @@ class Theme:
     RESEARCH_TO_CURRENCY = 1
     # What a city means in the theme.
     CITY = CitySpec
+    # How the map generator makes a world of the theme.
+    MAP = MapSpec
     # The fewest and the most worlds a game has. A theme with planets raises the most, and the player chooses.
     MIN_WORLDS = 1
     MAX_WORLDS = 1

@@ -78,6 +78,10 @@ ERR_TOO_MANY_CIVILIZATIONS = 'a game has at most {most} civilizations'
 ERR_TOO_MANY_WORLDS = 'a game of the theme {theme} has at most {most} worlds'
 ERR_TURN = 'a turn must be a whole number that is not negative, got {value!r}'
 
+# generator.py
+ERR_NO_MAP = 'the theme {theme} cannot have its maps made yet: its map spec has no base terrain'
+ERR_NO_ROOM_TO_START = 'the world has room for {room} starting places a city radius apart, and {count} civilizations need one each'
+
 # orders.py
 ERR_NO_ACTION_POINTS = 'the unit {unit} has {left} action points left, and this costs {cost}'
 ERR_NO_CIVILIZATION_ACTION_POINTS = '{name} has {left} action points left, and this costs {cost}'

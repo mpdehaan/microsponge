@@ -24,6 +24,7 @@ from microsponge.themes.caveman.resources import Currency, Flint, Food, Stone, W
 from microsponge.themes.caveman.technologies import Agriculture, Clubs, Discipline, Fire
 from microsponge.themes.caveman.terrain_bonuses import Bison, Elephants
 from microsponge.themes.caveman.terrains import Forest, Grassland, Mountains, Tarpit, Water
+from microsponge.themes.caveman.map import CavemanMap
 from microsponge.themes.caveman.player import CavemanPlayer
 from microsponge.themes.caveman.units import AngryBird, CaptainCaveman, Raft, Settler, SlingshotCaveman, Warrior, Worker
 
@@ -37,6 +38,7 @@ class Caveman(Theme):
     LAND_STARTS_EXPLORED = False
     PLAYER = CavemanPlayer
     CITY = Village
+    MAP = CavemanMap
     TERRAINS = (Grassland, Mountains, Water, Forest, Tarpit)
     RESOURCES = (Currency, Food, Stone, Wood, Flint)
     TECHNOLOGIES = (Clubs, Agriculture, Discipline, Fire)

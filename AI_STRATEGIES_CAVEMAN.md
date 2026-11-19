@@ -180,9 +180,9 @@ The user wants variance programmed in, so that no two computer players are the s
 
 ## What is built first, in order
 
-The damage roll with dice and caveman's new numbers, and the fog of war and the view a player
-reads, are built. Next come the players with their traits, then the simple map generator, the
-scripted game and its report.
+The damage roll with dice and caveman's new numbers, the fog of war and the view a player reads,
+the players with their traits and the simple map generator are built. Next come the scripted
+game and its report.
 
 ## Not decided yet
 

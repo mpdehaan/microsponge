@@ -293,7 +293,13 @@ otherwise. What classic itself chooses, like its list of resources, is kept in
 - A tile is land or water. Mountains are land that costs more to move across.
 - Only one unit may occupy a tile at any time.
 - Maps can be very large.
-- A random map generator makes the map, and makes good choices.
+- A random map generator makes the map, and makes good choices. For now it makes a map one
+  way, from the game's seeded random source, so that a seed always makes the same map: the
+  theme's base terrain, patches of each other terrain covering the theme's percent of the
+  tiles, and strategic resources and terrain bonuses scattered on the terrains that can have
+  them. Each civilization starts with its settler on a tile where a city can be built at once,
+  the civilizations as far apart as the map allows and at least a city radius apart. Styles
+  of map come later, once the maps made have been looked at.
 
 ## Worlds
 

@@ -59,6 +59,14 @@ MSG_NO_UNITS = '{theme} has no units yet'
 MSG_EXTRA_DICE = '{dice} against {domain}'
 MSG_NO_CLASS = 'undecided'
 
+# map_preview.py
+MSG_MAP_CIVILIZATION = 'civilization {number}'
+MSG_MAP_LEGEND_ITEM = '  {mark}  {name}'
+MSG_MAP_LEGEND_TITLE = 'Legend:'
+MSG_MAP_STARTS = '  1-9  where each civilization starts, by its number in turn order'
+MSG_MAP_TITLE = 'A world of {theme} from seed {seed}, {width} by {height} tiles, columns wrapping from east to west:'
+MSG_MAP_USAGE = 'name one theme, then a seed and how many civilizations start if you like, like: caveman 7 3. The themes: {themes}'
+
 # players/computer_player.py
 MSG_CITY_NUMBERED = '{civilization} {number}'
 
