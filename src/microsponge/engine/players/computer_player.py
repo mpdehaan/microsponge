@@ -289,51 +289,68 @@ class ComputerPlayer:
     # The division
 
     @classmethod
-    def wanted_size(cls, *, game, civilization):
-        """Return how many units the division should have: a garrison for each city, and as many more as the Command pays to march, up to the group size."""
-        cities = len(game.get_cities_of(civilization))
-        command = TurnControl.control_points(game=game, civilization=civilization, points=Command)
-        garrisons = cities * GARRISON
+    def wanted_size(cls, *, game, civilization, division):
+        """Return how many units a division should have: a garrison for each of its bases, and as many more as its share of the Command pays to march, up to the group size."""
+        divisions = max(len(game.get_civilization(civilization).get_forces().get_divisions()), ONE_EACH)
+        command = TurnControl.control_points(game=game, civilization=civilization, points=Command) // divisions
+        garrisons = len(division.get_bases()) * GARRISON
         return garrisons + max(0, min(cls.GROUP_SIZE, (command - garrisons * GarrisonOrder.UNIT_COST) // MarchOrder.UNIT_COST - garrisons))
 
     @classmethod
     def wants_fighters(cls, *, game, civilization, division):
-        """Return whether the cities should raise fighters now: always up to the garrisons, and beyond them while the bank holds the reserve and the economics trait does not hold the player back."""
+        """Return whether a division's bases should raise fighters now: always up to the garrisons, and beyond them while the bank holds the reserve and the economics trait does not hold the player back."""
         size = len(division.get_units())
-        if size < len(game.get_cities_of(civilization)) * GARRISON:
+        if size < len(division.get_bases()) * GARRISON:
             return True
         if cls.is_starved(game=game, civilization=civilization):
             return False
-        if size >= cls.wanted_size(game=game, civilization=civilization) or cls.bank(game=game, civilization=civilization) < cls.RESERVE:
+        if size >= cls.wanted_size(game=game, civilization=civilization, division=division) or cls.bank(game=game, civilization=civilization) < cls.RESERVE:
             return False
         return not cls.favors(game=game, civilization=civilization, trait=ECONOMICS)
 
     @classmethod
     def plan_division(cls, *, game, civilization):
-        """Keep one army with one division whose bases are all the cities, a raise order from the division to each city, and a garrison order for each city."""
+        """Keep as many armies and divisions as the civilization may have, share the cities out among the divisions as their bases, and give each base a raise order from its division and a garrison order to it."""
         cities = game.get_cities_of(civilization)
         if not cities:
             return
+        theme = game.get_theme()
         forces = game.get_civilization(civilization).get_forces()
-        if not forces.get_armies():
+        while len(forces.get_armies()) < OrderControl.most(game=game, civilization=civilization, cities_for_each=theme.CITIES_PER_ARMY):
             OrderControl.add_army(game=game, civilization=civilization)
-        if not forces.get_divisions():
-            OrderControl.add_division(game=game, civilization=civilization, army=forces.get_armies()[0])
-        division = cls.division_of(game=game, civilization=civilization)
-        division.set_bases(cities)
+        while len(forces.get_divisions()) < OrderControl.most(game=game, civilization=civilization, cities_for_each=theme.CITIES_PER_DIVISION):
+            armies = forces.get_armies()
+            OrderControl.add_division(game=game, civilization=civilization, army=armies[len(forces.get_divisions()) % len(armies)])
+        divisions = forces.get_divisions()
+        for division in divisions:
+            division.set_bases([city for place, city in enumerate(cities) if place % len(divisions) == divisions.index(division)])
+        for division in divisions:
+            cls.plan_bases(game=game, civilization=civilization, division=division)
+
+    @classmethod
+    def plan_bases(cls, *, game, civilization, division):
+        """Give each base of a division a raise order from the division, active while the division wants fighters, and a garrison order to the division, replacing orders another division gave."""
         me = division_thing(division.get_id())
-        wanted = cls.division_wanted(game=game, civilization=civilization)
+        wanted = cls.division_wanted(game=game, civilization=civilization, division=division)
         raising = cls.wants_fighters(game=game, civilization=civilization, division=division)
-        for city in cities:
+        table = cls.table_of(game=game, civilization=civilization)
+        for city in division.get_bases():
             here = city_thing(city)
-            orders = cls.given(game=game, civilization=civilization, kind=RaiseOrder, receiver=here)
+            orders = [order for order in cls.given(game=game, civilization=civilization, kind=RaiseOrder, receiver=here) if order.get_giver() == me]
+            for order in cls.given(game=game, civilization=civilization, kind=RaiseOrder, receiver=here):
+                if order.get_giver() != me:
+                    table.remove(order)
             order = orders[0] if orders else cls.give(game=game, civilization=civilization, kind=RaiseOrder, giver=me, receiver=here, what=wanted)
             order.set_what(wanted)
             if raising:
                 order.activate()
             else:
                 order.disable()
-            if not cls.given_garrison(game=game, civilization=civilization, city=city):
+            garrisons = cls.given_garrison(game=game, civilization=civilization, city=city)
+            for garrison in garrisons:
+                if garrison.get_receiver() != me:
+                    table.remove(garrison)
+            if not [garrison for garrison in garrisons if garrison.get_receiver() == me]:
                 cls.give(game=game, civilization=civilization, kind=GarrisonOrder, giver=here, receiver=me, what=Garrison(place=CityTarget(city=city), count=GARRISON))
 
     @classmethod
@@ -355,20 +372,21 @@ class ComputerPlayer:
 
     @classmethod
     def plan_retirement(cls, *, game, civilization):
-        """Retire one fighter a turn beyond the garrisons while the civilization is starved, one outside a city first, so that the upkeep stops taking everything."""
-        division = cls.division_of(game=game, civilization=civilization)
-        if division is None or not cls.is_starved(game=game, civilization=civilization):
+        """Retire one fighter a turn beyond the garrisons of its division while the civilization is starved, one outside a city first, so that the upkeep stops taking everything."""
+        if not cls.is_starved(game=game, civilization=civilization):
             return
         alive = Knowledge.units_of(game=game, civilization=civilization)
-        fighters = [unit for unit in division.get_units() if unit in alive]
-        if len(fighters) <= len(game.get_cities_of(civilization)) * GARRISON:
+        for division in game.get_civilization(civilization).get_forces().get_divisions():
+            fighters = [unit for unit in division.get_units() if unit in alive]
+            if len(fighters) <= len(division.get_bases()) * GARRISON:
+                continue
+            outside = [unit for unit in fighters if Knowledge.city_of(game=game, unit=unit) == NOTHING]
+            unit = (outside or fighters)[-1]
+            cls.give(game=game, civilization=civilization, kind=RetireOrder, giver=division_thing(division.get_id()), receiver=unit_thing(unit), what=NoDetails())
             return
-        outside = [unit for unit in fighters if Knowledge.city_of(game=game, unit=unit) == NOTHING]
-        unit = (outside or fighters)[-1]
-        cls.give(game=game, civilization=civilization, kind=RetireOrder, giver=division_thing(division.get_id()), receiver=unit_thing(unit), what=NoDetails())
 
     @classmethod
-    def division_wanted(cls, *, game, civilization):
+    def division_wanted(cls, *, game, civilization, division):
         """Return what the division is raised to, every kind chosen by what it can do and never by its class.
 
         From the top: for each enemy kind seen that the division's best fighter cannot hit, units
@@ -378,7 +396,7 @@ class ComputerPlayer:
         and take cities for the rest.
         """
         theme = game.get_theme()
-        size = cls.wanted_size(game=game, civilization=civilization)
+        size = cls.wanted_size(game=game, civilization=civilization, division=division)
         fighters = Appraisal.fighters(theme)
         enemies = cls.enemy_kinds_seen(game=game, civilization=civilization)
         targets = []
@@ -392,7 +410,7 @@ class ComputerPlayer:
         invaders = [kind for kind in water if kind.TAKES_CITIES]
         if invaders and cls.enemy_city_beside_water(game=game, civilization=civilization):
             targets.append(BuildTarget(kinds=tuple(invaders), count=ONE_EACH))
-        if water and any(CityControl.is_beside_water(game=game, city=city) for city in game.get_cities_of(civilization)):
+        if water and any(CityControl.is_beside_water(game=game, city=city) for city in division.get_bases()):
             targets.append(BuildTarget(kinds=tuple(water), count=ONE_EACH))
         targets = [target for target in targets if target.kinds][:max(size - GARRISON, NONE_WANTED)]
         targets.append(BuildTarget(kinds=tuple(fighters), count=max(size - len(targets), GARRISON)))
@@ -449,17 +467,20 @@ class ComputerPlayer:
     # War
 
     @classmethod
-    def army_is_ready(cls, *, game, civilization):
-        """Return whether the division has every unit it should have, and some beyond the garrisons to march with."""
-        division = cls.division_of(game=game, civilization=civilization)
-        garrisons = len(game.get_cities_of(civilization)) * GARRISON
-        wanted = cls.wanted_size(game=game, civilization=civilization)
-        return division is not None and wanted > garrisons and len(division.get_units()) >= wanted
+    def army_is_ready(cls, *, game, civilization, division):
+        """Return whether a division has every unit it should have, and some beyond the garrisons to march with."""
+        garrisons = len(division.get_bases()) * GARRISON
+        wanted = cls.wanted_size(game=game, civilization=civilization, division=division)
+        return wanted > garrisons and len(division.get_units()) >= wanted
+
+    @classmethod
+    def any_ready(cls, *, game, civilization):
+        return any(cls.army_is_ready(game=game, civilization=civilization, division=division) for division in game.get_civilization(civilization).get_forces().get_divisions())
 
     @classmethod
     def consider_war(cls, *, game, civilization):
-        """Declare war on the first civilization met when the army is ready, unless the peace trait holds the player back."""
-        if Knowledge.enemies_of(game=game, civilization=civilization) or not cls.army_is_ready(game=game, civilization=civilization):
+        """Declare war on the first civilization met when a division is ready, unless the peace trait holds the player back."""
+        if Knowledge.enemies_of(game=game, civilization=civilization) or not cls.any_ready(game=game, civilization=civilization):
             return
         if cls.favors(game=game, civilization=civilization, trait=PEACE):
             return
@@ -468,15 +489,17 @@ class ComputerPlayer:
             Orders.declare_war(game=game, civilization=civilization, on=met[0])
 
     @classmethod
-    def nearest_enemy_city(cls, *, game, civilization):
-        """Return the known city of an enemy that is nearest to the civilization's first city, or NOTHING."""
+    def nearest_enemy_city(cls, *, game, civilization, division, taken=()):
+        """Return the known city of an enemy nearest to a division's first base, leaving out the cities other divisions march on while any other is left, or NOTHING."""
         enemies = Knowledge.enemies_of(game=game, civilization=civilization)
-        home = game.get_city(game.get_cities_of(civilization)[0])
+        bases = division.get_bases() or game.get_cities_of(civilization)
+        home = game.get_city(bases[0])
         land = game.get_world(home.get_world())
         known = [city for city in Knowledge.known_cities_of(game=game, civilization=civilization, others=enemies) if game.get_city(city).get_world() == home.get_world()]
-        if not known:
+        free = [city for city in known if city not in taken] or known
+        if not free:
             return NOTHING
-        return min(known, key=lambda city: distance(world=land, from_x=home.get_x(), from_y=home.get_y(), to_x=game.get_city(city).get_x(), to_y=game.get_city(city).get_y()))
+        return min(free, key=lambda city: distance(world=land, from_x=home.get_x(), from_y=home.get_y(), to_x=game.get_city(city).get_x(), to_y=game.get_city(city).get_y()))
 
     @classmethod
     def march_on(cls, *, game, civilization, city):
@@ -487,16 +510,20 @@ class ComputerPlayer:
 
     @classmethod
     def plan_march(cls, *, game, civilization):
-        """Order the division to march on the nearest known city of an enemy when the army is ready and the conquest trait says so, and take back an order to march on a city that is no longer an enemy's."""
+        """Order each ready division to march on the nearest known city of an enemy that no other division marches on, when the conquest trait says so, and take back each order to march on a city that is no longer an enemy's."""
         enemies = Knowledge.enemies_of(game=game, civilization=civilization)
-        marching = cls.given(game=game, civilization=civilization, kind=MarchOrder)
-        for order in marching:
+        table = cls.table_of(game=game, civilization=civilization)
+        for order in cls.given(game=game, civilization=civilization, kind=MarchOrder):
             if game.get_city(order.get_what().target.city).get_owner() not in enemies:
-                cls.table_of(game=game, civilization=civilization).remove(order)
-                return
-        if marching or not enemies or not game.get_cities_of(civilization) or not cls.army_is_ready(game=game, civilization=civilization):
+                table.remove(order)
+        if not enemies or not game.get_cities_of(civilization):
             return
-        target = cls.nearest_enemy_city(game=game, civilization=civilization)
-        if target != NOTHING and cls.favors(game=game, civilization=civilization, trait=CONQUEST):
-            me = division_thing(cls.division_of(game=game, civilization=civilization).get_id())
-            cls.give(game=game, civilization=civilization, kind=MarchOrder, giver=me, receiver=me, what=cls.march_on(game=game, civilization=civilization, city=target))
+        for division in game.get_civilization(civilization).get_forces().get_divisions():
+            me = division_thing(division.get_id())
+            marching = [order for order in cls.given(game=game, civilization=civilization, kind=MarchOrder) if order.get_receiver() == me]
+            if marching or not cls.army_is_ready(game=game, civilization=civilization, division=division):
+                continue
+            taken = [order.get_what().target.city for order in cls.given(game=game, civilization=civilization, kind=MarchOrder)]
+            target = cls.nearest_enemy_city(game=game, civilization=civilization, division=division, taken=taken)
+            if target != NOTHING and cls.favors(game=game, civilization=civilization, trait=CONQUEST):
+                cls.give(game=game, civilization=civilization, kind=MarchOrder, giver=me, receiver=me, what=cls.march_on(game=game, civilization=civilization, city=target))

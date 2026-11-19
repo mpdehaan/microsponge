@@ -286,14 +286,15 @@ says where things are and how the parts fit, and is kept true with every change 
   boldness trait gambles), an improve order to the first city and every city of
   `IMPROVING_CITIZENS`, a settler first in the build order of `settling_city()` while fewer
   settlers are out than `settlers_wanted()` reads from the expansion trait, and an expand
-  order to each settler with none, to `Knowledge.nearest_site()`, keeps one army with one division, a raise order from the division
-  to each city (`division_wanted()`: a unit that hits air for each enemy air unit seen, an
+  order to each settler with none, to `Knowledge.nearest_site()`, keeps as many armies and
+  divisions as the theme's limits allow, shares the cities out among the divisions as their
+  bases (`plan_bases()`), a raise order from each base's division to the base (`division_wanted()`: a unit that hits air for each enemy air unit seen, an
   air unit when the enemy units seen cannot hit air, and fighters that take cities for the
   rest; active up to the garrisons, and beyond them while the bank holds `RESERVE` and the
   economics trait allows), retires a fighter beyond the garrisons while starved, and a
   garrison order for each city, declares
-  war on the first civilization met when the division is full (peace trait), gives a march
-  order on the nearest known enemy city (conquest trait, with boldness and aggressive
+  war on the first civilization met when the division is full (peace trait), gives each ready division a march
+  order on the nearest known enemy city no other division marches on (conquest trait, with boldness and aggressive
   hyperfocus written into the order), and disables the orders given last until the active
   orders fit the Policy and the Command. The main AI never names `HelperAI`, which
   `test/test_helper_ai.py` checks.

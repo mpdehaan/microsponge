@@ -156,9 +156,9 @@ def end_turn_by_order(*, game, civilization):
     Orders.end_turn(game=game, civilization=civilization)
 
 
-def computer_played_caveman_game(*, seed, traits=None):
-    """Return a started game of caveman in which both civilizations are played by the computer, with traits dealt from the seed, or the traits given for each civilization."""
-    game = new_caveman_game()
+def computer_played_caveman_game(*, seed, traits=None, theme=Caveman):
+    """Return a started game of caveman, or of a later version of caveman, in which both civilizations are played by the computer, with traits dealt from the seed, or the traits given for each civilization."""
+    game = new_caveman_game(theme=theme)
     game.set_seed(seed)
     for civilization, holder in enumerate(game.get_civilizations(), start=FIRST_CIVILIZATION):
         holder.set_traits(Traits.dealt(game.get_random()) if traits is None else Traits(traits[civilization - 1]))

@@ -1173,6 +1173,9 @@ single units, and are rewritten as the details are decided.
 - A computer player plans its research one technology at a time: each time it learns one, it
   ranks the technologies it can research next by what they allow, with a share for what they
   lead to one step further, and gives a new research order.
+- A computer player commands as many armies and divisions as it may have, shares its cities out
+  among its divisions, and sends each ready division against a different enemy city when it
+  can, so that it attacks several targets at once.
 
 ## Not decided yet
 

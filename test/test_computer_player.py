@@ -21,7 +21,9 @@ import unittest
 
 from caveman_game import FIRST_CIVILIZATION, THE_WORLD, computer_played_caveman_game, found_village, learn, play_turns, started_caveman_game
 from microsponge.engine.kinds.control_points import CONTROL_POINTS, Policy
-from microsponge.engine.orders.thing import city_thing
+from microsponge.engine.cities.city_control import CityControl
+from microsponge.engine.kinds.unit_kinds import SettlerUnit
+from microsponge.engine.orders.thing import city_thing, division_thing
 from microsponge.engine.orders.what import Buildings, NoDetails, Priority
 from microsponge.engine.civilizations.sight import Sight
 from microsponge.engine.players.hand import Hand
@@ -41,6 +43,10 @@ from microsponge.themes.caveman.theme import Caveman
 
 FIRST = FIRST_CIVILIZATION
 A_NAME = 'Bedrock'
+ANOTHER_NAME = 'Gravel'
+# A site in the test world where the first civilization can build a second village, as (x, y).
+A_SECOND_SITE = (20, 4)
+SETTLER = next(kind for kind in Caveman.UNITS if issubclass(kind, SettlerUnit))
 # Currency enough that a civilization can raise its division whatever the theme's economy, so that a test sees only what a trait decides.
 WEALTH = 10000
 # A kind of unit of the theme that requires nothing and uses up no citizen, which any city can build.
@@ -65,9 +71,20 @@ SCIENTIST = {**EVERYTHING_MIDDLE, SCIENCE: MOST}
 SOLDIER = {**EVERYTHING_MIDDLE, SCIENCE: LEAST}
 
 
+
+class DividedCaveman(Caveman):
+    """Caveman with a division for every city, so that two villages make two divisions."""
+
+    CITIES_PER_DIVISION = 1
+
 def currency_of(game):
     """Return the id of the theme's primary resource."""
     return game.get_catalog().get_id(category=Category.RESOURCES, kind=game.get_theme().PRIMARY_RESOURCE)
+
+
+def given_to(*, game, kind, receiver):
+    """Return the orders of a kind the first civilization's player gave to one receiver."""
+    return [order for order in given(game=game, civilization=FIRST, kind=kind) if order.get_receiver() == receiver]
 
 
 def given(*, game, civilization, kind):
@@ -248,7 +265,9 @@ class TestWhatTheDivisionAndTheCitiesAreGiven(unittest.TestCase):
         x, y = SPARE_TILES[0]
         UnitControl.place(game=self.game, kind=unanswered, owner=SECOND, world=THE_WORLD, x=x, y=y)
         Sight.refresh(game=self.game, civilization=FIRST)
-        targets = ComputerPlayer.division_wanted(game=self.game, civilization=FIRST).targets
+        ComputerPlayer.plan_division(game=self.game, civilization=FIRST)
+        division = ComputerPlayer.division_of(game=self.game, civilization=FIRST)
+        targets = ComputerPlayer.division_wanted(game=self.game, civilization=FIRST, division=division).targets
         self.assertEqual(targets[0].kinds, tuple(Appraisal.counters_to(theme=theme, enemy=unanswered)))
         self.assertEqual(targets[-1].kinds, tuple(fighters))
 
@@ -272,3 +291,24 @@ class TestWhatTheDivisionAndTheCitiesAreGiven(unittest.TestCase):
         self.assertEqual(given(game=self.game, civilization=FIRST, kind=ResourcesPolicyOrder), [])
         Hand.direct_priorities(game=self.game, civilization=FIRST)
         self.assertEqual(self.game.get_city(self.city).get_priorities(), {})
+
+
+class TestSeveralDivisions(unittest.TestCase):
+
+    def test_a_civilization_keeps_as_many_divisions_as_it_may_and_each_base_belongs_to_one_division_and_raises_for_it(self):
+        game = computer_played_caveman_game(seed=A_SEED, theme=DividedCaveman)
+        found_village(game=game, civilization=FIRST, name=A_NAME)
+        settler = UnitControl.place(game=game, kind=SETTLER, owner=FIRST, world=THE_WORLD, x=A_SECOND_SITE[0], y=A_SECOND_SITE[1])
+        CityControl.found(game=game, settler=settler, name=ANOTHER_NAME)
+        ComputerPlayer.plan_division(game=game, civilization=FIRST)
+        forces = game.get_civilization(FIRST).get_forces()
+        cities = game.get_cities_of(FIRST)
+        most = OrderControl.most(game=game, civilization=FIRST, cities_for_each=DividedCaveman.CITIES_PER_DIVISION)
+        self.assertGreater(most, 1)
+        self.assertEqual(len(forces.get_divisions()), most)
+        bases = [city for division in forces.get_divisions() for city in division.get_bases()]
+        self.assertEqual(sorted(bases), sorted(cities))
+        for division in forces.get_divisions():
+            for city in division.get_bases():
+                raising, = given_to(game=game, kind=RaiseOrder, receiver=city_thing(city))
+                self.assertEqual(raising.get_giver(), division_thing(division.get_id()))
