@@ -45,6 +45,10 @@ def city_thing(city):
     return Thing(type=ThingType.CITY, id=city)
 
 
+def army_thing(army):
+    return Thing(type=ThingType.ARMY, id=army)
+
+
 def division_thing(division):
     return Thing(type=ThingType.DIVISION, id=division)
 

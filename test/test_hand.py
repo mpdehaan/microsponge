@@ -23,11 +23,14 @@ from microsponge.engine.cities.production import Production
 from microsponge.engine.civilizations.research import Research
 from microsponge.engine.kinds.catalog import NOTHING
 from microsponge.engine.orders.given_order import NEVER, Reason
-from microsponge.engine.orders.order import BuildOrder, ExpandOrder, GarrisonOrder, MarchOrder, RaiseOrder, ResearchOrder, SettlerOrder
+from microsponge.engine.orders.order import BuildOrder, ExpandOrder, GarrisonOrder, MarchOrder, RaiseOrder, ResearchOrder, RetireOrder, SettlerOrder
 from microsponge.engine.orders.order_control import OrderControl
-from microsponge.engine.orders.thing import city_thing, civilization_thing, division_thing, unit_thing
+from microsponge.engine.orders.thing import army_thing, city_thing, civilization_thing, division_thing, unit_thing
 from microsponge.engine.orders.what import BuildTarget, Buildings, CityTarget, Garrison, March, NoDetails, Technologies, Units
+from microsponge.engine.kinds.dice import NO_DICE
+from microsponge.engine.kinds.unit_kinds import SettlerUnit
 from microsponge.engine.players.hand import Hand
+from microsponge.themes.caveman.theme import Caveman
 from microsponge.engine.players.knowledge import Knowledge
 from microsponge.engine.turns.orders import Orders
 from microsponge.engine.turns.turn_control import TurnControl
@@ -35,7 +38,7 @@ from microsponge.engine.units.unit_control import UnitControl
 from microsponge.themes.caveman.buildings import Barracks, ChieftainsHut
 from microsponge.themes.caveman.technologies import Clubs, Fire, Leadership
 from microsponge.themes.caveman.terrains import Water
-from microsponge.themes.caveman.units import CaptainCaveman, Settler, Warrior
+from microsponge.themes.caveman.units import CaptainCaveman, Settler, Clubber
 
 FIRST = FIRST_CIVILIZATION
 SECOND = FIRST + 1
@@ -47,7 +50,9 @@ ENOUGH_CITIZENS = 3
 # Rounds enough for a unit to walk a few tiles, and for a settler to find a site and build a village.
 A_SHORT_WALK = 6
 A_LONG_WALK = 60
-FIGHTERS = (CaptainCaveman, Warrior)
+FIGHTERS = (CaptainCaveman, Clubber)
+# A kind of unit that cannot attack, which no division takes in.
+NOT_A_FIGHTER = next(kind for kind in Caveman.UNITS if kind.ATTACK is NO_DICE and not issubclass(kind, SettlerUnit))
 # A tile a few steps east of the first civilization's first village, and tiles on each side of the lake in the same row, as (x, y).
 NEAR_TILE = (10, 12)
 WEST_OF_LAKE = (16, 11)
@@ -77,15 +82,17 @@ class HandCase(unittest.TestCase):
         Hand.carry_out(game=self.game, civilization=FIRST)
 
     def rounds(self, count):
-        """Have the Hand carry out the first civilization's orders and end a round, so many times over."""
+        """Have the Hand carry out the first civilization's orders and end a round, so many times over, stopping when the game is over."""
         for _ in range(count):
             self.carry_out()
+            if self.game.is_over():
+                return
             end_rounds(game=self.game, rounds=ONE_ROUND)
 
     def queue(self):
         return Production.queue_of(game=self.game, city=self.city)
 
-    def warrior(self, *, tile, owner=FIRST, kind=Warrior):
+    def clubber(self, *, tile, owner=FIRST, kind=Clubber):
         unit = UnitControl.place(game=self.game, kind=kind, owner=owner, world=THE_WORLD, x=tile[0], y=tile[1])
         if owner == FIRST:
             self.division.add_unit(unit)
@@ -103,7 +110,7 @@ class TestNothingWithoutOrders(HandCase):
 
     def test_with_no_orders_a_city_builds_nothing_and_a_unit_stays_where_it_is(self):
         learn(game=self.game, civilization=FIRST, technology=Clubs)
-        unit = self.warrior(tile=NEAR_TILE)
+        unit = self.clubber(tile=NEAR_TILE)
         self.rounds(A_SHORT_WALK)
         self.assertEqual(self.queue(), [])
         self.assertEqual(self.tile_of(unit), NEAR_TILE)
@@ -144,10 +151,10 @@ class TestResearchAndBuilding(HandCase):
         learn(game=self.game, civilization=FIRST, technology=Clubs)
         order = self.raise_order(1)
         self.carry_out()
-        self.assertEqual(self.queue(), [Warrior])
-        self.rounds(Warrior.BUILD_TURNS + ONE_ROUND)
+        self.assertEqual(self.queue(), [Clubber])
+        self.rounds(Clubber.BUILD_TURNS + ONE_ROUND)
         self.assertEqual(len(self.division.get_units()), 1)
-        self.assertIs(UnitControl.kind_of(game=self.game, unit=self.division.get_units()[0]), Warrior)
+        self.assertIs(UnitControl.kind_of(game=self.game, unit=self.division.get_units()[0]), Clubber)
         self.assertEqual(order.get_reason(), Reason.COMPLETED)
         self.assertEqual(self.queue(), [])
 
@@ -159,7 +166,7 @@ class TestResearchAndBuilding(HandCase):
         self.carry_out()
         self.assertEqual(self.queue(), [ChieftainsHut])
         self.rounds(ChieftainsHut.BUILD_TURNS + ONE_ROUND)
-        self.assertEqual(self.queue(), [Warrior])
+        self.assertEqual(self.queue(), [Clubber])
         self.assertLess(build.get_served(), raising.get_served())
 
 
@@ -167,6 +174,7 @@ class TestSettling(HandCase):
 
     def test_an_expand_order_builds_a_settler_that_the_hand_sends_to_build_a_city_by_an_order_no_player_sees(self):
         self.game.get_city(self.city).set_citizens(ENOUGH_CITIZENS)
+        found_village(game=self.game, civilization=SECOND, name=ANOTHER_NAME)
         expand = self.give(kind=ExpandOrder, giver=self.here, receiver=self.here, what=NoDetails())
         self.carry_out()
         self.assertEqual(self.queue(), [Settler])
@@ -200,8 +208,8 @@ class TestSettling(HandCase):
 class TestDivisions(HandCase):
 
     def test_a_garrison_order_brings_the_nearest_unit_inside_the_city_and_keeps_it_there_and_leaves_the_others(self):
-        near = self.warrior(tile=NEAR_TILE)
-        far = self.warrior(tile=WEST_OF_LAKE)
+        near = self.clubber(tile=NEAR_TILE)
+        far = self.clubber(tile=WEST_OF_LAKE)
         pool = self.first.get_policy_points()
         self.give(kind=GarrisonOrder, giver=self.here, receiver=self.me, what=Garrison(place=CityTarget(city=self.city), count=1))
         self.carry_out()
@@ -211,25 +219,27 @@ class TestDivisions(HandCase):
         self.assertEqual(Knowledge.city_of(game=self.game, unit=near), self.city)
         self.assertEqual(self.tile_of(far), WEST_OF_LAKE)
 
-    def test_a_march_order_takes_an_empty_enemy_city_and_is_then_completed_and_a_garrisoned_unit_does_not_march(self):
+    def test_a_march_order_takes_an_empty_enemy_city_which_wins_the_game_and_is_then_completed_and_a_garrisoned_unit_does_not_march(self):
         target = found_village(game=self.game, civilization=SECOND, name=ANOTHER_NAME)
         Orders.declare_war(game=self.game, civilization=FIRST, on=SECOND)
-        guard = self.warrior(tile=NEAR_TILE)
+        guard = self.clubber(tile=NEAR_TILE)
         self.give(kind=GarrisonOrder, giver=self.here, receiver=self.me, what=Garrison(place=CityTarget(city=self.city), count=1))
         self.rounds(A_SHORT_WALK)
-        marcher = self.warrior(tile=NEAR_SECOND)
+        marcher = self.clubber(tile=NEAR_SECOND)
         march = self.give(kind=MarchOrder, giver=self.me, receiver=self.me, what=March(target=CityTarget(city=target)))
         self.rounds(A_SHORT_WALK)
         self.assertEqual(self.game.get_city(target).get_owner(), FIRST)
         self.assertEqual(Knowledge.city_of(game=self.game, unit=marcher), target)
         self.assertEqual(Knowledge.city_of(game=self.game, unit=guard), self.city)
+        self.assertTrue(self.game.is_over())
+        self.carry_out()
         self.assertEqual(march.get_reason(), Reason.COMPLETED)
 
     def test_a_march_order_says_whether_a_unit_attacks_a_stronger_enemy_next_to_it_or_leaves_enemy_units_alone(self):
         target = found_village(game=self.game, civilization=SECOND, name=ANOTHER_NAME)
         Orders.declare_war(game=self.game, civilization=FIRST, on=SECOND)
-        unit = self.warrior(tile=NEXT_TO_NEAR_SECOND)
-        self.warrior(tile=NEAR_SECOND, owner=SECOND, kind=CaptainCaveman)
+        unit = self.clubber(tile=NEXT_TO_NEAR_SECOND)
+        self.clubber(tile=NEAR_SECOND, owner=SECOND, kind=CaptainCaveman)
         careful = March(target=CityTarget(city=target))
         bold = March(target=CityTarget(city=target), bold=True)
         blinkered = March(target=CityTarget(city=target), bold=True, ignore_units=True)
@@ -238,7 +248,7 @@ class TestDivisions(HandCase):
         self.assertTrue(Hand.fight_next_to(game=self.game, unit=unit, civilization=FIRST, what=bold))
 
     def test_a_dead_unit_leaves_its_division(self):
-        unit = self.warrior(tile=NEAR_TILE)
+        unit = self.clubber(tile=NEAR_TILE)
         UnitControl.remove(game=self.game, unit=unit)
         self.carry_out()
         self.assertEqual(self.division.get_units(), [])
@@ -247,7 +257,7 @@ class TestDivisions(HandCase):
 class TestRoutes(HandCase):
 
     def test_a_unit_walks_around_a_lake_it_has_seen_and_not_into_it(self):
-        unit = self.warrior(tile=WEST_OF_LAKE)
+        unit = self.clubber(tile=WEST_OF_LAKE)
         self.first.get_memory(THE_WORLD).remember_all(self.game.get_world(THE_WORLD))
         self.assertIs(self.game.get_terrain(world=THE_WORLD, x=WATER_TILE[0], y=WEST_OF_LAKE[1]), Water)
         for _ in range(A_LONG_WALK):
@@ -261,7 +271,45 @@ class TestRoutes(HandCase):
         self.assertEqual(self.tile_of(unit), EAST_OF_LAKE)
 
     def test_no_route_is_found_to_a_tile_that_cannot_be_reached(self):
-        unit = self.warrior(tile=WEST_OF_LAKE)
+        unit = self.clubber(tile=WEST_OF_LAKE)
         self.first.get_memory(THE_WORLD).remember_all(self.game.get_world(THE_WORLD))
         self.assertIsNone(Hand.first_step(game=self.game, unit=unit, civilization=FIRST, arrived=lambda x, y: False))
         self.assertEqual(Knowledge.city_of(game=self.game, unit=unit), NOTHING)
+
+
+class TestRetiring(HandCase):
+
+    def test_an_order_to_retire_a_unit_takes_the_unit_out_of_the_game_for_nothing_and_gives_nothing_back(self):
+        unit = self.clubber(tile=NEAR_TILE)
+        holdings = dict(self.first.get_holdings())
+        order = self.give(kind=RetireOrder, giver=self.me, receiver=unit_thing(unit), what=NoDetails())
+        self.assertEqual(OrderControl.cost(game=self.game, civilization=FIRST, order=order), 0)
+        self.carry_out()
+        self.assertNotIn(unit, Knowledge.units_of(game=self.game, civilization=FIRST))
+        self.assertEqual(self.division.get_units(), [])
+        self.assertEqual(order.get_reason(), Reason.COMPLETED)
+        self.assertEqual(self.first.get_holdings(), holdings)
+
+    def test_an_order_to_retire_a_division_or_an_army_retires_every_unit_of_it_and_no_other(self):
+        for receiver in (self.me, army_thing(self.division.get_army())):
+            with self.subTest(receiver=receiver):
+                units = [self.clubber(tile=tile) for tile in (NEAR_TILE, NEAR_SECOND)]
+                other = self.clubber(tile=WEST_OF_LAKE, kind=NOT_A_FIGHTER)
+                self.division.remove_unit(other)
+                order = self.give(kind=RetireOrder, giver=self.me, receiver=receiver, what=NoDetails())
+                self.assertEqual(OrderControl.cost(game=self.game, civilization=FIRST, order=order), 0)
+                self.carry_out()
+                alive = Knowledge.units_of(game=self.game, civilization=FIRST)
+                self.assertEqual([unit for unit in units if unit in alive], [])
+                self.assertIn(other, alive)
+                UnitControl.remove(game=self.game, unit=other)
+
+
+class TestAUnitAlreadyGone(HandCase):
+
+    def test_a_unit_killed_earlier_in_the_turn_does_nothing_when_its_turn_to_act_comes(self):
+        unit = self.clubber(tile=NEAR_TILE)
+        UnitControl.remove(game=self.game, unit=unit)
+        acted = []
+        Hand.repeat(game=self.game, unit=unit, action=lambda: acted.append(unit))
+        self.assertEqual(acted, [])

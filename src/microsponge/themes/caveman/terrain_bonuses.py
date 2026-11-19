@@ -17,7 +17,8 @@
 """The terrain bonuses of caveman."""
 
 from microsponge.engine.kinds.terrain_bonus import TerrainBonus
-from microsponge.themes.caveman.resources import Food
+from microsponge.themes.caveman.resources import Food, Ivory
+from microsponge.themes.caveman.technologies import Sewing
 from microsponge.themes.caveman.terrains import Grassland
 
 
@@ -29,3 +30,4 @@ class Bison(TerrainBonus):
 class Elephants(TerrainBonus):
     ON = (Grassland,)
     GIVES = {Food: 2}
+    GIVES_WITH = {Sewing: {Ivory: 1}}

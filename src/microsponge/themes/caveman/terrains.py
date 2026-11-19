@@ -17,11 +17,12 @@
 """What the caveman world is made of."""
 
 from microsponge.engine.kinds.terrain import Terrain
-from microsponge.themes.caveman.resources import Flint, Food, Stone, Wood
+from microsponge.themes.caveman.resources import Flint, Food, Poppies, Stone, Wood
 
 
 class Grassland(Terrain):
     GIVES = {Food: 2}
+    CAN_HAVE = (Poppies,)
 
 
 class Mountains(Terrain):

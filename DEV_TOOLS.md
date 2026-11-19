@@ -4,6 +4,29 @@ The tools for looking at how the game plays, for tuning. Each tool is a script i
 a `make` target, run from the top folder after the install in `INSTALL.md`. This file says how
 to run each one and how to read what comes out. More tools are added here as they are written.
 
+## Quick start
+
+Play a game of caveman with three computer players for 400 turns, and open the results in
+the browser:
+
+```
+make game-page THEME=caveman SEED=1 CIVILIZATIONS=3 TURNS=400
+```
+
+Print the same results as text in the terminal, from the log that command wrote:
+
+```
+make game-report THEME=caveman SEED=1
+```
+
+Open the page of a game already played again, without playing the game again:
+
+```
+.venv/bin/python tools/game_report.py logs/caveman_seed1.json --open
+```
+
+Change `SEED` for a different game. The same seed always plays the same game.
+
 ## The game log: play a game and look at everything that happened
 
 Three steps, or one command that does all three.
@@ -47,6 +70,22 @@ hold every move, which would be a huge file. The log holds:
   points of military units, military units inside a city, average level of military units,
   Policy had, Policy the active orders take, Command had, Command the active orders take,
   strength, and the score with its four parts.
+- `unit_kinds`: for every kind of unit of the theme, how many units of that kind each
+  civilization had at the end of each turn, the settlers and the workers too. Every kind is
+  there, even one no civilization ever had.
+- `improvements`: for every kind of improvement of the theme that stays on its tile, like
+  caveman's farm, how many of that kind were on the tiles of each civilization's city radii at
+  the end of each turn. Work that changes the terrain and leaves nothing on the tile, like
+  caveman's clearing, is not counted.
+- `banks`: for every resource the theme's civilizations collect, food among them, how much each
+  civilization held at the end of each turn.
+- `built`: every building a city finished, with the turn, the civilization and the city. A
+  city that changes hands keeps its buildings, which are not counted again.
+- `orders`: for each civilization and each kind of order, the turns an order of the kind was
+  given, and the first and the last turn an order of the kind was in use. The orders the
+  helper AI makes for itself are not counted.
+- `forces`: for each civilization, the turns it made each division and army, and the turns it
+  retired units, divisions and armies. A unit that was retired ends as `retired` in `units`.
 - `civilizations`: each civilization's name, its traits and whether the civilization lost.
 
 ### Strength and score
@@ -72,16 +111,46 @@ and its chart shows what may decide a winner. These are rough first numbers, to 
 - The average Policy and Command each civilization had, beside what its orders took.
 - The buildings each civilization held at the end.
 
-The page shows the same timelines and tables, with a chart of every series. The charts are
-drawn by Chart.js, which the page loads from the internet when the page is opened; with no
-internet the page still shows the timelines and the tables.
+The page has a row of tabs under its title, and clicking a tab shows what is in it:
+
+- Score: the chart of strength each turn, which is the rise and fall of each civilization,
+  and the chart of the score, which may decide a winner, both drawn large, then the four parts
+  of the score.
+- Cities: cities, citizens and technologies known, and the bank of every resource a
+  civilization collects, food among them, each in a chart of its own.
+- Units: a table of the units each civilization made of each kind, with the turns of the first
+  and the last, and a table of the divisions and armies each civilization made and the units,
+  divisions and armies it retired, with the first and the last turn of each; then units in
+  all, one chart for each kind of unit, of the units of that kind each civilization had, then
+  hit points of military units, military units inside a city and the average level of military
+  units. A kind no civilization ever had in the game has no chart.
+- Buildings: a table of how many of each building each civilization built, with the turns it
+  finished the first and the last, and the chart of buildings.
+- Improvements: one chart for each kind of improvement, of how many each civilization had on
+  the tiles of its city radii. A kind no civilization ever had has no chart, and when no
+  improvement was built at all, the tab says so in a sentence.
+- Orders: a table of how many orders of each kind each civilization gave, with the first and
+  the last turn an order of the kind was in use, and a chart for each kind of order of how many
+  each civilization gave in each 10 turns. A standing order is given once and stays in force,
+  so most bars are on the first turns.
+- Control points: Policy had, Policy the active orders take, Command had and Command the
+  active orders take.
+- Timelines: the timeline of each civilization.
+- Tables: the tables of the report.
+
+The tab shown is kept in the address of the page, like `logs/caveman_seed1.html#units`, so a
+reload stays on the same tab and a link can open one. Hovering over a chart shows the number
+of every civilization on that turn, and each civilization keeps one color in every chart. The
+charts are drawn by Chart.js, which the page loads from the internet when the page is opened;
+with no internet the page still shows the timelines and the tables.
 
 ### Asking a new question
 
 Every table is a function in `src/microsponge/support/game_log_report.py` that reads the data
 of a log, so a new question about a game is a new function there, listed in `tables()`. A new
 number to chart is a new name in `Series` in `game_log.py`, counted in `GameLog.count()`, and
-a line in `CHARTS` in `game_log_page.py`. A log written before the change has to be written
+a line in the list of charts of its tab in `game_log_page.py`, like `CITY_CHARTS`, which
+`tabs_of()` puts in the tabs. A log written before the change has to be written
 again.
 
 ## The other tools

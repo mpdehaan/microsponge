@@ -41,10 +41,10 @@ from microsponge.err_messages import (
 from microsponge.themes.caveman.buildings import ArrangementOfRocks, Barracks, Granary, GreatCavePainting, Harbor, Watchtower
 from microsponge.themes.caveman.city import Village
 from microsponge.themes.caveman.resources import Currency, Flint, Stone, Wood
-from microsponge.themes.caveman.technologies import Agriculture, Clubs, Discipline, Fire
+from microsponge.themes.caveman.technologies import Agriculture, Astrology, Clubs, Discipline, Fire, Sewing
 from microsponge.themes.caveman.theme import Caveman
 from microsponge.engine.kinds.unit_kinds import LandUnit
-from microsponge.themes.caveman.units import AngryBird, CaptainCaveman, CavemanUnit, Raft, Settler, Warrior, Worker
+from microsponge.themes.caveman.units import AngryBird, CaptainCaveman, CavemanUnit, Raft, Settler, Clubber, Worker
 
 FIRST_CIVILIZATION = 1
 SECOND_CIVILIZATION = 2
@@ -101,6 +101,12 @@ class Painter(CavemanUnit, LandUnit):
 
 
 LATER_CAVEMAN = later_caveman({Category.UNITS: (*Caveman.UNITS, Dawdler, Painter)})
+
+
+class FloorlessCaveman(LATER_CAVEMAN):
+    """The later caveman with no least income, so that a civilization with a city can lose currency over a turn and go bankrupt."""
+
+    LEAST_INCOME = None
 # The first turn of a dawdler's build that costs nothing.
 A_FREE_TURN = Dawdler.COST[Currency]
 
@@ -236,7 +242,7 @@ class ProductionCase(Refusals, unittest.TestCase):
 class TestBuildingUnits(ProductionCase):
 
     def test_the_cost_of_a_build_is_split_evenly_over_its_turns_with_what_is_left_over_paid_first(self):
-        for kind in (Warrior, Settler, Worker, Granary, GreatCavePainting, ArrangementOfRocks, Dawdler):
+        for kind in (Clubber, Settler, Worker, Granary, GreatCavePainting, ArrangementOfRocks, Dawdler):
             with self.subTest(kind=kind):
                 parts = [Production.part(kind=kind, turn=turn) for turn in range(kind.BUILD_TURNS)]
                 for resource, amount in kind.COST.items():
@@ -248,7 +254,7 @@ class TestBuildingUnits(ProductionCase):
     def test_a_city_that_has_nothing_to_build_waits_to_be_told_unless_it_is_set_to_build_nothing(self):
         self.assertEqual(Production.waiting_cities(game=self.game, civilization=FIRST_CIVILIZATION), [self.city_id])
         self.assertIsNone(Production.building(game=self.game, city=self.city_id))
-        self.build(Warrior)
+        self.build(Clubber)
         self.assertEqual(Production.waiting_cities(game=self.game, civilization=FIRST_CIVILIZATION), [])
         Orders.build_nothing(game=self.game, city=self.city_id)
         self.assertEqual(Production.waiting_cities(game=self.game, civilization=FIRST_CIVILIZATION), [])
@@ -256,40 +262,40 @@ class TestBuildingUnits(ProductionCase):
         self.assertEqual(Production.queue_of(game=self.game, city=self.city_id), [])
         self.assertEqual(Production.waiting_cities(game=self.game, civilization=SECOND_CIVILIZATION), [])
 
-    def test_a_warrior_is_paid_for_a_part_each_turn_and_stands_inside_the_city_when_the_last_part_is_paid(self):
+    def test_a_clubber_is_paid_for_a_part_each_turn_and_stands_inside_the_city_when_the_last_part_is_paid(self):
         pool = self.first.get_policy_points()
-        self.build(Warrior)
+        self.build(Clubber)
         self.assertEqual(self.first.get_policy_points(), pool)
-        self.assertIs(Production.building(game=self.game, city=self.city_id), Warrior)
-        self.assertEqual(Production.turns_left(game=self.game, city=self.city_id), Warrior.BUILD_TURNS)
+        self.assertIs(Production.building(game=self.game, city=self.city_id), Clubber)
+        self.assertEqual(Production.turns_left(game=self.game, city=self.city_id), Clubber.BUILD_TURNS)
         self.rounds(ONE_ROUND)
-        self.assertEqual(self.currency(), STARTING_CURRENCY + INCOME - Production.part(kind=Warrior, turn=0)[Currency])
-        self.assertEqual(Production.turns_left(game=self.game, city=self.city_id), Warrior.BUILD_TURNS - ONE_ROUND)
-        self.rounds(Warrior.BUILD_TURNS - ONE_ROUND - ONE_ROUND)
+        self.assertEqual(self.currency(), STARTING_CURRENCY + INCOME - Production.part(kind=Clubber, turn=0)[Currency])
+        self.assertEqual(Production.turns_left(game=self.game, city=self.city_id), Clubber.BUILD_TURNS - ONE_ROUND)
+        self.rounds(Clubber.BUILD_TURNS - ONE_ROUND - ONE_ROUND)
         self.assertEqual(self.kinds_inside(), [])
         self.rounds(ONE_ROUND)
-        self.assertEqual(self.kinds_inside(), [Warrior])
-        self.assertEqual(self.currency(), STARTING_CURRENCY + INCOME * Warrior.BUILD_TURNS - Warrior.COST[Currency])
-        warrior, = self.city.get_units()
-        self.assertEqual(self.units.get_value(column=UnitColumn.OWNER, unit=warrior), FIRST_CIVILIZATION)
-        self.assertEqual(self.units.get_value(column=UnitColumn.HIT_POINTS, unit=warrior), Warrior.HIT_POINTS)
+        self.assertEqual(self.kinds_inside(), [Clubber])
+        self.assertEqual(self.currency(), STARTING_CURRENCY + INCOME * Clubber.BUILD_TURNS - Clubber.COST[Currency])
+        clubber, = self.city.get_units()
+        self.assertEqual(self.units.get_value(column=UnitColumn.OWNER, unit=clubber), FIRST_CIVILIZATION)
+        self.assertEqual(self.units.get_value(column=UnitColumn.HIT_POINTS, unit=clubber), Clubber.HIT_POINTS)
         self.assertEqual(Production.queue_of(game=self.game, city=self.city_id), [])
         self.assertEqual(Production.waiting_cities(game=self.game, civilization=FIRST_CIVILIZATION), [self.city_id])
 
     def test_a_city_builds_what_is_queued_one_after_another(self):
-        self.build(Warrior)
+        self.build(Clubber)
         self.build(Worker)
-        self.assertEqual(Production.queue_of(game=self.game, city=self.city_id), [Warrior, Worker])
-        self.rounds(Warrior.BUILD_TURNS)
-        self.assertEqual(self.kinds_inside(), [Warrior])
+        self.assertEqual(Production.queue_of(game=self.game, city=self.city_id), [Clubber, Worker])
+        self.rounds(Clubber.BUILD_TURNS)
+        self.assertEqual(self.kinds_inside(), [Clubber])
         self.assertIs(Production.building(game=self.game, city=self.city_id), Worker)
         self.rounds(Worker.BUILD_TURNS)
-        self.assertEqual(self.kinds_inside(), [Warrior, Worker])
+        self.assertEqual(self.kinds_inside(), [Clubber, Worker])
 
     def test_a_unit_or_building_that_requires_a_technology_the_civilization_lacks_is_refused(self):
         other = found_village(game=self.game, civilization=SECOND_CIVILIZATION, name=ANOTHER_NAME)
         end_turn_by_order(game=self.game, civilization=FIRST_CIVILIZATION)
-        for kind, required in ((Warrior, Clubs), (Worker, Agriculture), (Granary, Agriculture)):
+        for kind, required in ((Clubber, Clubs), (Worker, Agriculture), (Granary, Sewing)):
             with self.subTest(kind=kind):
                 message = self.refused_and_unchanged(lambda: Orders.build(game=self.game, city=other, kind=kind))
                 self.assertEqual(message, ERR_BUILD_REQUIRES.format(kind=shown_name(kind), required=shown_name(required)))
@@ -297,21 +303,22 @@ class TestBuildingUnits(ProductionCase):
         self.assertIsNone(Production.problem_queueing(game=self.game, city=other, kind=AngryBird))
 
     def test_a_build_is_blocked_on_a_turn_when_its_part_cannot_be_paid_and_takes_a_turn_longer(self):
-        self.first.pay(resource=resource_id(game=self.game, resource=Currency), amount=STARTING_CURRENCY)
-        self.build(Warrior)
-        first_part = Production.part(kind=Warrior, turn=0)[Currency]
-        self.assertLess(INCOME, first_part)
-        self.assertGreaterEqual(INCOME + INCOME, first_part)
+        first_part = Production.part(kind=Clubber, turn=0)[Currency]
+        held = first_part - INCOME - INCOME
+        self.assertGreaterEqual(held, NOTHING_HELD)
+        self.first.pay(resource=resource_id(game=self.game, resource=Currency), amount=STARTING_CURRENCY - held)
+        self.build(Clubber)
         self.rounds(ONE_ROUND)
         self.assertTrue(self.city.is_blocked())
         self.assertEqual(Production.blocked_cities(game=self.game, civilization=FIRST_CIVILIZATION), [self.city_id])
-        self.assertEqual((self.city.get_progress(), self.currency()), (NO_PROGRESS, INCOME))
+        self.assertEqual((self.city.get_progress(), self.currency()), (NO_PROGRESS, held + INCOME))
         self.rounds(ONE_ROUND)
         self.assertFalse(self.city.is_blocked())
         self.assertEqual(Production.blocked_cities(game=self.game, civilization=FIRST_CIVILIZATION), [])
-        self.assertEqual((self.city.get_progress(), self.currency()), (ONE_ROUND, INCOME + INCOME - first_part))
+        self.assertEqual((self.city.get_progress(), self.currency()), (ONE_ROUND, held + INCOME + INCOME - first_part))
 
     def test_a_build_that_needs_a_second_resource_waits_for_that_resource_and_pays_nothing_meanwhile(self):
+        learn(game=self.game, civilization=FIRST_CIVILIZATION, technology=Astrology)
         self.build(ArrangementOfRocks)
         self.rounds(ONE_ROUND)
         self.assertTrue(self.city.is_blocked())
@@ -329,7 +336,7 @@ class TestBuildingUnits(ProductionCase):
         expected = ERR_NOT_YOUR_TURN.format(name=FIRST_NAME)
         for order in (Orders.build, Orders.build_instead):
             with self.subTest(order=order):
-                self.assertEqual(self.refused_and_unchanged(lambda: order(game=self.game, city=self.city_id, kind=Warrior)), expected)
+                self.assertEqual(self.refused_and_unchanged(lambda: order(game=self.game, city=self.city_id, kind=Clubber)), expected)
         self.assertEqual(self.refused_and_unchanged(lambda: Orders.build_nothing(game=self.game, city=self.city_id)), expected)
 
 
@@ -364,19 +371,19 @@ class TestABuildingAUnitRequires(ProductionCase):
         self.assertEqual(Barracks.LEVEL_BONUS, BARRACKS_LEVEL_BONUS)
         self.assertEqual(CityControl.starting_level(game=self.game, city=self.city_id), FIRST_LEVEL + BARRACKS_LEVEL_BONUS)
         self.assertEqual(CityControl.starting_level(game=self.game, city=other), FIRST_LEVEL)
-        self.build(Warrior)
-        Orders.build(game=self.game, city=other, kind=Warrior)
-        self.rounds(Warrior.BUILD_TURNS)
-        trained, raw = self.units_of_kind(Warrior)
+        self.build(Clubber)
+        Orders.build(game=self.game, city=other, kind=Clubber)
+        self.rounds(Clubber.BUILD_TURNS)
+        trained, raw = self.units_of_kind(Clubber)
         self.assertEqual(UnitControl.level_of(game=self.game, unit=trained), FIRST_LEVEL + BARRACKS_LEVEL_BONUS)
         self.assertEqual(self.units.get_value(column=UnitColumn.EXPERIENCE, unit=trained), Levels.experience_for(level=FIRST_LEVEL + BARRACKS_LEVEL_BONUS))
-        self.assertEqual(self.units.get_value(column=UnitColumn.HIT_POINTS, unit=trained), Levels.hit_points(theme=Caveman, kind=Warrior, level=FIRST_LEVEL + BARRACKS_LEVEL_BONUS))
+        self.assertEqual(self.units.get_value(column=UnitColumn.HIT_POINTS, unit=trained), Levels.hit_points(theme=Caveman, kind=Clubber, level=FIRST_LEVEL + BARRACKS_LEVEL_BONUS))
         self.assertEqual(UnitControl.level_of(game=self.game, unit=raw), FIRST_LEVEL)
-        self.assertEqual(self.units.get_value(column=UnitColumn.HIT_POINTS, unit=raw), Warrior.HIT_POINTS)
+        self.assertEqual(self.units.get_value(column=UnitColumn.HIT_POINTS, unit=raw), Clubber.HIT_POINTS)
         for _ in range(Village.MOST_UNITS):
-            self.build(Warrior)
-            self.rounds(Warrior.BUILD_TURNS)
-        outside = self.units_of_kind(Warrior)[-1]
+            self.build(Clubber)
+            self.rounds(Clubber.BUILD_TURNS)
+        outside = self.units_of_kind(Clubber)[-1]
         self.assertEqual(self.units.get_value(column=UnitColumn.CITY, unit=outside), NOTHING)
         self.assertEqual(UnitControl.level_of(game=self.game, unit=outside), FIRST_LEVEL + BARRACKS_LEVEL_BONUS)
 
@@ -451,14 +458,14 @@ class TestSwitchingWhatACityBuilds(ProductionCase):
         return sum(Production.part(kind=kind, turn=turn)[Currency] for turn in range(turns)) * Caveman.SWITCH_REFUND_PERCENT // WHOLE
 
     def test_building_something_instead_refunds_a_part_of_what_was_paid_and_empties_the_rest_of_the_queue(self):
-        self.build(Warrior)
+        self.build(Clubber)
         self.build(AngryBird)
         self.rounds(A_FEW_TURNS)
         paid = self.currency()
-        refund = self.refund_after(kind=Warrior, turns=A_FEW_TURNS)
+        refund = self.refund_after(kind=Clubber, turns=A_FEW_TURNS)
         self.assertEqual(Production.refund(game=self.game, city=self.city_id), {Currency: refund})
         self.assertGreater(refund, NOTHING_HELD)
-        self.assertLess(refund, Production.paid(kind=Warrior, turns=A_FEW_TURNS)[Currency])
+        self.assertLess(refund, Production.paid(kind=Clubber, turns=A_FEW_TURNS)[Currency])
         Orders.build_instead(game=self.game, city=self.city_id, kind=Worker)
         self.assertEqual(Production.queue_of(game=self.game, city=self.city_id), [Worker])
         self.assertEqual((self.city.get_progress(), self.currency()), (NO_PROGRESS, paid + refund))
@@ -467,56 +474,58 @@ class TestSwitchingWhatACityBuilds(ProductionCase):
         self.assertEqual(self.kinds_inside(), [Worker])
 
     def test_what_a_build_has_paid_so_far_is_the_parts_of_the_turns_paid_for(self):
-        self.assertEqual(Production.paid(kind=Warrior, turns=NO_PROGRESS), {})
-        self.assertEqual(Production.paid(kind=Warrior, turns=Warrior.BUILD_TURNS), Warrior.COST)
+        self.assertEqual(Production.paid(kind=Clubber, turns=NO_PROGRESS), {})
+        self.assertEqual(Production.paid(kind=Clubber, turns=Clubber.BUILD_TURNS), Clubber.COST)
         self.assertEqual(Production.paid(kind=Raft, turns=Raft.BUILD_TURNS), Raft.COST)
         self.assertEqual(Production.refund(game=self.game, city=self.city_id), {})
 
     def test_a_refund_rounds_down_and_a_switch_before_any_part_is_paid_refunds_nothing(self):
-        self.build(Warrior)
+        self.build(Clubber)
         paid = self.currency()
-        Orders.build_instead(game=self.game, city=self.city_id, kind=Worker)
+        Orders.build_instead(game=self.game, city=self.city_id, kind=AngryBird)
         self.assertEqual(self.currency(), paid)
         self.rounds(ONE_ROUND)
         paid = self.currency()
-        self.assertEqual(self.refund_after(kind=Worker, turns=ONE_ROUND), NOTHING_HELD)
-        Orders.build_instead(game=self.game, city=self.city_id, kind=Warrior)
-        self.assertEqual(self.currency(), paid)
+        refund = self.refund_after(kind=AngryBird, turns=ONE_ROUND)
+        self.assertLess(refund * WHOLE, Production.part(kind=AngryBird, turn=0)[Currency] * Caveman.SWITCH_REFUND_PERCENT)
+        Orders.build_instead(game=self.game, city=self.city_id, kind=Clubber)
+        self.assertEqual(self.currency(), paid + refund)
 
     def test_a_refused_switch_leaves_the_build_under_way_as_it_was(self):
+        learn(game=self.game, civilization=FIRST_CIVILIZATION, technology=Sewing)
         self.build(Granary)
         self.rounds(Granary.BUILD_TURNS)
-        self.build(Warrior)
+        self.build(Clubber)
         self.rounds(A_FEW_TURNS)
         message = self.refused_and_unchanged(lambda: Orders.build_instead(game=self.game, city=self.city_id, kind=Granary))
         self.assertEqual(message, ERR_ALREADY_BUILT.format(name=A_NAME, building=shown_name(Granary)))
-        self.assertEqual((Production.queue_of(game=self.game, city=self.city_id), self.city.get_progress()), ([Warrior], A_FEW_TURNS))
+        self.assertEqual((Production.queue_of(game=self.game, city=self.city_id), self.city.get_progress()), ([Clubber], A_FEW_TURNS))
 
     def test_setting_a_city_to_build_nothing_refunds_a_part_of_what_was_paid(self):
-        self.build(Warrior)
+        self.build(Clubber)
         self.rounds(A_FEW_TURNS)
         paid = self.currency()
         Orders.build_nothing(game=self.game, city=self.city_id)
-        self.assertEqual(self.currency(), paid + self.refund_after(kind=Warrior, turns=A_FEW_TURNS))
+        self.assertEqual(self.currency(), paid + self.refund_after(kind=Clubber, turns=A_FEW_TURNS))
         self.assertEqual((self.city.get_queue(), self.city.get_progress()), ([], NO_PROGRESS))
-        self.rounds(Warrior.BUILD_TURNS)
+        self.rounds(Clubber.BUILD_TURNS)
         self.assertEqual(self.kinds_inside(), [])
 
 
 class TestWhereAFinishedUnitGoes(ProductionCase):
 
     def fill_the_city(self):
-        """Put as many warriors inside the city as a city holds."""
+        """Put as many clubbers inside the city as a city holds."""
         x, y = CityControl.ring_tiles(game=self.game, city=self.city_id)[0]
         for _ in range(Village.MOST_UNITS):
-            warrior = UnitControl.place(game=self.game, kind=Warrior, owner=FIRST_CIVILIZATION, world=THE_WORLD, x=x, y=y)
-            CityControl.enter(game=self.game, unit=warrior, city=self.city_id)
+            clubber = UnitControl.place(game=self.game, kind=Clubber, owner=FIRST_CIVILIZATION, world=THE_WORLD, x=x, y=y)
+            CityControl.enter(game=self.game, unit=clubber, city=self.city_id)
 
     def fill_the_ring(self):
-        """Put a warrior on every tile next to the city center, and return the tiles."""
+        """Put a clubber on every tile next to the city center, and return the tiles."""
         ring = CityControl.ring_tiles(game=self.game, city=self.city_id)
         for x, y in ring:
-            UnitControl.place(game=self.game, kind=Warrior, owner=FIRST_CIVILIZATION, world=THE_WORLD, x=x, y=y)
+            UnitControl.place(game=self.game, kind=Clubber, owner=FIRST_CIVILIZATION, world=THE_WORLD, x=x, y=y)
         return ring
 
     def place_of(self, unit):
@@ -529,7 +538,7 @@ class TestWhereAFinishedUnitGoes(ProductionCase):
         self.build(Worker)
         self.rounds(Worker.BUILD_TURNS)
         worker, = self.units_of_kind(Worker)
-        self.assertEqual(self.kinds_inside(), [Warrior] * Village.MOST_UNITS)
+        self.assertEqual(self.kinds_inside(), [Clubber] * Village.MOST_UNITS)
         self.assertEqual(self.units.get_value(column=UnitColumn.CITY, unit=worker), NOTHING)
         self.assertIn(self.place_of(worker), CityControl.ring_tiles(game=self.game, city=self.city_id))
 
@@ -574,11 +583,11 @@ class TestWhereAFinishedUnitGoes(ProductionCase):
         self.assertEqual(self.kinds_inside(), [Settler])
         self.assertEqual(self.city.get_citizens(), ONE_CITIZEN)
 
-    def test_a_warrior_uses_up_no_citizen(self):
+    def test_a_clubber_uses_up_no_citizen(self):
         self.city.set_citizens(TWO_CITIZENS)
-        self.build(Warrior)
-        self.rounds(Warrior.BUILD_TURNS)
-        self.assertEqual((self.kinds_inside(), self.city.get_citizens()), ([Warrior], TWO_CITIZENS))
+        self.build(Clubber)
+        self.rounds(Clubber.BUILD_TURNS)
+        self.assertEqual((self.kinds_inside(), self.city.get_citizens()), ([Clubber], TWO_CITIZENS))
 
     def test_a_city_cannot_build_a_settler_that_would_leave_it_with_no_citizens(self):
         expected = ERR_NO_CITIZEN_TO_SPARE.format(unit=shown_name(Settler), name=A_NAME, citizens=ONE_CITIZEN, uses=Settler.CITIZENS)
@@ -612,6 +621,7 @@ class TestBuildingBuildings(ProductionCase):
         super().setUp()
         self.other_id = found_village(game=self.game, civilization=SECOND_CIVILIZATION, name=ANOTHER_NAME)
         self.other = self.game.get_city(self.other_id)
+        learn(game=self.game, civilization=FIRST_CIVILIZATION, technology=Sewing)
 
     def test_a_building_stands_in_its_city_when_the_last_part_is_paid(self):
         self.build(Granary)
@@ -672,16 +682,22 @@ class TestKindsOfALaterTheme(ProductionCase):
         self.assertEqual(Production.queue_of(game=self.game, city=self.city_id), [Painter])
         self.assertEqual(Production.problem_queueing(game=self.game, city=other, kind=Painter), expected)
 
-    def bankrupting_warriors(self):
-        """Put warriors of the first civilization on tiles, until supporting them costs all the currency the city brings in each turn."""
+
+class TestBankruptcyWithNoLeastIncome(ProductionCase):
+    """A later caveman with no least income, so that a civilization with a city can go bankrupt."""
+
+    THEME = FloorlessCaveman
+
+    def bankrupting_clubbers(self):
+        """Put clubbers of the first civilization on tiles, until supporting them costs at least all the currency the city brings in each turn."""
         x, _ = SETTLER_TILES[0]
         currency = resource_id(game=self.game, resource=Currency)
         while TurnControl.support_cost(game=self.game, civilization=FIRST_CIVILIZATION).get(currency, NOTHING_HELD) < INCOME:
-            UnitControl.place(game=self.game, kind=Warrior, owner=FIRST_CIVILIZATION, world=THE_WORLD, x=x, y=OPEN_ROW)
+            UnitControl.place(game=self.game, kind=Clubber, owner=FIRST_CIVILIZATION, world=THE_WORLD, x=x, y=OPEN_ROW)
             x += 1
 
     def test_a_bankrupt_civilization_builds_nothing_even_on_a_turn_that_costs_nothing(self):
-        self.bankrupting_warriors()
+        self.bankrupting_clubbers()
         self.first.pay(resource=resource_id(game=self.game, resource=Currency), amount=STARTING_CURRENCY)
         self.build(Dawdler)
         self.city.set_progress(A_FREE_TURN)
@@ -692,12 +708,12 @@ class TestKindsOfALaterTheme(ProductionCase):
         self.assertEqual(self.city.get_progress(), A_FREE_TURN)
 
     def test_a_civilization_that_is_not_bankrupt_goes_on_building_on_a_turn_that_costs_nothing(self):
-        self.bankrupting_warriors()
+        self.bankrupting_clubbers()
+        support = TurnControl.support_cost(game=self.game, civilization=FIRST_CIVILIZATION)[resource_id(game=self.game, resource=Currency)]
         self.build(Dawdler)
         self.city.set_progress(A_FREE_TURN)
         self.rounds(ONE_ROUND)
         self.assertFalse(self.first.is_bankrupt())
         self.assertFalse(self.city.is_blocked())
         self.assertEqual(self.city.get_progress(), A_FREE_TURN + ONE_ROUND)
-        self.assertEqual(self.currency(), STARTING_CURRENCY)
-
+        self.assertEqual(self.currency(), STARTING_CURRENCY + INCOME - support)

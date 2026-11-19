@@ -19,6 +19,7 @@
 from dataclasses import dataclass
 
 from microsponge.engine.cities.city_control import CityControl
+from microsponge.engine.civilizations.requirements import known_technologies
 from microsponge.engine.kinds.catalog import NOTHING
 from microsponge.engine.kinds.category import Category
 from microsponge.engine.world.layer import Layer
@@ -90,9 +91,10 @@ class Harvest:
 
     @staticmethod
     def city_tile_gives(*, game, city, x, y):
-        """Return what a tile gives a citizen of a city who works it: what the tile gives, and what the city's buildings add to a worked tile of its terrain."""
+        """Return what a tile gives a citizen of a city who works it: what the tile gives, what the tile's terrain bonus adds with the technologies the city's civilization knows, and what the city's buildings add to a worked tile of its terrain."""
         world = game.get_city(city).get_world()
         gives = Harvest.tile_gives(game=game, world=world, x=x, y=y)
+        added(totals=gives, amounts=TerrainBonusControl.gives_with(game=game, world=world, x=x, y=y, technologies=known_technologies(game=game, civilization=game.get_city(city).get_owner())))
         terrain = game.get_terrain(world=world, x=x, y=y)
         for building in CityControl.buildings_of(game=game, city=city):
             added(totals=gives, amounts=building.WORKED_TILE_BONUS.get(terrain, {}))

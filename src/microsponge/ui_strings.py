@@ -34,6 +34,7 @@ MSG_CHART_SHARED_LEGEND = '{mark} more than one'
 MSG_CHART_TURNS = '{indent}  0{last}'
 
 # game_log_page.py
+MSG_PAGE_CHART_BANK_OF = 'Bank of {kind}'
 MSG_PAGE_CHART_BUILDINGS = 'Buildings'
 MSG_PAGE_CHART_CITIES = 'Cities'
 MSG_PAGE_CHART_CITIZENS = 'Citizens'
@@ -41,9 +42,11 @@ MSG_PAGE_CHART_COMMAND = 'Command each civilization has'
 MSG_PAGE_CHART_COMMAND_TAKEN = 'Command the active orders take'
 MSG_PAGE_CHART_DEVELOPMENT_SCORE = 'Development score: buildings, added up every turn'
 MSG_PAGE_CHART_HIT_POINTS = 'Hit points of military units'
+MSG_PAGE_CHART_IMPROVEMENTS_OF_KIND = 'Improvements of the kind {kind} on the tiles of the {city} radii'
 MSG_PAGE_CHART_INSIDE = 'Military units inside a city'
 MSG_PAGE_CHART_LEVEL = 'Average level of military units'
 MSG_PAGE_CHART_MILITARY_SCORE = 'Military score: hit points of military units, added up every turn'
+MSG_PAGE_CHART_ORDERS_OF_KIND = 'Orders of the kind {kind} given in each {turns} turns'
 MSG_PAGE_CHART_POLICY = 'Policy each civilization has'
 MSG_PAGE_CHART_POLICY_TAKEN = 'Policy the active orders take'
 MSG_PAGE_CHART_POPULATION_SCORE = 'Population score: citizens, added up every turn'
@@ -51,19 +54,37 @@ MSG_PAGE_CHART_SCIENCE_SCORE = 'Science score: technologies known, added up ever
 MSG_PAGE_CHART_SCORE = 'Score: what may decide a winner'
 MSG_PAGE_CHART_STRENGTH = 'Strength each turn: the rise and fall of each civilization'
 MSG_PAGE_CHART_TECHNOLOGIES = 'Technologies known'
-MSG_PAGE_CHART_UNITS = 'Units'
-MSG_PAGE_CHART_WEALTH = 'Bank of the primary resource'
-MSG_PAGE_CHARTS_HEADING = 'Everything else, turn by turn'
-MSG_PAGE_NO_CHARTS = 'The charts could not be drawn, because the chart library could not be loaded from the internet. The tables below hold the same game.'
-MSG_PAGE_TABLES_HEADING = 'Tables'
-MSG_PAGE_TIMELINES_HEADING = 'What happened to each civilization'
+MSG_PAGE_CHART_UNITS = 'Units in all'
+MSG_PAGE_CHART_UNITS_OF_KIND = 'Units of the kind {kind}'
+MSG_PAGE_NO_CHARTS = 'The charts could not be drawn, because the chart library could not be loaded from the internet. The tabs Timelines and Tables hold the same game.'
+MSG_PAGE_NO_IMPROVEMENTS = 'No improvement was built on a tile of any {city} radius in this game.'
+MSG_PAGE_TAB_BUILDINGS = 'Buildings'
+MSG_PAGE_TAB_CITIES = 'Cities'
+MSG_PAGE_TAB_CONTROL_POINTS = 'Control points'
+MSG_PAGE_TAB_IMPROVEMENTS = 'Improvements'
+MSG_PAGE_TAB_ORDERS = 'Orders'
+MSG_PAGE_TAB_SCORE = 'Score'
+MSG_PAGE_TAB_TABLES = 'Tables'
+MSG_PAGE_TAB_TIMELINES = 'Timelines'
+MSG_PAGE_TAB_UNITS = 'Units'
 MSG_PAGE_TURN = 'turn {turn}'
+MSG_PAGE_TURNS_FROM_TO = 'turns {first} to {last}'
 
 # game_log_report.py
 MSG_LOG_BUILDINGS_HEADING = 'building'
 MSG_LOG_BUILDINGS_TITLE = 'The buildings each civilization held at the end:'
+MSG_LOG_BUILT_HEADING = ['civilization', 'building', 'built', 'first on turn', 'last on turn']
+MSG_LOG_BUILT_TITLE = 'The buildings each civilization built, with the turns it finished the first and the last of each:'
 MSG_LOG_CITIES_HEADING = ['civilization', 'founded', 'took', 'lost', 'held at the end', 'citizens at the end', 'buildings at the end']
 MSG_LOG_CITIES_TITLE = 'The cities of each civilization:'
+MSG_LOG_FORCES_HEADING = [
+    'civilization', 'divisions made', 'first', 'last', 'armies made', 'first', 'last', 'units retired', 'first', 'last', 'divisions retired', 'first', 'last', 'armies retired', 'first', 'last',
+]
+MSG_LOG_FORCES_TITLE = 'The divisions and armies each civilization made, and the units, divisions and armies it retired, each with the first and the last turn:'
+MSG_LOG_MADE_HEADING = ['civilization', 'unit', 'made', 'first on turn', 'last on turn']
+MSG_LOG_MADE_TITLE = 'The units each civilization made, with the turns it made the first and the last of each kind:'
+MSG_LOG_ORDERS_HEADING = ['civilization', 'order', 'given', 'first turn in use', 'last turn in use']
+MSG_LOG_ORDERS_TITLE = 'The orders each civilization gave, by kind, with the first and the last turn an order of the kind was in use:'
 MSG_LOG_POINTS_HEADING = ['civilization', 'Policy had', 'Policy taken', 'Command had', 'Command taken', 'units', 'military units inside a city']
 MSG_LOG_POINTS_TITLE = 'Control points and units, as the average over the turns each civilization played:'
 MSG_LOG_REPORT_USAGE = 'name the log file of a game, written by tools/game_log.py, and add --markdown for Markdown tables, --html to write the page with the charts, or --open to write the page and open it in the browser, like: logs/caveman_seed1.json --open'
@@ -75,7 +96,7 @@ MSG_LOG_TIMELINE_STRONGEST = '  Turn {turn}: {name} was at its strongest, with a
 MSG_LOG_TIMELINE_TITLE = 'The timeline of {name}:'
 MSG_LOG_TIMELINE_WAR_DECLARED_ON = '  Turn {turn}: {other} declared war on {name}.'
 MSG_LOG_TITLE = 'A game of {theme} from seed {seed}: {civilizations} civilizations on a world of {width} by {height} tiles, played for {turns} turns.'
-MSG_LOG_UNITS_HEADING = ['civilization', 'unit', 'made', 'lost', 'built a city', 'alive at the end', 'turns lived', 'tiles moved', 'percent of turns inside a city', 'level at the end', 'highest level', 'percent that gained a level']
+MSG_LOG_UNITS_HEADING = ['civilization', 'unit', 'made', 'lost', 'retired', 'built a city', 'alive at the end', 'turns lived', 'tiles moved', 'percent of turns inside a city', 'level at the end', 'highest level', 'percent that gained a level']
 MSG_LOG_UNITS_TITLE = 'The units of each civilization. Turns lived, tiles moved and the level are averages over the units of the kind:'
 MSG_LOG_WRITTEN = 'wrote {path}'
 
@@ -130,7 +151,7 @@ MSG_GUIDE_STALE = '{path} is out of date: run make guides'
 MSG_GUIDE_MISSING = '{path} is missing, and the appendix of a guide is only refreshed in a guide that exists'
 
 # kind_reports.py
-MSG_BUILDING_PROPERTIES = ('requires', 'cost', 'turns', 'support', 'produces', 'income bonus %', 'research points', 'control points', 'grows sooner', 'worked tile bonus', 'armor bonus', 'level bonus', 'walls', 'beside water')
+MSG_BUILDING_PROPERTIES = ('requires', 'cost', 'turns', 'support', 'produces', 'income bonus %', 'research points', 'control points', 'grows sooner', 'worked tile bonus', 'armor bonus', 'level bonus', 'walls', 'beside water', 'off each unit upkeep')
 MSG_BUILDINGS_HEADING = ('building', 'world wonder', *MSG_BUILDING_PROPERTIES)
 MSG_BUILDINGS_TITLE = 'The buildings of {theme}:'
 MSG_KIND_BUILDING = 'building'
@@ -139,7 +160,7 @@ MSG_KIND_WONDER = 'world wonder'
 MSG_NO_BUILDINGS = '{theme} has no buildings yet'
 MSG_NO_TECHNOLOGIES = '{theme} has no technologies yet'
 MSG_NO_WONDERS = '{theme} has no world wonders yet'
-MSG_TECH_HEADING = ('technology', 'research points', 'requires', 'allows', 'harvest bonus %', 'unit support bonus %')
+MSG_TECH_HEADING = ('technology', 'research points', 'requires', 'allows', 'harvest bonus %', 'unit support bonus %', 'grows sooner')
 MSG_TECH_TITLE = 'The tech tree of {theme}:'
 MSG_UNUSED_COLUMNS = 'no {kind} of {theme} sets these, so their columns are left out: {columns}'
 MSG_WONDERS_HEADING = ('world wonder', *MSG_BUILDING_PROPERTIES)

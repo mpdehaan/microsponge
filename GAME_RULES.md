@@ -174,6 +174,11 @@ otherwise. What classic itself chooses, like its list of resources, is kept in
   for now.
 - Every kind of unit costs at least 10 currency to build, and every kind of building costs at
   least 10 currency to build.
+- A civilization that has at least one city always ends its collecting and its upkeep with at
+  least 1 more currency than it held before, a number each theme can set: what the
+  civilization cannot pay is let off. So a civilization with a city is never bankrupt, but a
+  civilization whose upkeep takes everything becomes a sitting duck, with almost nothing to
+  build with. The user decided this. A civilization with no city can still go bankrupt.
 - A civilization is bankrupt on every turn that ends with its currency at 0 after its support
   costs are paid, even when nothing was owed. A bankrupt civilization cannot build anything,
   and there may be other penalties: each theme sets a bankruptcy penalty, which could be 50
@@ -205,6 +210,8 @@ otherwise. What classic itself chooses, like its list of resources, is kept in
 - A terrain bonus is something else: a special tile, like cows on grassland, that provides
   more food when the tile is worked. A terrain bonus is not a strategic resource, and is not
   required by anything.
+- A terrain bonus can give more once the civilization of the city working the tile knows a
+  technology, like caveman's elephants, which give ivory once sewing is known.
 - A terrain bonus has a list of compatible terrain types, which is usually just one type, like
   grassland for cows. A terrain bonus goes away when the terrain of the tile changes
   incompatibly, to a terrain not on the list, and most changes are incompatible changes:
@@ -282,6 +289,9 @@ otherwise. What classic itself chooses, like its list of resources, is kept in
   the points put toward the technology before are lost.
 - A pick is forced: while a technology is left to pick and none is picked, the turn cannot
   end.
+
+- A technology can make every city of the civilization that knows it grow a citizen sooner,
+  by a number of turns the theme sets, like caveman's sewing.
 
 ## Points
 
@@ -503,6 +513,9 @@ otherwise. What classic itself chooses, like its list of resources, is kept in
 - A building can require a water tile next to the city center, like a harbor.
 - A building can add to what a worked tile of a certain terrain gives, like 1 more food from
   each worked tile of grassland, and can make its city grow a citizen a number of turns sooner.
+
+- A building or a world wonder can make the upkeep of every unit of its civilization less,
+  by an amount the theme sets, never below nothing, like caveman's arrangement of rocks.
 
 ## Units
 
@@ -990,6 +1003,15 @@ single units, and are rewritten as the details are decided.
   targets, the sources and the way of fulfilling of a garrison order, categories in a build
   target, the view of problematic orders, the fog of war rule for invalid orders, and
   orders in a saved game.
+- An order to retire a unit takes the unit out of the game for good, which a civilization may
+  need to keep its upkeep from taking everything. The order is free, and gives nothing back.
+  The order can be given to one unit, and retiring a division or an army is free too, which
+  retires every unit of the division or the army.
+- Orders can assign units to a division, which takes no points. Moving any number of units out
+  of one division into another, or into no division, costs 1 Command, a number each theme
+  sets. Moving a division to another army costs 50 Command, making a new division 5 Command
+  and making a new army 5 Command, each a number the theme sets. Whether these costs are paid
+  once or every turn is not decided, and these orders are not built yet.
 - A completed order is set disabled. A disabled order costs no Policy and does nothing, and
   stays in the table as a convenience, so that a person can remove the order or modify the
   order. A computer player will probably just remove a disabled order.

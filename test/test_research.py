@@ -31,9 +31,9 @@ from microsponge.err_messages import ERR_ALREADY_KNOWN, ERR_ALREADY_RESEARCHING,
 from microsponge.themes.caveman.buildings import GreatCavePainting
 from microsponge.themes.caveman.city import Village
 from microsponge.themes.caveman.resources import Currency
-from microsponge.themes.caveman.technologies import Agriculture, Clubs, Discipline, Fire, Leadership
+from microsponge.themes.caveman.technologies import Agriculture, Clubs
 from microsponge.themes.caveman.theme import Caveman
-from microsponge.themes.caveman.units import Warrior
+from microsponge.themes.caveman.units import Clubber
 
 FIRST_CIVILIZATION = 1
 SECOND_CIVILIZATION = 2
@@ -49,8 +49,19 @@ CITY_POINTS = Village.RESEARCH_POINTS
 PAINTING_POINTS = CITY_POINTS + GreatCavePainting.RESEARCH_POINTS
 # The rounds one city takes to research clubs, and half of them.
 CLUBS_ROUNDS = Clubs.RESEARCH // CITY_POINTS
-HALF_THE_ROUNDS = CLUBS_ROUNDS // 2
+# Fewer rounds than clubs takes, and fewer than a village of one citizen takes to grow, so that the village's income stays the same.
+HALF_THE_ROUNDS = min(CLUBS_ROUNDS, Village.GROWTH_TURNS[0]) // 2
 
+
+
+def researchable(*, theme, known):
+    """Return the technologies of a theme that a civilization knowing some technologies could research next, read from the theme's tree: each one not known whose requirements are all known."""
+    return [technology for technology in theme.TECHNOLOGIES if technology not in known and all(required in known for required in technology.REQUIRES)]
+
+
+def first_technologies():
+    """Return caveman's technologies that a civilization knowing none can research."""
+    return researchable(theme=Caveman, known=())
 
 class Pottery(Technology):
     """A technology that requires another."""
@@ -106,7 +117,7 @@ class TestResearch(ResearchCase):
         self.assertGreater(PAINTING_POINTS, CITY_POINTS)
 
     def test_a_civilization_has_to_pick_a_technology_while_it_researches_nothing_and_one_is_left(self):
-        self.assertEqual(self.available(), list(Caveman.TECHNOLOGIES))
+        self.assertEqual(self.available(), first_technologies())
         self.assertIsNone(self.researching())
         self.assertTrue(Research.must_choose(game=self.game, civilization=FIRST_CIVILIZATION))
         pool = self.first.get_policy_points()
@@ -131,15 +142,15 @@ class TestResearch(ResearchCase):
         self.rounds(CLUBS_ROUNDS)
         self.assertIsNone(self.researching())
         self.assertTrue(Research.must_choose(game=self.game, civilization=FIRST_CIVILIZATION))
-        self.assertEqual(self.available(), [Agriculture, Leadership, Discipline, Fire])
+        self.assertEqual(self.available(), researchable(theme=Caveman, known=(Clubs,)))
 
     def test_the_points_past_what_a_technology_takes_are_lost(self):
         give_building(game=self.game, city=self.city, building=GreatCavePainting)
-        self.research(Clubs)
-        rounds = divided_rounding_up(amount=Clubs.RESEARCH, by=PAINTING_POINTS)
+        self.research(Agriculture)
+        rounds = divided_rounding_up(amount=Agriculture.RESEARCH, by=PAINTING_POINTS)
         self.rounds(rounds)
-        self.assertTrue(self.knows(Clubs))
-        self.assertGreater(PAINTING_POINTS * rounds - Clubs.RESEARCH, NO_POINTS)
+        self.assertTrue(self.knows(Agriculture))
+        self.assertGreater(PAINTING_POINTS * rounds - Agriculture.RESEARCH, NO_POINTS)
         self.assertEqual(self.first.get_research(), NO_POINTS)
 
     def test_points_do_not_gather_while_nothing_is_researched_and_a_technology_is_left_to_pick(self):
@@ -194,7 +205,7 @@ class TestResearch(ResearchCase):
 
     def test_a_technology_the_civilization_knows_cannot_be_researched_again(self):
         learn(game=self.game, civilization=FIRST_CIVILIZATION, technology=Clubs)
-        self.assertEqual(self.available(), [Agriculture, Leadership, Discipline, Fire])
+        self.assertEqual(self.available(), researchable(theme=Caveman, known=(Clubs,)))
         message = self.refused_and_unchanged(lambda: self.research(Clubs))
         self.assertEqual(message, ERR_ALREADY_KNOWN.format(name=FIRST_NAME, technology=shown_name(Clubs)))
 
@@ -212,13 +223,13 @@ class TestResearch(ResearchCase):
         message = self.refused_and_unchanged(lambda: Orders.research(game=self.game, civilization=SECOND_CIVILIZATION, technology=Clubs))
         self.assertEqual(message, ERR_NOT_YOUR_TURN.format(name=SECOND_NAME))
 
-    def test_researching_clubs_lets_a_city_build_a_warrior(self):
-        expected = ERR_BUILD_REQUIRES.format(kind=shown_name(Warrior), required=shown_name(Clubs))
-        self.assertEqual(self.refused_and_unchanged(lambda: Orders.build(game=self.game, city=self.city, kind=Warrior)), expected)
+    def test_researching_clubs_lets_a_city_build_a_clubber(self):
+        expected = ERR_BUILD_REQUIRES.format(kind=shown_name(Clubber), required=shown_name(Clubs))
+        self.assertEqual(self.refused_and_unchanged(lambda: Orders.build(game=self.game, city=self.city, kind=Clubber)), expected)
         self.research(Clubs)
         self.rounds(CLUBS_ROUNDS)
-        Orders.build(game=self.game, city=self.city, kind=Warrior)
-        self.rounds(Warrior.BUILD_TURNS)
+        Orders.build(game=self.game, city=self.city, kind=Clubber)
+        self.rounds(Clubber.BUILD_TURNS)
         self.assertEqual(len(self.game.get_city(self.city).get_units()), ONE_ROUND)
 
 
@@ -227,11 +238,13 @@ class TestATechnologyThatRequiresAnother(ResearchCase):
     THEME = POTTERY_CAVEMAN
 
     def test_a_technology_cannot_be_researched_before_the_technology_it_requires(self):
-        self.assertEqual(self.available(), list(Caveman.TECHNOLOGIES))
+        self.assertEqual(self.available(), researchable(theme=POTTERY_CAVEMAN, known=()))
+        self.assertNotIn(Pottery, self.available())
         expected = ERR_RESEARCH_REQUIRES.format(technology=shown_name(Pottery), required=shown_name(Agriculture))
         self.assertEqual(Research.problem_choosing(game=self.game, civilization=FIRST_CIVILIZATION, technology=Pottery), expected)
         self.assertEqual(self.refused_and_unchanged(lambda: self.research(Pottery)), expected)
         learn(game=self.game, civilization=FIRST_CIVILIZATION, technology=Agriculture)
-        self.assertEqual(self.available(), [Clubs, Leadership, Discipline, Fire, Pottery])
+        self.assertEqual(self.available(), researchable(theme=POTTERY_CAVEMAN, known=(Agriculture,)))
+        self.assertIn(Pottery, self.available())
         self.research(Pottery)
         self.assertIs(self.researching(), Pottery)

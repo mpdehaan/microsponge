@@ -69,6 +69,7 @@ def building_properties(building):
         shown_amounts(building.PRODUCES), shown_number(building.INCOME_BONUS), shown_number(building.RESEARCH_POINTS),
         shown_amounts(building.CONTROL_POINTS), shown_number(building.GROWS_SOONER), shown_amounts_by_kind(building.WORKED_TILE_BONUS),
         shown_number(building.ARMOR_BONUS), shown_number(building.LEVEL_BONUS), shown_flag(building.WALLS), shown_flag(building.BESIDE_WATER),
+        shown_amounts(building.UNIT_SUPPORT_DISCOUNT),
     ]
 
 
@@ -141,6 +142,7 @@ def technology_row(*, theme, technology):
     return [
         shown_name(technology), shown_number(technology.RESEARCH), shown_kinds(technology.REQUIRES),
         shown_kinds(allowed_by(theme=theme, technology=technology)), shown_amounts(technology.HARVEST_BONUS), shown_number(technology.UNIT_SUPPORT_BONUS),
+        shown_number(technology.GROWS_SOONER),
     ]
 
 

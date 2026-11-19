@@ -19,18 +19,22 @@
 import time
 import unittest
 
-from caveman_game import FIRST_CIVILIZATION, computer_played_caveman_game, play_turns
-from microsponge.engine.civilizations.sight import Sight
+from caveman_game import FIRST_CIVILIZATION, THE_WORLD, computer_played_caveman_game, found_village, play_turns, started_caveman_game
 from microsponge.engine.kinds.control_points import CONTROL_POINTS
-from microsponge.engine.orders.order import BuildOrder, ExpandOrder, GarrisonOrder, MarchOrder, RaiseOrder, ResearchOrder, SettlerOrder
+from microsponge.engine.kinds.category import Category
+from microsponge.engine.orders.order import BuildOrder, ExpandOrder, GarrisonOrder, MarchOrder, RaiseOrder, ResearchOrder, RetireOrder, SettlerOrder
 from microsponge.engine.orders.order_control import OrderControl
 from microsponge.engine.players.computer_player import ComputerPlayer
 from microsponge.engine.players.knowledge import Knowledge
+from microsponge.engine.units.unit_control import UnitControl
 from microsponge.engine.players.traits import AGGRESSIVE_HYPERFOCUS, BOLDNESS, CONQUEST, EXPANSION, LEAST, LOGICAL, MIDDLE, MOST, PEACE, SCIENCE, TRAITS
 from microsponge.themes.caveman.player import CavemanPlayer
 from microsponge.themes.caveman.theme import Caveman
 
 FIRST = FIRST_CIVILIZATION
+A_NAME = 'Bedrock'
+# Open tiles near the first civilization's first village, as (x, y), for fighters beyond its garrison.
+SPARE_TILES = ((9, 10), (9, 12), (9, 14))
 SECOND = FIRST + 1
 A_SEED = 7
 A_FEW_TURNS = 3
@@ -47,6 +51,11 @@ RECKLESS = {**WARLIKE, BOLDNESS: MOST, AGGRESSIVE_HYPERFOCUS: MOST}
 CAREFUL = {**WARLIKE, BOLDNESS: LEAST, AGGRESSIVE_HYPERFOCUS: LEAST}
 SCIENTIST = {**EVERYTHING_MIDDLE, SCIENCE: MOST}
 SOLDIER = {**EVERYTHING_MIDDLE, SCIENCE: LEAST}
+
+
+def currency_of(game):
+    """Return the id of the theme's primary resource."""
+    return game.get_catalog().get_id(category=Category.RESOURCES, kind=game.get_theme().PRIMARY_RESOURCE)
 
 
 def given(*, game, civilization, kind):
@@ -71,16 +80,15 @@ class TestComputerPlayer(unittest.TestCase):
         started = time.perf_counter()
         play_turns(game=game, turns=TURNS)
         seconds = time.perf_counter() - started
-        self.assertEqual(game.get_turn(), TURNS)
-        self.assertLess(seconds / TURNS, SLOW)
+        self.assertTrue(game.get_turn() == TURNS or game.is_over())
+        self.assertLess(seconds / game.get_turn(), SLOW)
         for civilization in (FIRST, SECOND):
             with self.subTest(civilization=civilization):
                 holder = game.get_civilization(civilization)
-                self.assertGreaterEqual(len(game.get_cities_of(civilization)), 1)
-                self.assertEqual(game.get_city(game.get_cities_of(civilization)[0]).get_founded(), 0)
+                self.assertGreaterEqual(holder.get_cities_founded(), 1)
                 self.assertTrue(holder.get_technologies())
-                self.assertTrue(Sight.units_of(game=game, civilization=civilization))
-                self.assertGreater(len([city for city in game.get_cities_of(civilization) if game.get_city(city).get_units()]), 0)
+        self.assertEqual([game.get_city(city).get_founded() for city in game.get_city_ids()[:SECOND]], [0, 0])
+        self.assertTrue(any(game.get_city(city).get_units() for city in game.get_city_ids()))
 
     def test_the_same_seed_plays_the_same_game_again(self):
         first = computer_played_caveman_game(seed=A_SEED)
@@ -148,3 +156,28 @@ class TestComputerPlayer(unittest.TestCase):
                 what = CavemanPlayer.march_on(game=game, civilization=FIRST, city=game.get_cities_of(SECOND)[0])
                 self.assertEqual((what.bold, what.ignore_units), (expected, expected))
                 self.assertEqual(what.target.city, game.get_cities_of(SECOND)[0])
+
+
+class TestRetiringToSaveTheIncome(unittest.TestCase):
+
+    def test_a_starved_player_retires_a_fighter_beyond_its_garrisons_and_a_fed_player_does_not(self):
+        game = started_caveman_game()
+        city = found_village(game=game, civilization=FIRST, name=A_NAME)
+        player = game.get_theme().PLAYER
+        player.plan_division(game=game, civilization=FIRST)
+        division = player.division_of(game=game, civilization=FIRST)
+        for x, y in SPARE_TILES:
+            division.add_unit(UnitControl.place(game=game, kind=player.FIGHTERS[-1], owner=FIRST, world=THE_WORLD, x=x, y=y))
+        self.assertGreater(len(division.get_units()), len(game.get_cities_of(FIRST)))
+        holder = game.get_civilization(FIRST)
+        holder.pay(resource=currency_of(game), amount=holder.get_amount(currency_of(game)))
+        self.assertTrue(player.is_starved(game=game, civilization=FIRST))
+        player.plan_retirement(game=game, civilization=FIRST)
+        retiring = given(game=game, civilization=FIRST, kind=RetireOrder)
+        self.assertEqual(len(retiring), 1)
+        self.assertIn(retiring[0].get_receiver().id, division.get_units())
+        game.get_civilization(FIRST).add(resource=currency_of(game), amount=player.RESERVE)
+        self.assertFalse(player.is_starved(game=game, civilization=FIRST))
+        player.plan_retirement(game=game, civilization=FIRST)
+        self.assertEqual(len(given(game=game, civilization=FIRST, kind=RetireOrder)), 1)
+        self.assertIn(city, game.get_cities_of(FIRST))

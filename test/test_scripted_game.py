@@ -35,7 +35,7 @@ from microsponge.support.theme_tools import FAILED, SUCCEEDED
 from microsponge.themes.caveman.buildings import Granary, GreatCavePainting
 from microsponge.themes.caveman.city import Village
 from microsponge.themes.caveman.theme import Caveman
-from microsponge.themes.caveman.units import Settler, Warrior
+from microsponge.themes.caveman.units import Settler, Clubber
 from microsponge.themes.classic.theme import Classic
 from microsponge.ui_strings import (
     MSG_CHART_CITIZENS, MSG_CURVE_AFTER_OPEN, MSG_CURVE_DEFEATS, MSG_CURVE_KNEW_EVERYTHING, MSG_CURVE_NEVER_KNEW_EVERYTHING, MSG_CURVE_NO_DEFEATS, MSG_LIST_SEPARATOR, MSG_STORY_DEFEATED, MSG_STORY_FOUNDED, MSG_STORY_STALLED,
@@ -77,15 +77,15 @@ class TestChronicle(unittest.TestCase):
 
     def test_a_unit_that_appears_is_made_and_a_unit_that_is_gone_is_lost(self):
         _, x, y = UnitControl.tile_of(game=self.game, unit=settler_of(game=self.game, civilization=FIRST_CIVILIZATION))
-        warrior = UnitControl.place(game=self.game, kind=Warrior, owner=FIRST_CIVILIZATION, world=THE_WORLD, x=x + 1, y=y)
+        clubber = UnitControl.place(game=self.game, kind=Clubber, owner=FIRST_CIVILIZATION, world=THE_WORLD, x=x + 1, y=y)
         self.chronicle.note(game=self.game, turn=A_TURN)
-        self.assertEqual((self.chronicle.get_made(civilization=FIRST_CIVILIZATION, kind=Warrior), self.chronicle.get_lost(civilization=FIRST_CIVILIZATION, kind=Warrior)), (1, 0))
-        UnitControl.remove(game=self.game, unit=warrior)
+        self.assertEqual((self.chronicle.get_made(civilization=FIRST_CIVILIZATION, kind=Clubber), self.chronicle.get_lost(civilization=FIRST_CIVILIZATION, kind=Clubber)), (1, 0))
+        UnitControl.remove(game=self.game, unit=clubber)
         UnitControl.remove(game=self.game, unit=settler_of(game=self.game, civilization=SECOND_CIVILIZATION))
         self.chronicle.note(game=self.game, turn=A_LATER_TURN)
-        self.assertEqual(self.chronicle.get_lost(civilization=FIRST_CIVILIZATION, kind=Warrior), 1)
+        self.assertEqual(self.chronicle.get_lost(civilization=FIRST_CIVILIZATION, kind=Clubber), 1)
         self.assertEqual(self.chronicle.get_lost(civilization=SECOND_CIVILIZATION, kind=Settler), 1)
-        self.assertEqual(self.chronicle.get_made(civilization=SECOND_CIVILIZATION, kind=Warrior), 0)
+        self.assertEqual(self.chronicle.get_made(civilization=SECOND_CIVILIZATION, kind=Clubber), 0)
 
     def test_technologies_a_war_a_world_wonder_a_city_taken_and_a_defeat_are_events_each_noted_once(self):
         city = found_village(game=self.game, civilization=FIRST_CIVILIZATION, name=A_NAME)

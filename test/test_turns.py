@@ -43,7 +43,7 @@ from microsponge.themes.caveman.resources import Currency, Food, Stone
 from microsponge.themes.caveman.technologies import Agriculture, Clubs
 from microsponge.themes.caveman.terrains import Grassland
 from microsponge.themes.caveman.theme import Caveman
-from microsponge.themes.caveman.units import Settler, Warrior
+from microsponge.themes.caveman.units import Settler, Clubber
 
 FIRST_CIVILIZATION = 1
 SECOND_CIVILIZATION = 2
@@ -65,9 +65,12 @@ CURRENCY_A_TURN = Village.CITIZEN_CURRENCY
 # A row of open grassland, away from both settlers, the lake and the mountains, and the first column to put units on there.
 OPEN_ROW = 2
 OPEN_COLUMN = 20
-MANY_WARRIORS = 10
+MANY_CLUBBERS = 10
+NOTHING_LEFT = 0
+# What a test says when the theme's numbers allow no village it needs.
+NO_SUCH_VILLAGE = 'the theme allows no village whose income pays its clubbers with too little left for a part of a build'
 HURT = 5
-NEARLY_HEALED = Warrior.HIT_POINTS - 1
+NEARLY_HEALED = Clubber.HIT_POINTS - 1
 NO_POINTS = 0
 A_FEW_TURNS = 3
 NOT_BANKRUPT = 0
@@ -79,10 +82,20 @@ BESIDE_CENTER = 3
 A_SECOND_SITE = (20, 20)
 NOT_COUNTING = 0
 ONE_TURN_COUNTED = 1
-ONE_WARRIOR = 1
-THREE_WARRIORS = 3
-TWO_WARRIORS = 2
+ONE_CLUBBER = 1
+TWO_CLUBBERS = 2
 
+
+
+def citizens_and_clubbers(part):
+    """Return (citizens, clubbers): the fewest citizens of a village, beyond the one a settler uses, and a number of clubbers, such that the village's income pays the clubbers' upkeep with something left, but too little for a part of a build, while the income alone would pay the part. Read from the theme's numbers."""
+    support = Clubber.SUPPORT[Currency]
+    for citizens in range(TWO_CITIZENS, MANY_CITIZENS + 1):
+        income = CURRENCY_A_TURN * citizens
+        for count in range(1, MANY_CLUBBERS):
+            if NOTHING_LEFT < income - support * count < part <= income:
+                return (citizens, count)
+    raise AssertionError(NO_SUCH_VILLAGE)
 
 class HungryVillage(Village):
     """A city whose citizens eat more than a city of one citizen collects."""
@@ -194,9 +207,9 @@ class TestEndingATurn(unittest.TestCase):
         self.game.get_city(city).set_citizens(citizens)
         return city
 
-    def warriors(self, *, civilization, count):
-        """Put so many warriors of a civilization in a row on open grassland, and return their ids."""
-        return [UnitControl.place(game=self.game, kind=Warrior, owner=civilization, world=THE_WORLD, x=OPEN_COLUMN + place, y=OPEN_ROW) for place in range(count)]
+    def clubbers(self, *, civilization, count):
+        """Put so many clubbers of a civilization in a row on open grassland, and return their ids."""
+        return [UnitControl.place(game=self.game, kind=Clubber, owner=civilization, world=THE_WORLD, x=OPEN_COLUMN + place, y=OPEN_ROW) for place in range(count)]
 
     def spend_all_currency(self, civilization):
         civilization.pay(resource=resource_id(game=self.game, resource=Currency), amount=STARTING_CURRENCY)
@@ -253,14 +266,14 @@ class TestEndingATurn(unittest.TestCase):
         self.assertEqual(self.held(civilization=SECOND_CIVILIZATION, resource=Food), PLENTY - Settler.SUPPORT[Food])
 
     def test_what_units_cost_to_support_adds_up_over_every_unit_of_the_civilization(self):
-        self.warriors(civilization=SECOND_CIVILIZATION, count=MANY_WARRIORS)
+        self.clubbers(civilization=SECOND_CIVILIZATION, count=MANY_CLUBBERS)
         cost = TurnControl.support_cost(game=self.game, civilization=SECOND_CIVILIZATION)
-        expected = {resource_id(game=self.game, resource=resource): amount * MANY_WARRIORS + Settler.SUPPORT[resource] for resource, amount in Warrior.SUPPORT.items()}
+        expected = {resource_id(game=self.game, resource=resource): amount * MANY_CLUBBERS + Settler.SUPPORT[resource] for resource, amount in Clubber.SUPPORT.items()}
         self.assertEqual(cost, expected)
         self.assertEqual(TurnControl.support_cost(game=self.game, civilization=FIRST_CIVILIZATION), {resource_id(game=self.game, resource=resource): amount for resource, amount in Settler.SUPPORT.items()})
 
     def test_a_technology_takes_its_percent_off_the_support_of_units_rounded_down(self):
-        self.warriors(civilization=SECOND_CIVILIZATION, count=MANY_WARRIORS)
+        self.clubbers(civilization=SECOND_CIVILIZATION, count=MANY_CLUBBERS)
         currency = resource_id(game=self.game, resource=Currency)
         plain = TurnControl.support_cost(game=self.game, civilization=SECOND_CIVILIZATION)[currency]
         learn(game=self.game, civilization=SECOND_CIVILIZATION, technology=Clubs)
@@ -365,42 +378,42 @@ class TestEndingATurn(unittest.TestCase):
 
     def test_a_unit_on_a_tile_heals_a_little_each_turn_and_a_unit_inside_a_village_heals_more(self):
         city = self.village(ONE_CITIZEN)
-        outside, inside = self.warriors(civilization=FIRST_CIVILIZATION, count=TWO_WARRIORS)
+        outside, inside = self.clubbers(civilization=FIRST_CIVILIZATION, count=TWO_CLUBBERS)
         x, y = self.game.get_city(city).get_x(), self.game.get_city(city).get_y()
         UnitControl.move_to(game=self.game, unit=inside, x=x + BESIDE_CENTER, y=y)
         CityControl.enter(game=self.game, unit=inside, city=city)
         for unit in (outside, inside):
             self.units.set_value(column=UnitColumn.HIT_POINTS, unit=unit, value=HURT)
         end_rounds(game=self.game, rounds=ONE_ROUND)
-        self.assertEqual(self.hit_points(outside), HURT + Warrior.HEAL)
-        self.assertEqual(self.hit_points(inside), HURT + Warrior.CITY_HEAL)
-        self.assertGreater(Warrior.CITY_HEAL, Warrior.HEAL)
+        self.assertEqual(self.hit_points(outside), HURT + Clubber.HEAL)
+        self.assertEqual(self.hit_points(inside), HURT + Clubber.CITY_HEAL)
+        self.assertGreater(Clubber.CITY_HEAL, Clubber.HEAL)
 
     def test_a_unit_never_heals_past_the_hit_points_of_its_kind(self):
         city = self.village(ONE_CITIZEN)
-        whole, nearly = self.warriors(civilization=FIRST_CIVILIZATION, count=TWO_WARRIORS)
+        whole, nearly = self.clubbers(civilization=FIRST_CIVILIZATION, count=TWO_CLUBBERS)
         x, y = self.game.get_city(city).get_x(), self.game.get_city(city).get_y()
         UnitControl.move_to(game=self.game, unit=nearly, x=x + BESIDE_CENTER, y=y)
         CityControl.enter(game=self.game, unit=nearly, city=city)
         self.units.set_value(column=UnitColumn.HIT_POINTS, unit=nearly, value=NEARLY_HEALED)
         end_rounds(game=self.game, rounds=ONE_ROUND)
-        self.assertEqual((self.hit_points(whole), self.hit_points(nearly)), (Warrior.HIT_POINTS, Warrior.HIT_POINTS))
+        self.assertEqual((self.hit_points(whole), self.hit_points(nearly)), (Clubber.HIT_POINTS, Clubber.HIT_POINTS))
 
     def test_a_unit_heals_only_at_the_end_of_its_own_civilizations_turn(self):
-        warrior, = self.warriors(civilization=SECOND_CIVILIZATION, count=ONE_WARRIOR)
-        self.units.set_value(column=UnitColumn.HIT_POINTS, unit=warrior, value=HURT)
+        clubber, = self.clubbers(civilization=SECOND_CIVILIZATION, count=ONE_CLUBBER)
+        self.units.set_value(column=UnitColumn.HIT_POINTS, unit=clubber, value=HURT)
         TurnControl.end_turn(self.game)
-        self.assertEqual(self.hit_points(warrior), HURT)
+        self.assertEqual(self.hit_points(clubber), HURT)
         TurnControl.end_turn(self.game)
-        self.assertEqual(self.hit_points(warrior), HURT + Warrior.HEAL)
+        self.assertEqual(self.hit_points(clubber), HURT + Clubber.HEAL)
 
     def test_all_points_refill_at_the_end_of_a_turn_and_each_village_adds_to_its_civilizations_policy_points(self):
         self.village(ONE_CITIZEN)
-        warrior, = self.warriors(civilization=FIRST_CIVILIZATION, count=ONE_WARRIOR)
-        self.units.set_value(column=UnitColumn.ACTION_POINTS, unit=warrior, value=NO_POINTS)
+        clubber, = self.clubbers(civilization=FIRST_CIVILIZATION, count=ONE_CLUBBER)
+        self.units.set_value(column=UnitColumn.ACTION_POINTS, unit=clubber, value=NO_POINTS)
         self.first.set_policy_points(NO_POINTS)
         end_rounds(game=self.game, rounds=ONE_ROUND)
-        self.assertEqual(self.units.get_value(column=UnitColumn.ACTION_POINTS, unit=warrior), Warrior.ACTION_POINTS)
+        self.assertEqual(self.units.get_value(column=UnitColumn.ACTION_POINTS, unit=clubber), Clubber.ACTION_POINTS)
         self.assertEqual(self.first.get_policy_points(), points_given(by=Caveman, points=Policy) + points_given(by=Village, points=Policy) + Village.IDLE_CONTROL_POINTS[Policy])
         self.assertEqual(self.second.get_policy_points(), points_given(by=Caveman, points=Policy))
         self.assertEqual(TurnControl.control_points(game=self.game, civilization=FIRST_CIVILIZATION, points=Policy), points_given(by=Caveman, points=Policy) + points_given(by=Village, points=Policy) + Village.IDLE_CONTROL_POINTS[Policy])
@@ -408,17 +421,33 @@ class TestEndingATurn(unittest.TestCase):
     def test_buildings_are_paid_for_each_turn_and_a_technology_takes_nothing_off_what_buildings_cost(self):
         city = self.village(ONE_CITIZEN)
         currency = resource_id(game=self.game, resource=Currency)
-        self.warriors(civilization=FIRST_CIVILIZATION, count=MANY_WARRIORS)
+        self.clubbers(civilization=FIRST_CIVILIZATION, count=MANY_CLUBBERS)
         learn(game=self.game, civilization=FIRST_CIVILIZATION, technology=Clubs)
         for_units = TurnControl.support_cost(game=self.game, civilization=FIRST_CIVILIZATION)[currency]
-        self.assertEqual(for_units, Warrior.SUPPORT[Currency] * MANY_WARRIORS * (WHOLE - Clubs.UNIT_SUPPORT_BONUS) // WHOLE)
+        self.assertEqual(for_units, Clubber.SUPPORT[Currency] * MANY_CLUBBERS * (WHOLE - Clubs.UNIT_SUPPORT_BONUS) // WHOLE)
         for building in (Granary, GreatCavePainting):
             give_building(game=self.game, city=city, building=building)
         for_buildings = Granary.SUPPORT[Currency] + GreatCavePainting.SUPPORT[Currency]
         self.assertEqual(TurnControl.support_cost(game=self.game, civilization=FIRST_CIVILIZATION)[currency], for_units + for_buildings)
         self.assertEqual(TurnControl.support_cost(game=self.game, civilization=SECOND_CIVILIZATION)[currency], Settler.SUPPORT[Currency])
         end_rounds(game=self.game, rounds=ONE_ROUND)
-        self.assertEqual(self.held(civilization=FIRST_CIVILIZATION, resource=Currency), STARTING_CURRENCY + CURRENCY_A_TURN - for_units - for_buildings)
+        paid = STARTING_CURRENCY + CURRENCY_A_TURN - for_units - for_buildings
+        self.assertEqual(self.held(civilization=FIRST_CIVILIZATION, resource=Currency), max(paid, STARTING_CURRENCY + Caveman.LEAST_INCOME))
+
+    def test_a_civilization_with_a_city_always_gains_the_least_income_and_one_with_no_city_does_not(self):
+        self.village(ONE_CITIZEN)
+        self.clubbers(civilization=FIRST_CIVILIZATION, count=MANY_CLUBBERS)
+        currency = resource_id(game=self.game, resource=Currency)
+        self.assertGreater(TurnControl.support_cost(game=self.game, civilization=FIRST_CIVILIZATION)[currency], CURRENCY_A_TURN)
+        first = self.held(civilization=FIRST_CIVILIZATION, resource=Currency)
+        second = self.held(civilization=SECOND_CIVILIZATION, resource=Currency)
+        end_rounds(game=self.game, rounds=ONE_ROUND)
+        self.assertEqual(self.held(civilization=FIRST_CIVILIZATION, resource=Currency), first + Caveman.LEAST_INCOME)
+        self.assertLess(self.held(civilization=SECOND_CIVILIZATION, resource=Currency), second)
+        for _ in range(Caveman.BANKRUPTCY_TURNS):
+            end_rounds(game=self.game, rounds=ONE_ROUND)
+        self.assertFalse(self.first.is_bankrupt())
+        self.assertFalse(self.first.has_lost())
 
     def test_a_civilization_with_buildings_and_no_units_pays_for_the_buildings(self):
         city = self.village(ONE_CITIZEN)
@@ -461,14 +490,15 @@ class TestEndingATurn(unittest.TestCase):
         self.assertEqual(self.second.get_policy_points(), points_given(by=Caveman, points=Policy))
 
     def test_units_are_paid_for_before_what_a_village_builds(self):
-        city = self.village(TWO_CITIZENS)
-        self.spend_all_currency(self.first)
-        self.warriors(civilization=FIRST_CIVILIZATION, count=THREE_WARRIORS)
-        Orders.build(game=self.game, city=city, kind=Settler)
         part = Production.part(kind=Settler, turn=FIRST_TURN)[Currency]
-        income = CURRENCY_A_TURN * TWO_CITIZENS
-        after_support = income - Warrior.SUPPORT[Currency] * THREE_WARRIORS
-        self.assertTrue(after_support < part <= income)
+        citizens, count = citizens_and_clubbers(part)
+        city = self.village(citizens)
+        self.spend_all_currency(self.first)
+        self.clubbers(civilization=FIRST_CIVILIZATION, count=count)
+        Orders.build(game=self.game, city=city, kind=Settler)
+        income = CURRENCY_A_TURN * citizens
+        after_support = income - Clubber.SUPPORT[Currency] * count
+        self.assertTrue(NOTHING_LEFT < after_support < part <= income)
         end_rounds(game=self.game, rounds=ONE_ROUND)
         self.assertTrue(self.game.get_city(city).is_blocked())
         self.assertEqual(self.held(civilization=FIRST_CIVILIZATION, resource=Currency), after_support)

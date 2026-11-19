@@ -19,15 +19,15 @@
 from microsponge.engine.kinds.control_points import Command, Policy
 from microsponge.engine.kinds.theme import Theme
 from microsponge.themes.caveman.city import Village
-from microsponge.themes.caveman.buildings import ArrangementOfRocks, Barracks, ChieftainsHut, Granary, GreatCavePainting, Harbor, Watchtower
+from microsponge.themes.caveman.buildings import ArrangementOfRocks, Barracks, CaveBearShrine, ChieftainsHut, CityWalls, Granary, GreatCavePainting, Harbor, TradingPost, Watchtower
 from microsponge.themes.caveman.improvements import Clearing, Farm
-from microsponge.themes.caveman.resources import Currency, Flint, Food, Stone, Wood
-from microsponge.themes.caveman.technologies import Agriculture, Clubs, Discipline, Fire, Leadership
+from microsponge.themes.caveman.resources import Currency, Flint, Food, Ivory, Poppies, Stone, Wood
+from microsponge.themes.caveman.technologies import Agriculture, Astrology, Barter, Carpentry, ChurchOfTheCaveBear, Clubs, Discipline, Fire, Leadership, Sewing
 from microsponge.themes.caveman.terrain_bonuses import Bison, Elephants
 from microsponge.themes.caveman.terrains import Forest, Grassland, Mountains, Tarpit, Water
 from microsponge.themes.caveman.map import CavemanMap
 from microsponge.themes.caveman.player import CavemanPlayer
-from microsponge.themes.caveman.units import AngryBird, CaptainCaveman, Raft, Settler, SlingshotCaveman, Warrior, Worker
+from microsponge.themes.caveman.units import AngryBird, CaptainCaveman, Raft, Settler, SlingshotCaveman, Clubber, WildClubber, Worker
 
 
 class Caveman(Theme):
@@ -43,9 +43,9 @@ class Caveman(Theme):
     CITY = Village
     MAP = CavemanMap
     TERRAINS = (Grassland, Mountains, Water, Forest, Tarpit)
-    RESOURCES = (Currency, Food, Stone, Wood, Flint)
-    TECHNOLOGIES = (Clubs, Agriculture, Leadership, Discipline, Fire)
-    UNITS = (Settler, Warrior, Worker, CaptainCaveman, SlingshotCaveman, Raft, AngryBird)
-    BUILDINGS = (Granary, GreatCavePainting, ArrangementOfRocks, Barracks, Harbor, Watchtower, ChieftainsHut)
+    RESOURCES = (Currency, Food, Stone, Wood, Flint, Ivory, Poppies)
+    TECHNOLOGIES = (Clubs, Agriculture, Leadership, Discipline, Fire, Sewing, Carpentry, ChurchOfTheCaveBear, Barter, Astrology)
+    UNITS = (Settler, Clubber, Worker, CaptainCaveman, SlingshotCaveman, Raft, AngryBird, WildClubber)
+    BUILDINGS = (Granary, GreatCavePainting, ArrangementOfRocks, Barracks, Harbor, Watchtower, ChieftainsHut, CityWalls, CaveBearShrine, TradingPost)
     IMPROVEMENTS = (Farm, Clearing)
     TERRAIN_BONUSES = (Bison, Elephants)

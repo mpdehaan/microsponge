@@ -54,8 +54,8 @@ import, an undefined name or a name defined twice fails the tests; `pyflakes` is
 - **The tests have a theme of their own, called caveman.** Caveman is a tiny, silly theme that
   exists for the tests, so that the engine is tested without making up anything in classic or
   SciFi. It has all the relationships and features it needs to be complete, simple and
-  testable, and no more: a small world, settler and warrior units, a technology
-  that allows the warrior, a building called granary that requires a technology called agriculture
+  testable, and no more: a small world, settler and clubber units, a technology
+  that allows the clubber, a building called granary that requires a technology called agriculture
   (the granary gives 1 more food from each worked grassland tile and lets its city grow a
   citizen 1 turn sooner), a worker that builds a farm on grassland once agriculture is known,
   cities that are called villages, stone, which comes from
@@ -119,6 +119,17 @@ Any string the program defines is the program's constant in a test too, and any 
 test needs is a named constant at the top of the test file or a variable, never inline; test data
 of the test's own can stay literal.
 
+**Tests read the theme, and do not restate it.** The tests only play caveman: they are not
+tests of caveman's content, and no test is written to check what caveman holds. A test
+works out what to expect from the theme's own classes, for the units, the buildings, the
+world wonders, the technologies, the resources and every other property of a theme: which
+technologies can be researched from what each technology requires, what a build costs
+from the kind's `COST`, which kinds exist from the theme's lists, which building gives a
+bonus from the building's properties. So a change to caveman's tree, kinds or numbers does
+not break tests that are about how the engine works. Where a test needs a kind with a
+particular property, the test finds one in the theme by the property, or defines its own
+kind in a later version of the theme (`test/later_caveman.py`). The user asked for this.
+
 **Tests use the program's contract.** They work with the objects through their constructors,
 getters and setters, never by checking an object's internal data structures directly. A written
 file is checked by loading it back with the library that reads it and comparing data, never by
@@ -151,7 +162,7 @@ beside them:
   civilization), `test/test_helper_ai.py` (the helper AI passing every order for a unit or a city to
   the game, and no player giving such an order directly), `test/test_standing_orders.py` (the kinds of standing order, giving one, what each costs in Policy and Command, armies and divisions, and the referee AI), `test/test_hand.py` (the Hand carrying out standing orders, and doing nothing no order asks for), `test/test_computer_player.py` (two computer players playing a whole game of
   caveman, and the traits tipping their decisions), `test/test_scripted_game.py` (the chronicle kept of a game, the scripted game the
-  computer players play, the report with its story, and the tool), `test/test_game_log.py` (the detailed log of a scripted game, its report with tables and timelines, its page of charts, and the two tools), `test/test_charts.py`
+  computer players play, the report with its story, and the tool), `test/test_game_log.py` (the detailed log of a scripted game, with the units of each kind and the improvements on the tiles of the city radii counted each turn, its report with tables and timelines, its page of charts in tabs, and the two tools), `test/test_charts.py`
   (charts drawn in plain characters), `test/test_generator.py` (the map
   generator, where civilizations start, and the map preview tool), `test/test_saving.py` (the saved game, also loaded into later
   versions of a theme) and `test/test_themes.py` (what each theme holds). More join them as the model objects

@@ -26,11 +26,11 @@ from dataclasses import dataclass
 
 from microsponge.engine.kinds.catalog import NOTHING
 from microsponge.support.chronicle import What
-from microsponge.support.game_log import WHATS, Ending, Key, Series
+from microsponge.support.game_log import NEVER, WHATS, Ending, Group, Key, Series
 from microsponge.support.game_story import SENTENCES
 from microsponge.support.tables import BLANK_LINE, shown_flag, shown_number, table_lines
 from microsponge.ui_strings import (
-    MSG_LOG_BUILDINGS_HEADING, MSG_LOG_BUILDINGS_TITLE, MSG_LOG_CITIES_HEADING, MSG_LOG_CITIES_TITLE, MSG_LOG_POINTS_HEADING, MSG_LOG_POINTS_TITLE, MSG_LOG_SCORES_HEADING,
+    MSG_LOG_BUILDINGS_HEADING, MSG_LOG_BUILDINGS_TITLE, MSG_LOG_BUILT_HEADING, MSG_LOG_BUILT_TITLE, MSG_LOG_MADE_HEADING, MSG_LOG_MADE_TITLE, MSG_LOG_ORDERS_HEADING, MSG_LOG_ORDERS_TITLE, MSG_NONE_MARK, MSG_LOG_CITIES_HEADING, MSG_LOG_CITIES_TITLE, MSG_LOG_FORCES_HEADING, MSG_LOG_FORCES_TITLE, MSG_LOG_POINTS_HEADING, MSG_LOG_POINTS_TITLE, MSG_LOG_SCORES_HEADING,
     MSG_LOG_SCORES_TITLE, MSG_LOG_TIMELINE_ENDED, MSG_LOG_TIMELINE_LOST_CITY, MSG_LOG_TIMELINE_STRONGEST, MSG_LOG_TIMELINE_TITLE, MSG_LOG_TIMELINE_WAR_DECLARED_ON, MSG_LOG_TITLE,
     MSG_LOG_UNITS_HEADING, MSG_LOG_UNITS_TITLE, MSG_STORY_NOBODY,
 )
@@ -142,11 +142,11 @@ def kinds_in_order(units):
 
 def units_row(*, name, kind, units):
     """Return the row of the units table for the units of one kind of one civilization."""
-    ended = {ending: len([unit for unit in units if unit[Key.ENDING] == ending]) for ending in (Ending.LOST, Ending.SETTLED, Ending.ALIVE)}
+    ended = {ending: len([unit for unit in units if unit[Key.ENDING] == ending]) for ending in (Ending.LOST, Ending.RETIRED, Ending.SETTLED, Ending.ALIVE)}
     lived = sum(unit[Key.LIVED] for unit in units)
     gained = [unit for unit in units if unit[Key.LEVEL] > unit[Key.FIRST_LEVEL]]
     return [
-        name, kind, str(len(units)), shown_number(ended[Ending.LOST]), shown_number(ended[Ending.SETTLED]), shown_number(ended[Ending.ALIVE]),
+        name, kind, str(len(units)), shown_number(ended[Ending.LOST]), shown_number(ended[Ending.RETIRED]), shown_number(ended[Ending.SETTLED]), shown_number(ended[Ending.ALIVE]),
         str(average([unit[Key.LIVED] for unit in units])), str(average([unit[Key.MOVED] for unit in units])),
         str(percent(part=sum(unit[Key.INSIDE] for unit in units), whole=lived)),
         str(average([unit[Key.LEVEL] for unit in units])), str(max(unit[Key.LEVEL] for unit in units)), str(percent(part=len(gained), whole=len(units))),
@@ -179,9 +179,72 @@ def buildings_table(data):
     return Table(title=MSG_LOG_BUILDINGS_TITLE, heading=heading, rows=rows)
 
 
+def first_and_last(turns):
+    """Return the cells for the first and the last of some turns."""
+    return [str(min(turns)), str(max(turns))]
+
+
+def built_table(data):
+    """Return the table of how many of each building each civilization built, with the turns of the first and the last."""
+    rows = []
+    for civilization in civilization_ids(data):
+        own = [entry for entry in data[Key.BUILT] if entry[Key.CIVILIZATION] == civilization]
+        for building in list(dict.fromkeys(entry[Key.BUILDING] for entry in own)):
+            turns = [entry[Key.TURN] for entry in own if entry[Key.BUILDING] == building]
+            rows.append([name_of(data=data, civilization=civilization), building, str(len(turns)), *first_and_last(turns)])
+    return Table(title=MSG_LOG_BUILT_TITLE, heading=MSG_LOG_BUILT_HEADING, rows=rows)
+
+
+def made_table(data):
+    """Return the table of how many units of each kind each civilization made, with the turns of the first and the last."""
+    rows = []
+    for civilization in civilization_ids(data):
+        own = [unit for unit in data[Key.UNITS] if unit[Key.CIVILIZATION] == civilization]
+        for kind in kinds_in_order(own):
+            turns = [unit[Key.MADE] for unit in own if unit[Key.KIND] == kind]
+            rows.append([name_of(data=data, civilization=civilization), kind, str(len(turns)), *first_and_last(turns)])
+    return Table(title=MSG_LOG_MADE_TITLE, heading=MSG_LOG_MADE_HEADING, rows=rows)
+
+
+def shown_turn(turn):
+    """Return the cell for a turn, or the mark for none when there was no such turn."""
+    return MSG_NONE_MARK if turn == NEVER else str(turn)
+
+
+def orders_table(data):
+    """Return the table of how many orders of each kind each civilization gave, with the first and the last turn an order of the kind was in use."""
+    rows = []
+    for civilization in civilization_ids(data):
+        for record in [record for record in data[Key.ORDERS] if record[Key.CIVILIZATION] == civilization]:
+            rows.append([
+                name_of(data=data, civilization=civilization), record[Key.KIND], str(len(record[Key.GIVEN])),
+                shown_turn(record[Key.FIRST_IN_USE]), shown_turn(record[Key.LAST_IN_USE]),
+            ])
+    return Table(title=MSG_LOG_ORDERS_TITLE, heading=MSG_LOG_ORDERS_HEADING, rows=rows)
+
+
+def counted_with_turns(turns):
+    """Return the cells for how many of something there were, and the first and the last turn, with the mark for none when there were none."""
+    return [shown_number(len(turns)), *(first_and_last(turns) if turns else [MSG_NONE_MARK, MSG_NONE_MARK])]
+
+
+def forces_table(data):
+    """Return the table of the divisions and armies each civilization made, and the units, divisions and armies it retired, each with the first and the last turn."""
+    rows = []
+    for civilization in civilization_ids(data):
+        groups = {record[Key.GROUP]: record for record in data[Key.FORCES] if record[Key.CIVILIZATION] == civilization}
+        rows.append([
+            name_of(data=data, civilization=civilization),
+            *counted_with_turns(groups[Group.DIVISION][Key.MADE_TURNS]), *counted_with_turns(groups[Group.ARMY][Key.MADE_TURNS]),
+            *counted_with_turns(groups[Group.UNIT][Key.RETIRED_TURNS]), *counted_with_turns(groups[Group.DIVISION][Key.RETIRED_TURNS]),
+            *counted_with_turns(groups[Group.ARMY][Key.RETIRED_TURNS]),
+        ])
+    return Table(title=MSG_LOG_FORCES_TITLE, heading=MSG_LOG_FORCES_HEADING, rows=rows)
+
+
 def tables(data):
-    """Return every table of the report of a log."""
-    return [scores_table(data), cities_table(data), units_table(data), points_table(data), buildings_table(data)]
+    """Return every table of the report of a log, as the text report prints them."""
+    return [scores_table(data), cities_table(data), units_table(data), made_table(data), forces_table(data), points_table(data), buildings_table(data), built_table(data), orders_table(data)]
 
 
 def told(*, data, event, sentence):

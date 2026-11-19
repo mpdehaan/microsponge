@@ -77,8 +77,12 @@ A civilization holds all of its resources in one place, which this guide calls t
 city adds to the bank and spends from it, and no city holds anything of its own. One resource
 is the primary resource, called currency. Each turn the cities collect what their worked tiles
 give, the citizens eat food, and every unit and building is paid for in currency, and in food for
-units. A civilization that ends a turn with no currency is bankrupt, can build nothing that turn,
-collects less, and loses the game after 50 bankrupt turns in a row.
+units. A civilization with at least one city always ends a turn's collecting and upkeep at least
+1 currency richer, whatever its upkeep, so it is never bankrupt, though a civilization whose
+units cost everything it collects can hardly build anything: retiring a unit, which is free and
+gives nothing back, saves its upkeep. A civilization with no city that ends a turn with no
+currency is bankrupt, can build nothing that turn, collects less, and loses the game after 50
+bankrupt turns in a row.
 
 ## Research
 

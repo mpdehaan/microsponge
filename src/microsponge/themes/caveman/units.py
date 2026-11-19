@@ -21,26 +21,26 @@ from microsponge.engine.kinds.domain import Domain
 from microsponge.engine.kinds.unit_kinds import AirUnit, LandUnit, SeaUnit, SettlerUnit, UnitKind
 from microsponge.themes.caveman.buildings import Barracks, Harbor
 from microsponge.themes.caveman.improvements import Clearing, Farm
-from microsponge.themes.caveman.resources import Currency, Food, Wood
-from microsponge.themes.caveman.technologies import Agriculture, Clubs
+from microsponge.themes.caveman.resources import Currency, Food, Poppies, Wood
+from microsponge.themes.caveman.technologies import Agriculture, ChurchOfTheCaveBear, Clubs
 
 
 class CavemanUnit(UnitKind):
-    SUPPORT = {Currency: 1, Food: 1}
+    SUPPORT = {Currency: 5, Food: 1}
     ACTION_POINTS = 2
     HEAL = 1
     CITY_HEAL = 3
 
 
 class Settler(CavemanUnit, SettlerUnit):
-    COST = {Currency: 10}
+    COST = {Currency: 15}
     BUILD_TURNS = 6
     HIT_POINTS = 5
 
 
-class Warrior(CavemanUnit, LandUnit):
+class Clubber(CavemanUnit, LandUnit):
     REQUIRES = (Clubs,)
-    COST = {Currency: 10}
+    COST = {Currency: 15}
     BUILD_TURNS = 3
     ATTACK = Dice(count=2, sides=4)
     ARMOR_CLASS = 8
@@ -50,7 +50,7 @@ class Warrior(CavemanUnit, LandUnit):
 
 class SlingshotCaveman(CavemanUnit, LandUnit):
     REQUIRES = (Clubs,)
-    COST = {Currency: 15}
+    COST = {Currency: 20}
     BUILD_TURNS = 3
     ATTACK = Dice(count=1, sides=6)
     EXTRA_DICE = {Domain.AIR: 1}
@@ -60,27 +60,37 @@ class SlingshotCaveman(CavemanUnit, LandUnit):
     EXPERIENCE_WORTH = 2
 
 
-class CaptainCaveman(CavemanUnit, LandUnit):
-    REQUIRES = (Barracks,)
-    COST = {Currency: 20}
-    BUILD_TURNS = 6
+class WildClubber(CavemanUnit, LandUnit):
+    REQUIRES = (ChurchOfTheCaveBear, Poppies)
+    COST = {Currency: 30}
+    BUILD_TURNS = 5
     ATTACK = Dice(count=4, sides=4)
     ARMOR_CLASS = 8
     HIT_POINTS = 20
     EXPERIENCE_WORTH = 4
 
 
+class CaptainCaveman(CavemanUnit, LandUnit):
+    REQUIRES = (Barracks,)
+    COST = {Currency: 40}
+    BUILD_TURNS = 6
+    ATTACK = Dice(count=6, sides=4)
+    ARMOR_CLASS = 8
+    HIT_POINTS = 30
+    EXPERIENCE_WORTH = 6
+
+
 class Worker(CavemanUnit, LandUnit):
     REQUIRES = (Agriculture,)
     BUILDS = (Farm, Clearing)
-    COST = {Currency: 10}
+    COST = {Currency: 15}
     BUILD_TURNS = 3
     HIT_POINTS = 5
 
 
 class Raft(CavemanUnit, SeaUnit):
     REQUIRES = (Harbor,)
-    COST = {Currency: 10, Wood: 10}
+    COST = {Currency: 15, Wood: 10}
     BUILD_TURNS = 4
     ATTACK = Dice(count=1, sides=6)
     ARMOR_CLASS = 9
@@ -88,7 +98,7 @@ class Raft(CavemanUnit, SeaUnit):
 
 
 class AngryBird(CavemanUnit, AirUnit):
-    COST = {Currency: 10}
+    COST = {Currency: 15}
     BUILD_TURNS = 2
     ATTACK = Dice(count=1, sides=6)
     HIT_POINTS = 5

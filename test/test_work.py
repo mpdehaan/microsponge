@@ -44,7 +44,7 @@ from microsponge.themes.caveman.resources import Food
 from microsponge.themes.caveman.technologies import Agriculture, Clubs
 from microsponge.themes.caveman.terrains import Forest, Grassland, Mountains, Tarpit
 from microsponge.themes.caveman.theme import Caveman
-from microsponge.themes.caveman.units import CavemanUnit, Warrior, Worker
+from microsponge.themes.caveman.units import CavemanUnit, Clubber, Worker
 
 FIRST_CIVILIZATION = 1
 SECOND_CIVILIZATION = 2
@@ -175,11 +175,11 @@ class TestBuildingAnImprovement(Refusals, unittest.TestCase):
         Orders.build_improvement(game=self.game, unit=other, improvement=Farm)
         self.assertIs(WorkControl.improvement_of(game=self.game, unit=other), Farm)
 
-    def test_a_warrior_cannot_build_a_farm(self):
+    def test_a_clubber_cannot_build_a_farm(self):
         x, y = self.field
-        warrior = UnitControl.place(game=self.game, kind=Warrior, owner=FIRST_CIVILIZATION, world=THE_WORLD, x=x + ONE_STEP, y=y)
-        message = self.refused_and_unchanged(lambda: Orders.build_improvement(game=self.game, unit=warrior, improvement=Farm))
-        self.assertEqual(message, ERR_CANNOT_BUILD_IMPROVEMENT.format(unit=shown_name(Warrior), improvement=shown_name(Farm)))
+        clubber = UnitControl.place(game=self.game, kind=Clubber, owner=FIRST_CIVILIZATION, world=THE_WORLD, x=x + ONE_STEP, y=y)
+        message = self.refused_and_unchanged(lambda: Orders.build_improvement(game=self.game, unit=clubber, improvement=Farm))
+        self.assertEqual(message, ERR_CANNOT_BUILD_IMPROVEMENT.format(unit=shown_name(Clubber), improvement=shown_name(Farm)))
 
     def test_a_farm_goes_on_grassland_and_not_on_mountains(self):
         x, y = MOUNTAIN_TILE

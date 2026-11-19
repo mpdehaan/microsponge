@@ -98,5 +98,13 @@ class MarchOrder(CommandOrder):
     RECEIVERS = (ThingType.DIVISION,)
 
 
+class RetireOrder(PolicyOrder):
+    """A unit, or every unit of a division or of an army, is taken out of the game for good, which can save a civilization's income from upkeep. The order is free, and gives nothing back."""
+
+    BASE_COST = 0
+    LONE_UNIT_COST = 0
+    RECEIVERS = (ThingType.ARMY, ThingType.DIVISION, ThingType.UNIT)
+
+
 # The orders every theme has unless the theme lists its own.
-ORDERS = (BuildOrder, RaiseOrder, ExpandOrder, SettlerOrder, ResearchOrder, GarrisonOrder, MarchOrder)
+ORDERS = (BuildOrder, RaiseOrder, ExpandOrder, SettlerOrder, ResearchOrder, GarrisonOrder, MarchOrder, RetireOrder)

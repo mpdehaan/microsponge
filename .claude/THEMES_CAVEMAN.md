@@ -47,7 +47,67 @@ file, so it's in force in every session. `.claude/TESTING.md` says what caveman 
 - The land starts out unexplored in caveman, so that the tests cover exploring. Caveman has no
   technology that ends the fog of war; the tests add one to a later caveman where they need it.
 
+- A game of caveman of 400 turns is far too long for a game this simple: the user wants
+  games over in about half the turns, and the balance tuned toward that first, in this
+  order: research, then costs, then the rest.
+- The last technology should be researched toward the end of a game, so research costs go
+  up.
+- Units and buildings should cost the resources a civilization collects, like wood and
+  stone, and not only currency, because the bank of currency grows far too large.
+- The buildings that technologies allow should give more advantages, so that research is
+  worth what research costs, and more buildings should require resources.
+- The user suggests a new resource, ivory, which comes from elephants and can be used
+  after researching a technology called sewing. Sewing makes a civilization's cities grow
+  faster. The details are not decided.
+- City walls, if caveman has none yet, require a technology called carpentry, which
+  requires forests. How carpentry requires forests is not decided.
+- The user asked Claude to recommend other technologies for caveman, and chose from Claude's
+  recommendations:
+  - Clubs stays, and caveman's warrior is renamed the clubber.
+  - Fire stays.
+  - Agriculture allows only the worker and the farm, and no longer the granary.
+  - Sewing and carpentry, the user's own ideas, go in, and leadership and discipline stay.
+  - Claude's shamanism goes in as a technology called church of the cave bear.
+  - Claude's barter goes in, though the user is a little worried about adding to the income
+    of currency.
+  - Claude's star lore goes in as a technology called astrology, which requires church of the
+    cave bear and leadership.
+  - The arrangement of rocks makes the upkeep of every unit 1 currency less.
+  - Claude's stone tools and pottery were not taken.
+- The upkeep of a unit in currency goes up, to maybe 5, and the cost of every unit goes up by
+  5 currency.
+- The user wants to know which buildings and world wonders give no benefit, with suggestions
+  of what each should do.
+- Caveman has a resource called poppies, and a unit called the wild clubber, which can be
+  built after learning church of the cave bear, and is about twice as good as the clubber.
+  Captain caveman is half again better than the wild clubber.
+
 ## The numbers Claude chose
+
+These choices of Claude's fill the gaps the user left in the decisions above, for the user to
+confirm or change after seeing a game:
+
+- The granary requires sewing, since agriculture no longer allows it.
+- Carpentry requires nothing for now, and city walls cost wood, which only forest gives, which
+  is how carpentry requires forests until the user says otherwise. City walls: 20 currency,
+  20 wood and 30 stone, 6 turns, 1 currency to support, armor class 1 better, and walls.
+- Church of the cave bear requires fire and leadership, and allows the cave bear shrine: 30
+  currency and 10 stone, 5 turns, 1 currency to support, 2 research points.
+- Barter requires sewing and leadership, and allows the trading post: 30 currency and 10
+  ivory, 5 turns, 1 currency to support, 10 percent more currency in its city, which is less
+  than the 20 percent Claude first suggested, because of the user's worry about income.
+- Sewing makes every city of the civilization grow a citizen 1 turn sooner, and elephants give
+  1 ivory once the civilization of the city working the tile knows sewing.
+- Leadership requires fire, and discipline requires leadership.
+- Astrology allows the arrangement of rocks.
+- Research points: clubs 15, fire 15, agriculture 20, sewing 50, carpentry 50, leadership 50,
+  discipline 90, church of the cave bear 90, barter 100, astrology 200.
+- Unit upkeep is 5 currency and 1 food. Unit costs: settler 15 currency, clubber 15,
+  worker 15, slingshot caveman 20, angry bird 15, raft 15 and 10 wood, wild clubber 30,
+  captain caveman 40.
+- Poppies are a strategic resource on grassland, and the wild clubber requires poppies within
+  the borders beside church of the cave bear: 4d4, armor class 8, 20 hit points, worth 4, 5
+  turns. Captain caveman is now 6d4, armor class 8, 30 hit points, worth 6.
 
 Each line is the attack dice, the armor class, the hit points and the experience worth, then the
 cost and the turns to build. Every unit costs 1 currency and 1 food to support each turn and has
@@ -55,9 +115,9 @@ cost and the turns to build. Every unit costs 1 currency and 1 food to support e
 gained, so a level 20 warrior has 13 hit points and a level 20 captain caveman 27.
 
 - settler: no attack, 10, 5, worth 1. 10 currency and a citizen, 6 turns.
-- warrior: 2d4, 8, 10, worth 2. 10 currency, 3 turns. Requires clubs.
+- clubber, which was called the warrior: 2d4, 8, 10, worth 2. Requires clubs.
 - worker: no attack, 10, 5, worth 1. 10 currency, 3 turns. Requires agriculture.
-- captain caveman: 4d4, 8, 20, worth 4. 20 currency, 6 turns. Requires a barracks.
+- captain caveman: requires a barracks.
 - slingshot caveman: 1d6, and 1 extra die against air units, 8, 10, worth 2. 15 currency,
   3 turns. Requires clubs.
 - raft: 1d6, 9, 5, worth 1. 10 currency and 10 wood, 4 turns. Requires a harbor.

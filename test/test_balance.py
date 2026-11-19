@@ -39,7 +39,7 @@ from microsponge.ui_strings import (
     MSG_BALANCE_SLOW_NOTE, MSG_LIST_SEPARATOR, MSG_MARKDOWN_ROW, MSG_NAME_ONE_THEME,
 )
 from microsponge.themes.caveman.theme import Caveman
-from microsponge.themes.caveman.units import Warrior
+from microsponge.themes.caveman.units import Clubber
 from microsponge.themes.classic import units as classic_units
 from microsponge.themes.classic.theme import Classic
 from microsponge.themes.scifi.theme import SciFi
@@ -159,10 +159,10 @@ class TestBalance(unittest.TestCase):
     def test_the_report_says_how_a_unit_at_the_last_level_stands_against_one_at_the_first(self):
         rows = self.tool.level_rows(Caveman)
         self.assertEqual(len(rows), len(self.tool.fighters(Caveman)))
-        veteran = UnitControl.attacks_to_kill(theme=Caveman, attacker=Warrior, defender=Warrior, attacker_level=LAST_LEVEL)
-        recruit = UnitControl.attacks_to_kill(theme=Caveman, attacker=Warrior, defender=Warrior, defender_level=LAST_LEVEL)
+        veteran = UnitControl.attacks_to_kill(theme=Caveman, attacker=Clubber, defender=Clubber, attacker_level=LAST_LEVEL)
+        recruit = UnitControl.attacks_to_kill(theme=Caveman, attacker=Clubber, defender=Clubber, defender_level=LAST_LEVEL)
         self.assertLess(veteran, recruit)
-        self.assertEqual(rows[0], [shown_name(Warrior), str(veteran), str(recruit)])
+        self.assertEqual(rows[0], [shown_name(Clubber), str(veteran), str(recruit)])
         expected = [[shown_name(unit), str(UnitControl.attacks_to_kill(theme=SMALL_THEME, attacker=unit, defender=unit, attacker_level=LAST_LEVEL)), str(UnitControl.attacks_to_kill(theme=SMALL_THEME, attacker=unit, defender=unit, defender_level=LAST_LEVEL))] for unit in (Mouse, Mammoth)]
         self.assertEqual(self.tool.level_rows(SMALL_THEME), expected)
 

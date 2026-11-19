@@ -40,7 +40,7 @@ from microsponge.err_messages import (
 from microsponge.themes import THEMES
 from microsponge.themes.caveman.terrains import Mountains, Tarpit, Water
 from microsponge.themes.caveman.theme import Caveman
-from microsponge.themes.caveman.units import Settler, Warrior
+from microsponge.themes.caveman.units import Settler, Clubber
 
 VILLAGE = Caveman.CITY.NAME
 FIRST_CIVILIZATION = 1
@@ -271,20 +271,20 @@ class TestBuildingACity(Refusals, unittest.TestCase):
     def test_a_city_center_may_not_cover_another_unit(self):
         x, y = SETTLER_TILES[0]
         corner = (x + CENTER_REACH, y + CENTER_REACH)
-        warrior = self.place(kind=Warrior, tile=corner, owner=SECOND_CIVILIZATION)
+        clubber = self.place(kind=Clubber, tile=corner, owner=SECOND_CIVILIZATION)
         expected = ERR_CITY_COVERS_A_UNIT.format(city=VILLAGE, x=corner[0], y=corner[1])
         self.assertEqual(self.refused(lambda: CityControl.found(game=self.game, settler=self.first_settler, name=A_NAME)), expected)
-        UnitControl.remove(game=self.game, unit=warrior)
-        self.place(kind=Warrior, tile=(x + JUST_PAST_CENTER, y), owner=SECOND_CIVILIZATION)
+        UnitControl.remove(game=self.game, unit=clubber)
+        self.place(kind=Clubber, tile=(x + JUST_PAST_CENTER, y), owner=SECOND_CIVILIZATION)
         CityControl.found(game=self.game, settler=self.first_settler, name=A_NAME)
         self.assertEqual(len(self.game.get_cities()), 1)
 
     def test_only_a_settler_builds_a_city(self):
-        warrior = self.place(kind=Warrior, tile=OPEN_TILE)
-        expected = ERR_NOT_A_SETTLER.format(unit=shown_name(Warrior), city=VILLAGE)
-        self.assertEqual(CityControl.problem_founding(game=self.game, settler=warrior), expected)
-        self.assertEqual(self.refused(lambda: CityControl.found(game=self.game, settler=warrior, name=A_NAME)), expected)
-        self.assertTrue(self.units.exists(warrior))
+        clubber = self.place(kind=Clubber, tile=OPEN_TILE)
+        expected = ERR_NOT_A_SETTLER.format(unit=shown_name(Clubber), city=VILLAGE)
+        self.assertEqual(CityControl.problem_founding(game=self.game, settler=clubber), expected)
+        self.assertEqual(self.refused(lambda: CityControl.found(game=self.game, settler=clubber, name=A_NAME)), expected)
+        self.assertTrue(self.units.exists(clubber))
         gone = self.units.count() + 10
         self.assertEqual(self.refused(lambda: CityControl.found(game=self.game, settler=gone, name=A_NAME)), ERR_NO_SUCH_UNIT.format(unit=gone))
         self.assertEqual(self.game.get_cities(), [])
@@ -322,14 +322,14 @@ class TestUnitsInACity(Refusals, unittest.TestCase):
 
     def place(self, *, tile, owner=FIRST_CIVILIZATION):
         x, y = tile
-        return UnitControl.place(game=self.game, kind=Warrior, owner=owner, world=THE_WORLD, x=x, y=y)
+        return UnitControl.place(game=self.game, kind=Clubber, owner=owner, world=THE_WORLD, x=x, y=y)
 
     def unit_on(self, tile):
         x, y = tile
         return self.world.get_value(layer=Layer.UNIT, x=x, y=y)
 
     def inside(self, tile):
-        """Place a warrior on a tile next to the city center, move it into the city and return it."""
+        """Place a clubber on a tile next to the city center, move it into the city and return it."""
         unit = self.place(tile=tile)
         CityControl.enter(game=self.game, unit=unit, city=self.city)
         return unit
@@ -396,7 +396,7 @@ class TestUnitsInACity(Refusals, unittest.TestCase):
         self.world.set_value(layer=Layer.TERRAIN, x=water[0], y=water[1], value=terrain_id(game=self.game, terrain=Water))
         refusals = {
             self.east: ERR_TILE_HAS_A_UNIT.format(x=self.east[0], y=self.east[1]),
-            water: ERR_CANNOT_BE_ON.format(unit=shown_name(Warrior), terrain=shown_name(Water)),
+            water: ERR_CANNOT_BE_ON.format(unit=shown_name(Clubber), terrain=shown_name(Water)),
             self.further_east: ERR_NOT_NEXT_TO_CENTER.format(x=self.further_east[0], y=self.further_east[1], city=VILLAGE, name=A_NAME),
             self.middle: ERR_NOT_NEXT_TO_CENTER.format(x=self.middle[0], y=self.middle[1], city=VILLAGE, name=A_NAME),
             (self.east[0], None): ERR_NOT_NEXT_TO_CENTER.format(x=self.east[0], y=None, city=VILLAGE, name=A_NAME),

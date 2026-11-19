@@ -40,6 +40,8 @@ class Building(Kind):
     WORKED_TILE_BONUS = {}
     # The turns sooner its city grows a citizen.
     GROWS_SOONER = 0
+    # What it takes off the upkeep of each unit of its civilization each turn, never below nothing: each resource with its amount, like a world wonder that makes every unit cheaper to keep.
+    UNIT_SUPPORT_DISCOUNT = {}
     # The levels above the first that a unit built in its city starts at, like a barracks that starts units at level 2.
     LEVEL_BONUS = 0
     # By how much it makes the armor class of every unit inside its city better when the city is attacked, like a watchtower.

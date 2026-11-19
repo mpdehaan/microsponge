@@ -17,10 +17,10 @@ The ice has pulled back, the grass has come up, and the clans have come down fro
 see what the world is made of. It turns out to be made of grassland, forest, a few mountains, a
 lake and a tarpit, and there is just enough of it for one clan, which is a problem, because there
 are two. Every clan starts with a settler, who builds a village where the settler stands, and the
-village is all the clan has. From there a clan learns clubs, which is what a warrior carries,
+village is all the clan has. From there a clan learns clubs, which is what a clubber carries,
 agriculture, which gives it workers, farms and the granary, fire, which lets a village with flint
 within its borders raise a watchtower, and discipline, which allows the barracks, and with the
-barracks captain caveman, who is twice the warrior and knows it. A village by the lake can build
+barracks captain caveman, who is three times the clubber and knows it. A village by the lake can build
 a harbor and put rafts on the water, and any village can launch an angry bird, which is super weak,
 cheap, and cannot take a village, but can be very annoying. A slingshot caveman is the answer to
 an angry bird. The game is won when the other clan's last village is taken.
@@ -35,8 +35,8 @@ an angry bird. The game is won when the other clan's last village is taken.
 - Research is slow: 1 point per village each turn, so the second village matters.
 - Every unit costs 1 currency and 1 food a turn, and a village of one citizen pays for about two
   units, so the army is paid for by villages.
-- Fights are quick: on average rolls a warrior kills a warrior in 3 attacks, and captain caveman
-  kills a warrior in 2.
+- Fights are quick: on average rolls a clubber kills a clubber in 3 attacks, and captain caveman
+  kills a clubber in 2.
 
 ## Tips
 
@@ -48,7 +48,7 @@ an angry bird. The game is won when the other clan's last village is taken.
   flint is within your borders.
 - Keep a unit inside every village. An empty village is taken by anyone who walks in, and a
   unit inside heals three times as fast.
-- Attack with a group, never alone: a lone warrior loses to the strike back and the healing.
+- Attack with a group, never alone: a lone clubber loses to the strike back and the healing.
   Stand next to the village center, attack with everyone every turn, and walk in when nobody is
   left inside.
 - Watch the bank. A clan with 0 currency builds nothing, and 50 turns of it loses the game.
@@ -60,92 +60,105 @@ The tables below are generated from the code by `tools/theme_guides.py`, and `ma
 
 The units of caveman:
 
-| unit              | class | requires    | cost                 | turns | support            | citizens used | attack dice | extra dice    | armor class | hit points | experience worth | action points | heals | heals in a city | strikes back % | cannot hit | takes cities | builds         |
-| ----------------- | ----- | ----------- | -------------------- | ----: | ------------------ | ------------: | ----------- | ------------- | ----------: | ---------: | ---------------: | ------------: | ----: | --------------: | -------------: | ---------- | ------------ | -------------- |
-| settler           | land  | -           | 10 currency          |     6 | 1 currency, 1 food |             1 | -           | -             |          10 |          5 |                1 |             2 |     1 |               3 |             50 | air        | yes          | -              |
-| warrior           | land  | clubs       | 10 currency          |     3 | 1 currency, 1 food |             - | 2d4         | -             |           8 |         10 |                2 |             2 |     1 |               3 |             50 | air        | yes          | -              |
-| worker            | land  | agriculture | 10 currency          |     3 | 1 currency, 1 food |             - | -           | -             |          10 |          5 |                1 |             2 |     1 |               3 |             50 | air        | yes          | farm, clearing |
-| captain caveman   | land  | barracks    | 20 currency          |     6 | 1 currency, 1 food |             - | 4d4         | -             |           8 |         20 |                4 |             2 |     1 |               3 |             50 | air        | yes          | -              |
-| slingshot caveman | land  | clubs       | 15 currency          |     3 | 1 currency, 1 food |             - | 1d6         | 1 against air |           8 |         10 |                2 |             2 |     1 |               3 |             50 | -          | yes          | -              |
-| raft              | sea   | harbor      | 10 currency, 10 wood |     4 | 1 currency, 1 food |             - | 1d6         | -             |           9 |          5 |                1 |             2 |     1 |               3 |             50 | air        | yes          | -              |
-| angry bird        | air   | -           | 10 currency          |     2 | 1 currency, 1 food |             - | 1d6         | -             |          10 |          5 |                1 |             2 |     1 |               3 |             50 | -          | -            | -              |
+| unit              | class | requires                         | cost                 | turns | support            | citizens used | attack dice | extra dice    | armor class | hit points | experience worth | action points | heals | heals in a city | strikes back % | cannot hit | takes cities | builds         |
+| ----------------- | ----- | -------------------------------- | -------------------- | ----: | ------------------ | ------------: | ----------- | ------------- | ----------: | ---------: | ---------------: | ------------: | ----: | --------------: | -------------: | ---------- | ------------ | -------------- |
+| settler           | land  | -                                | 15 currency          |     6 | 5 currency, 1 food |             1 | -           | -             |          10 |          5 |                1 |             2 |     1 |               3 |             50 | air        | yes          | -              |
+| clubber           | land  | clubs                            | 15 currency          |     3 | 5 currency, 1 food |             - | 2d4         | -             |           8 |         10 |                2 |             2 |     1 |               3 |             50 | air        | yes          | -              |
+| worker            | land  | agriculture                      | 15 currency          |     3 | 5 currency, 1 food |             - | -           | -             |          10 |          5 |                1 |             2 |     1 |               3 |             50 | air        | yes          | farm, clearing |
+| captain caveman   | land  | barracks                         | 40 currency          |     6 | 5 currency, 1 food |             - | 6d4         | -             |           8 |         30 |                6 |             2 |     1 |               3 |             50 | air        | yes          | -              |
+| slingshot caveman | land  | clubs                            | 20 currency          |     3 | 5 currency, 1 food |             - | 1d6         | 1 against air |           8 |         10 |                2 |             2 |     1 |               3 |             50 | -          | yes          | -              |
+| raft              | sea   | harbor                           | 15 currency, 10 wood |     4 | 5 currency, 1 food |             - | 1d6         | -             |           9 |          5 |                1 |             2 |     1 |               3 |             50 | air        | yes          | -              |
+| angry bird        | air   | -                                | 15 currency          |     2 | 5 currency, 1 food |             - | 1d6         | -             |          10 |          5 |                1 |             2 |     1 |               3 |             50 | -          | -            | -              |
+| wild clubber      | land  | church of the cave bear, poppies | 30 currency          |     5 | 5 currency, 1 food |             - | 4d4         | -             |           8 |         20 |                4 |             2 |     1 |               3 |             50 | air        | yes          | -              |
 
 no unit of caveman sets these, so their columns are left out: bypasses walls
 
 The buildings of caveman:
 
-| building             | world wonder | requires    | cost                  | turns | support    | produces   | research points | control points | grows sooner | worked tile bonus | armor bonus | level bonus | beside water |
-| -------------------- | ------------ | ----------- | --------------------- | ----: | ---------- | ---------- | --------------: | -------------- | -----------: | ----------------- | ----------: | ----------: | ------------ |
-| granary              | -            | agriculture | 30 currency           |     5 | 1 currency | -          |               - | -              |            1 | grassland: 1 food |           - |           - | -            |
-| great cave painting  | yes          | -           | 40 currency           |     8 | 1 currency | -          |               2 | -              |            - | -                 |           - |           - | -            |
-| arrangement of rocks | yes          | -           | 20 currency, 50 stone |    10 | 1 currency | 2 currency |               - | 1 policy       |            - | -                 |           - |           - | -            |
-| barracks             | -            | discipline  | 30 currency           |     5 | 1 currency | -          |               - | -              |            - | -                 |           - |           1 | -            |
-| harbor               | -            | -           | 30 currency           |     5 | 1 currency | -          |               - | -              |            - | -                 |           - |           - | yes          |
-| watchtower           | -            | fire, flint | 20 currency           |     5 | 1 currency | -          |               - | 5 command      |            - | -                 |           1 |           - | -            |
-| chieftain's hut      | -            | leadership  | 20 currency           |     4 | 1 currency | -          |               - | 2 policy       |            - | -                 |           - |           - | -            |
-
-no building of caveman sets these, so their columns are left out: income bonus %, walls
+| building             | world wonder | requires                | cost                           | turns | support    | produces   | income bonus % | research points | control points | grows sooner | worked tile bonus | armor bonus | level bonus | walls | beside water | off each unit upkeep |
+| -------------------- | ------------ | ----------------------- | ------------------------------ | ----: | ---------- | ---------- | -------------: | --------------: | -------------- | -----------: | ----------------- | ----------: | ----------: | ----- | ------------ | -------------------- |
+| granary              | -            | sewing                  | 30 currency                    |     5 | 1 currency | -          |              - |               - | -              |            1 | grassland: 1 food |           - |           - | -     | -            | -                    |
+| great cave painting  | yes          | -                       | 40 currency                    |     8 | 1 currency | -          |              - |               2 | -              |            - | -                 |           - |           - | -     | -            | -                    |
+| arrangement of rocks | yes          | astrology               | 20 currency, 50 stone          |    10 | 1 currency | 2 currency |              - |               - | 1 policy       |            - | -                 |           - |           - | -     | -            | 1 currency           |
+| barracks             | -            | discipline              | 30 currency                    |     5 | 1 currency | -          |              - |               - | -              |            - | -                 |           - |           1 | -     | -            | -                    |
+| harbor               | -            | -                       | 30 currency                    |     5 | 1 currency | -          |              - |               - | -              |            - | -                 |           - |           - | -     | yes          | -                    |
+| watchtower           | -            | fire, flint             | 20 currency                    |     5 | 1 currency | -          |              - |               - | 5 command      |            - | -                 |           1 |           - | -     | -            | -                    |
+| chieftain's hut      | -            | leadership              | 20 currency                    |     4 | 1 currency | -          |              - |               - | 2 policy       |            - | -                 |           - |           - | -     | -            | -                    |
+| city walls           | -            | carpentry               | 20 currency, 20 wood, 30 stone |     6 | 1 currency | -          |              - |               - | -              |            - | -                 |           1 |           - | yes   | -            | -                    |
+| cave bear shrine     | -            | church of the cave bear | 30 currency, 10 stone          |     5 | 1 currency | -          |              - |               2 | -              |            - | -                 |           - |           - | -     | -            | -                    |
+| trading post         | -            | barter                  | 30 currency, 10 ivory          |     5 | 1 currency | -          |             10 |               - | -              |            - | -                 |           - |           - | -     | -            | -                    |
 
 The world wonders of caveman:
 
-| world wonder         | cost                  | turns | support    | produces   | research points | control points |
-| -------------------- | --------------------- | ----: | ---------- | ---------- | --------------: | -------------- |
-| great cave painting  | 40 currency           |     8 | 1 currency | -          |               2 | -              |
-| arrangement of rocks | 20 currency, 50 stone |    10 | 1 currency | 2 currency |               - | 1 policy       |
+| world wonder         | requires  | cost                  | turns | support    | produces   | research points | control points | off each unit upkeep |
+| -------------------- | --------- | --------------------- | ----: | ---------- | ---------- | --------------: | -------------- | -------------------- |
+| great cave painting  | -         | 40 currency           |     8 | 1 currency | -          |               2 | -              | -                    |
+| arrangement of rocks | astrology | 20 currency, 50 stone |    10 | 1 currency | 2 currency |               - | 1 policy       | 1 currency           |
 
-no world wonder of caveman sets these, so their columns are left out: requires, income bonus %, grows sooner, worked tile bonus, armor bonus, level bonus, walls, beside water
+no world wonder of caveman sets these, so their columns are left out: income bonus %, grows sooner, worked tile bonus, armor bonus, level bonus, walls, beside water
 
 The tech tree of caveman:
 
-| technology  | research points | allows                     | harvest bonus % | unit support bonus % |
-| ----------- | --------------: | -------------------------- | --------------- | -------------------: |
-| clubs       |              10 | warrior, slingshot caveman | -               |                   10 |
-| agriculture |              30 | worker, granary, farm      | 10 food         |                    - |
-| leadership  |              25 | chieftain's hut            | -               |                    - |
-| discipline  |              40 | barracks                   | -               |                    - |
-| fire        |              20 | watchtower                 | -               |                    - |
-
-no technology of caveman sets these, so their columns are left out: requires
+| technology              | research points | requires                            | allows                         | harvest bonus % | unit support bonus % | grows sooner |
+| ----------------------- | --------------: | ----------------------------------- | ------------------------------ | --------------- | -------------------: | -----------: |
+| clubs                   |              15 | -                                   | clubber, slingshot caveman     | -               |                   10 |            - |
+| agriculture             |              20 | -                                   | worker, farm                   | 10 food         |                    - |            - |
+| leadership              |              50 | fire                                | chieftain's hut                | -               |                    - |            - |
+| discipline              |              90 | leadership                          | barracks                       | -               |                    - |            - |
+| fire                    |              15 | -                                   | watchtower                     | -               |                    - |            - |
+| sewing                  |              50 | agriculture                         | granary                        | -               |                    - |            1 |
+| carpentry               |              50 | -                                   | city walls                     | -               |                    - |            - |
+| church of the cave bear |              90 | fire, leadership                    | wild clubber, cave bear shrine | -               |                    - |            - |
+| barter                  |             100 | sewing, leadership                  | trading post                   | -               |                    - |            - |
+| astrology               |             200 | church of the cave bear, leadership | arrangement of rocks           | -               |                    - |            - |
 
 The units of caveman that can attack:
 
 | unit              | attack dice | armor class | hit points | experience worth |
 | ----------------- | ----------- | ----------: | ---------: | ---------------: |
-| warrior           | 2d4         |           8 |         10 |                2 |
-| captain caveman   | 4d4         |           8 |         20 |                4 |
+| clubber           | 2d4         |           8 |         10 |                2 |
+| captain caveman   | 6d4         |           8 |         30 |                6 |
 | slingshot caveman | 1d6         |           8 |         10 |                2 |
 | raft              | 1d6         |           9 |          5 |                1 |
 | angry bird        | 1d6         |          10 |          5 |                1 |
+| wild clubber      | 4d4         |           8 |         20 |                4 |
 
 Attacks needed, on average rolls, by the attacker in each row to kill a whole level 1 unit of the defender in each column (- means the attacker cannot hit that defender):
 
-| attacker \ defender | settler | warrior | worker | captain caveman | slingshot caveman | raft | angry bird |
-| ------------------- | ------: | ------: | -----: | --------------: | ----------------: | ---: | ---------: |
-| warrior             |       1 |       3 |      1 |               5 |                 3 |    1 |          - |
-| captain caveman     |       1 |       2 |      1 |               3 |                 2 |    1 |          - |
-| slingshot caveman   |       2 |       4 |      2 |               7 |                 4 |    2 |          1 |
-| raft                |       2 |       4 |      2 |               7 |                 4 |    2 |          - |
-| angry bird          |       2 |       4 |      2 |               7 |                 4 |    2 |          2 |
+| attacker \ defender | settler | clubber | worker | captain caveman | slingshot caveman | raft | angry bird | wild clubber |
+| ------------------- | ------: | ------: | -----: | --------------: | ----------------: | ---: | ---------: | -----------: |
+| clubber             |       1 |       3 |      1 |               8 |                 3 |    1 |          - |            5 |
+| captain caveman     |       1 |       1 |      1 |               3 |                 1 |    1 |          - |            2 |
+| slingshot caveman   |       2 |       4 |      2 |              10 |                 4 |    2 |          1 |            7 |
+| raft                |       2 |       4 |      2 |              10 |                 4 |    2 |          - |            7 |
+| angry bird          |       2 |       4 |      2 |              10 |                 4 |    2 |          2 |            7 |
+| wild clubber        |       1 |       2 |      1 |               4 |                 2 |    1 |          - |            3 |
 
 Pairs outside what the user wants, a defender gone after one attack or still standing after 10:
 
-| attacker          | defender   | attacks | note                  |
-| ----------------- | ---------- | ------: | --------------------- |
-| warrior           | settler    |       1 | gone after one attack |
-| warrior           | worker     |       1 | gone after one attack |
-| warrior           | raft       |       1 | gone after one attack |
-| captain caveman   | settler    |       1 | gone after one attack |
-| captain caveman   | worker     |       1 | gone after one attack |
-| captain caveman   | raft       |       1 | gone after one attack |
-| slingshot caveman | angry bird |       1 | gone after one attack |
+| attacker          | defender          | attacks | note                  |
+| ----------------- | ----------------- | ------: | --------------------- |
+| clubber           | settler           |       1 | gone after one attack |
+| clubber           | worker            |       1 | gone after one attack |
+| clubber           | raft              |       1 | gone after one attack |
+| captain caveman   | settler           |       1 | gone after one attack |
+| captain caveman   | clubber           |       1 | gone after one attack |
+| captain caveman   | worker            |       1 | gone after one attack |
+| captain caveman   | slingshot caveman |       1 | gone after one attack |
+| captain caveman   | raft              |       1 | gone after one attack |
+| slingshot caveman | angry bird        |       1 | gone after one attack |
+| wild clubber      | settler           |       1 | gone after one attack |
+| wild clubber      | worker            |       1 | gone after one attack |
+| wild clubber      | raft              |       1 | gone after one attack |
 
 A level 20 unit against a level 1 unit of the same kind, in attacks needed:
 
 | unit              | level 20 attacking level 1 | level 1 attacking level 20 |
 | ----------------- | -------------------------: | -------------------------: |
-| warrior           |                          2 |                          5 |
-| captain caveman   |                          2 |                          5 |
+| clubber           |                          2 |                          5 |
+| captain caveman   |                          3 |                          5 |
 | slingshot caveman |                          3 |                          7 |
 | raft              |                          1 |                          2 |
 | angry bird        |                          1 |                          2 |
+| wild clubber      |                          2 |                          5 |
 <!-- generated by tools/theme_guides.py: end -->

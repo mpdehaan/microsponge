@@ -84,6 +84,13 @@ says where things are and how the parts fit, and is kept true with every change 
   (`TurnControl.policy_points()`: the theme's `POLICY_POINTS`, the city spec's for each
   city and each building's, like caveman's chieftain's hut).
   The civilizations play in the order they joined, and the turn number goes up after the last.
+- `TurnControl.pay_support(before=)` lifts a civilization with a city to at least the theme's
+  `LEAST_INCOME` more currency than it held before collecting, or does nothing when the theme
+  sets None, so a civilization with a city is never bankrupt.
+- A technology's `GROWS_SOONER`, a terrain bonus's `GIVES_WITH` (more with a technology the
+  working city's civilization knows, through `TerrainBonusControl.gives_with()`), and a
+  building's `UNIT_SUPPORT_DISCOUNT` (off each unit's upkeep) are effects caveman uses for
+  sewing, elephants and the arrangement of rocks.
 - `TurnControl.end_turn()` does, for the civilization playing and in this order: building units
   go on building, the cities collect, the citizens eat, the units and buildings are paid for,
   the cities go on with what they build, the cities grow, the units heal, research goes on, and
@@ -225,7 +232,10 @@ says where things are and how the parts fit, and is kept true with every change 
   units of the division, or the count a garrison order keeps) and `LONE_UNIT_COST` for an
   order to one unit; an inactive order and a realized order cost nothing.
   `OrderControl.left()` is what a civilization has beyond what its active orders take, and
-  `Orders.end_turn()` is refused while that is below 0 for Policy or Command. An order is
+  `Orders.end_turn()` is refused while that is below 0 for Policy or Command. A
+  `RetireOrder` is free, to a unit, a division or an army, and `Hand.retire()` takes the
+  living units out of the game; the main AI gives one a turn while `is_starved()`, for a
+  fighter beyond the garrisons. An order is
   active, or inactive with a `Reason`: completed, disabled, or invalid for good, which
   `Referee.review()` sets when the giver, the receiver or the city to garrison is no longer
   the civilization's. `OrderControl.add_army()` and `add_division()` keep the theme's
@@ -328,11 +338,19 @@ says where things are and how the parts fit, and is kept true with every change 
   Policy and Command had and taken, military units inside a city, average level, buildings,
   hit points, strength (hit points of military units plus technologies plus citizens plus
   buildings, that turn) and the four scores that add those up over the turns, with their
-  sum. `as_data()` is what `write_log()` writes as JSON, with names from `Key`.
+  sum, and beside the series how many units of each kind of the theme's `UNITS` each
+  civilization has and how many improvements of each kind that stays on a tile (no
+  `BECOMES`) are on the tiles of its cities' radii, the radius of each city worked out once.
+  `as_data()` is what `write_log()` writes as JSON, with names from `Key`: the per-kind
+  counts are `Key.UNIT_KINDS` and `Key.IMPROVEMENTS`, by the kind's shown name and then the
+  civilization, every kind present even with all zeros.
   `support/game_log_report.py` works only from that data: `tables()`, `timelines()` and
   `report_lines()`. `support/game_log_page.py` puts `page_data()` into the template
   `game_log_page.html` beside it, which draws the charts with Chart.js loaded by the
-  browser. `tools/game_log.py` writes `logs/<theme>_seed<seed>.json`, and
+  browser: `tabs_of()` gives the tabs in `Tab.ORDER` (score, cities, units, improvements,
+  control points, timelines, tables), each with its charts, leaving out a kind no
+  civilization ever had (`kinds_ever_had()`), and the page draws a tab the first time it is
+  shown and keeps the tab in the address's hash. `tools/game_log.py` writes `logs/<theme>_seed<seed>.json`, and
   `tools/game_report.py` prints the report, or with `--html` or `--open` writes the page.
   `DEV_TOOLS.md` is the guide to them.
 - `support/guides.py` knows where each theme's guide is (`GUIDE_<THEME>.md`, from the saved

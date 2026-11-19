@@ -43,10 +43,10 @@ from microsponge.themes import THEMES
 from microsponge.themes.caveman.buildings import Granary, GreatCavePainting
 from microsponge.themes.caveman.improvements import Farm
 from microsponge.themes.caveman.resources import Currency, Food, Stone, Wood
-from microsponge.themes.caveman.technologies import Agriculture, Clubs, Discipline
+from microsponge.themes.caveman.technologies import Agriculture, Clubs, Discipline, Leadership, Sewing
 from microsponge.themes.caveman.terrains import Grassland, Mountains, Water
 from microsponge.themes.caveman.theme import Caveman
-from microsponge.themes.caveman.units import Settler, Warrior, Worker
+from microsponge.themes.caveman.units import Settler, Clubber, Worker
 from microsponge.themes.classic.theme import Classic
 
 FILE_NAME = 'game.json'
@@ -80,10 +80,10 @@ class TestSaving(Refusals, unittest.TestCase):
         self.path = os.path.join(folder.name, FILE_NAME)
         self.game = new_caveman_game()
         x, y = GRASSLAND_TILE
-        self.warrior = UnitControl.place(game=self.game, kind=Warrior, owner=FIRST_CIVILIZATION, world=THE_WORLD, x=x, y=y)
-        self.game.get_units().set_value(column=UnitColumn.HIT_POINTS, unit=self.warrior, value=HURT)
+        self.clubber = UnitControl.place(game=self.game, kind=Clubber, owner=FIRST_CIVILIZATION, world=THE_WORLD, x=x, y=y)
+        self.game.get_units().set_value(column=UnitColumn.HIT_POINTS, unit=self.clubber, value=HURT)
         x, y = MOUNTAIN_TILE
-        gone = UnitControl.place(game=self.game, kind=Warrior, owner=FIRST_CIVILIZATION, world=THE_WORLD, x=x, y=y)
+        gone = UnitControl.place(game=self.game, kind=Clubber, owner=FIRST_CIVILIZATION, world=THE_WORLD, x=x, y=y)
         UnitControl.remove(game=self.game, unit=gone)
         self.game.set_turn(A_TURN)
 
@@ -108,13 +108,13 @@ class TestSaving(Refusals, unittest.TestCase):
         self.assertIs(loaded.get_theme(), Caveman)
         self.assertEqual(loaded.get_turn(), A_TURN)
         self.assertEqual(game_facts(loaded), game_facts(self.game))
-        self.assertEqual(loaded.get_units().get_value(column=UnitColumn.HIT_POINTS, unit=self.warrior), HURT)
+        self.assertEqual(loaded.get_units().get_value(column=UnitColumn.HIT_POINTS, unit=self.clubber), HURT)
 
     def test_a_loaded_game_can_be_played_on_and_saved_again(self):
         save_game(game=self.game, path=self.path)
         loaded = load_game(path=self.path, themes=THEMES)
         x, y = MOUNTAIN_TILE
-        UnitControl.place(game=loaded, kind=Warrior, owner=FIRST_CIVILIZATION, world=THE_WORLD, x=x, y=y)
+        UnitControl.place(game=loaded, kind=Clubber, owner=FIRST_CIVILIZATION, world=THE_WORLD, x=x, y=y)
         loaded.next_turn()
         save_game(game=loaded, path=self.path)
         again = load_game(path=self.path, themes=THEMES)
@@ -129,12 +129,12 @@ class TestSaving(Refusals, unittest.TestCase):
         city = Orders.found_city(game=game, settler=settler, name=A_NAME)
         Orders.prioritize(game=game, city=city, resource=Wood, citizens=A_FEW_CITIZENS)
         Orders.declare_war(game=game, civilization=FIRST_CIVILIZATION, on=SECOND_CIVILIZATION)
-        for technology in (Agriculture, Clubs):
+        for technology in (Agriculture, Clubs, Sewing, Leadership):
             learn(game=game, civilization=FIRST_CIVILIZATION, technology=technology)
         learn(game=game, civilization=SECOND_CIVILIZATION, technology=Clubs)
         give_building(game=game, city=city, building=GreatCavePainting)
         Orders.build(game=game, city=city, kind=Granary)
-        Orders.build(game=game, city=city, kind=Warrior)
+        Orders.build(game=game, city=city, kind=Clubber)
         Orders.research(game=game, civilization=FIRST_CIVILIZATION, technology=Discipline)
         x, y = GRASSLAND_TILE
         self.worker = UnitControl.place(game=game, kind=Worker, owner=FIRST_CIVILIZATION, world=THE_WORLD, x=x, y=y)
@@ -179,7 +179,7 @@ class TestSaving(Refusals, unittest.TestCase):
         self.assertNotEqual(loaded.get_civilization(FIRST_CIVILIZATION).get_technologies(), game.get_civilization(FIRST_CIVILIZATION).get_technologies())
         self.assertNotEqual(loaded.get_cities()[0].get_priorities(), game.get_cities()[0].get_priorities())
         self.assertIs(WorkControl.improvement_of(game=loaded, unit=self.worker), Farm)
-        self.assertEqual(Production.queue_of(game=loaded, city=FIRST_CITY), [Granary, Warrior])
+        self.assertEqual(Production.queue_of(game=loaded, city=FIRST_CITY), [Granary, Clubber])
         self.assertEqual(loaded.get_cities()[0].get_progress(), game.get_cities()[0].get_progress())
         self.assertNotEqual(loaded.get_cities()[0].get_queue(), game.get_cities()[0].get_queue())
         self.assertNotEqual(loaded.get_cities()[0].get_buildings(), game.get_cities()[0].get_buildings())
@@ -260,8 +260,8 @@ class TestSaving(Refusals, unittest.TestCase):
         loaded = load_game(path=self.path, themes=(EXTENDED_CAVEMAN,))
         self.assertIs(loaded.get_theme(), EXTENDED_CAVEMAN)
         self.assertEqual(game_facts(loaded), game_facts(self.game))
-        saved_ids = self.game.get_units().get_value(column=UnitColumn.KIND, unit=self.warrior)
-        self.assertEqual(loaded.get_units().get_value(column=UnitColumn.KIND, unit=self.warrior), saved_ids)
+        saved_ids = self.game.get_units().get_value(column=UnitColumn.KIND, unit=self.clubber)
+        self.assertEqual(loaded.get_units().get_value(column=UnitColumn.KIND, unit=self.clubber), saved_ids)
         x, y = MOUNTAIN_TILE
         hunter = UnitControl.place(game=loaded, kind=Hunter, owner=FIRST_CIVILIZATION, world=THE_WORLD, x=x, y=y)
         self.assertIs(UnitControl.kind_of(game=loaded, unit=hunter), Hunter)
@@ -273,7 +273,7 @@ class TestSaving(Refusals, unittest.TestCase):
         self.assertIs(self.terrain_at(game=loaded, tile=GRASSLAND_TILE), Grassland)
         self.assertIs(self.terrain_at(game=loaded, tile=WATER_TILE), Water)
         self.assertIs(self.terrain_at(game=loaded, tile=MOUNTAIN_TILE), Mountains)
-        self.assertIs(UnitControl.kind_of(game=loaded, unit=self.warrior), Warrior)
+        self.assertIs(UnitControl.kind_of(game=loaded, unit=self.clubber), Clubber)
         x, y = SETTLER_TILES[0]
         settler = loaded.get_world(THE_WORLD).get_value(layer=Layer.UNIT, x=x, y=y)
         self.assertIs(UnitControl.kind_of(game=loaded, unit=settler), Settler)

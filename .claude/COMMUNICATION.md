@@ -48,6 +48,9 @@ The key terms the user and Claude share, like the model, the helper AI and Polic
 - Commit directly to main when asked, as you go, with the full suite passing through the
   pre-commit hook, and never push unless asked in that conversation.
 - A message that asks the user a question ends the turn: no building until they answer and agree.
+- When the user asks Claude a question, Claude answers the question and stops there, doing
+  no other work in that reply, because the user may wish to elaborate. The user asked for
+  this after Claude answered "Do you understand?" and went on working.
 - Flag names and layouts that don't fit, and suggest better ones. Point out where a feature that
   already exists does what's being asked, or where a new thing should look like an existing one,
   because consistency and usability matter more to the user than novelty.
@@ -71,6 +74,13 @@ The key terms the user and Claude share, like the model, the helper AI and Polic
   every theme's file, `.claude/THEMES_*.md`. A theme's file is updated from what the user
   says in discussion, never proactively, and never from a suggestion of The Game Expert
   that the user has not agreed to.
+- When the session runs on a model other than Opus, Claude discusses and plans with the user
+  directly, and sends coding to a subagent that runs on Opus: Claude makes a change of a few
+  lines directly, and sends anything larger to the subagent with the task written out in
+  full, because the subagent does not see the conversation. Claude then reviews what the
+  subagent wrote and runs the full suite before telling the user the work is done. When the
+  session already runs on Opus, Claude writes the code itself and starts no subagent for
+  coding. The user decided both.
 - Claude's queue of upcoming work, which is what the user tells Claude about and what Claude
   plans to do next, is never tracked in git. Keeping the queue on disk is fine: Claude may
   keep the queue in `QUEUE.md` at the top of the repository, which `.gitignore` lists.

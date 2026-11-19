@@ -253,16 +253,12 @@ class TestEveryTheme(unittest.TestCase):
 
 class TestCaveman(unittest.TestCase):
 
-    def test_caveman_has_a_settler_a_warrior_a_worker_and_captain_caveman(self):
-        units = caveman_units
-        self.assertEqual(Caveman.UNITS, (units.Settler, units.Warrior, units.Worker, units.CaptainCaveman, units.SlingshotCaveman, units.Raft, units.AngryBird))
-
     def test_the_raft_is_a_weak_sea_unit_that_costs_wood_and_wood_comes_from_forest(self):
         raft = caveman_units.Raft
         self.assertEqual(raft.DOMAIN, Domain.SEA)
         self.assertIn(caveman_resources.Wood, raft.COST)
         self.assertEqual([terrain for terrain in Caveman.TERRAINS if caveman_resources.Wood in terrain.GIVES], [caveman_terrains.Forest])
-        self.assertTrue(NO_ATTACK < raft.ATTACK.average() < caveman_units.Warrior.ATTACK.average())
+        self.assertTrue(NO_ATTACK < raft.ATTACK.average() < caveman_units.Clubber.ATTACK.average())
 
     def test_the_chieftains_hut_is_a_building_that_gives_a_small_amount_of_policy(self):
         hut = caveman_buildings.ChieftainsHut
@@ -281,17 +277,17 @@ class TestCaveman(unittest.TestCase):
 
     def test_the_raft_can_hit_units_on_water_and_on_land_and_no_unit_in_the_air(self):
         raft = caveman_units.Raft
-        for target in (raft, caveman_units.Warrior, caveman_units.Settler):
+        for target in (raft, caveman_units.Clubber, caveman_units.Settler):
             with self.subTest(target=target):
                 self.assertTrue(can_hit(kind=raft, target=target))
         self.assertFalse(can_hit(kind=raft, target=caveman_units.AngryBird))
-        self.assertTrue(can_hit(kind=caveman_units.Warrior, target=raft))
+        self.assertTrue(can_hit(kind=caveman_units.Clubber, target=raft))
 
     def test_the_angry_bird_is_a_weak_air_unit_and_no_unit_is_cheaper_or_sooner_built(self):
         bird = caveman_units.AngryBird
         self.assertEqual(bird.DOMAIN, Domain.AIR)
         self.assertEqual(shown_name(bird), ANGRY_BIRD)
-        self.assertTrue(NO_ATTACK < bird.ATTACK.average() < caveman_units.Warrior.ATTACK.average())
+        self.assertTrue(NO_ATTACK < bird.ATTACK.average() < caveman_units.Clubber.ATTACK.average())
         self.assertEqual(bird.COST, {caveman_resources.Currency: min(unit.COST[caveman_resources.Currency] for unit in Caveman.UNITS)})
         self.assertEqual(bird.BUILD_TURNS, min(unit.BUILD_TURNS for unit in Caveman.UNITS))
 
@@ -303,22 +299,10 @@ class TestCaveman(unittest.TestCase):
         slingshot = caveman_units.SlingshotCaveman
         self.assertEqual([unit for unit in Caveman.UNITS if unit.DOMAIN == Domain.LAND and unit.CAN_HIT_AIR], [slingshot])
         against_air = attack_dice(kind=slingshot, target=caveman_units.AngryBird)
-        self.assertTrue(slingshot.ATTACK.average() < caveman_units.Warrior.ATTACK.average() < against_air.average())
+        self.assertTrue(slingshot.ATTACK.average() < caveman_units.Clubber.ATTACK.average() < against_air.average())
         self.assertEqual(slingshot.EXTRA_DICE, {Domain.AIR: 1})
         self.assertEqual([unit for unit in Caveman.UNITS if unit.EXTRA_DICE], [slingshot])
         self.assertEqual(shown_name(slingshot), SLINGSHOT_CAVEMAN)
-
-    def test_captain_caveman_is_twice_the_warrior_and_requires_the_barracks_which_requires_discipline(self):
-        captain = caveman_units.CaptainCaveman
-        warrior = caveman_units.Warrior
-        self.assertEqual(captain.ATTACK, warrior.ATTACK.with_extra(dice=warrior.ATTACK.count))
-        self.assertEqual(captain.ATTACK.average(), warrior.ATTACK.average() * TWICE)
-        self.assertEqual(captain.HIT_POINTS, warrior.HIT_POINTS * TWICE)
-        self.assertEqual(captain.COST[caveman_resources.Currency], warrior.COST[caveman_resources.Currency] * TWICE)
-        self.assertEqual(captain.REQUIRES, (caveman_buildings.Barracks,))
-        self.assertEqual(caveman_buildings.Barracks.REQUIRES, (caveman_technologies.Discipline,))
-        self.assertIn(caveman_buildings.Barracks, Caveman.BUILDINGS)
-        self.assertEqual(shown_name(captain), CAPTAIN_CAVEMAN)
 
     def test_a_caveman_city_is_called_a_village_and_the_other_themes_say_city(self):
         self.assertEqual((Caveman.CITY.NAME, Caveman.CITY.NAMES), (VILLAGE, VILLAGES))
@@ -333,7 +317,7 @@ class TestCaveman(unittest.TestCase):
         self.assertEqual((clearing.ON, clearing.BECOMES), ((caveman_terrains.Forest,), caveman_terrains.Grassland))
         self.assertIsNone(farm.BECOMES)
         self.assertEqual(caveman_units.Settler.BUILDS, ())
-        self.assertEqual(caveman_units.Warrior.BUILDS, ())
+        self.assertEqual(caveman_units.Clubber.BUILDS, ())
         self.assertEqual(farm.REQUIRES, (caveman_technologies.Agriculture,))
         self.assertEqual(caveman_units.Worker.REQUIRES, farm.REQUIRES)
         self.assertEqual(farm.ON, (caveman_terrains.Grassland,))
@@ -348,7 +332,7 @@ class TestCaveman(unittest.TestCase):
         self.assertGreaterEqual(settler.COST[caveman_resources.Currency], LEAST_COST)
         self.assertEqual(settler.CITIZENS, 1)
         self.assertGreater(settler.BUILD_TURNS, 0)
-        self.assertEqual(caveman_units.Warrior.CITIZENS, 0)
+        self.assertEqual(caveman_units.Clubber.CITIZENS, 0)
 
     def test_a_caveman_city_produces_food_and_its_working_citizens_generate_currency(self):
         self.assertIs(Caveman.CITY, caveman_city.Village)
@@ -402,7 +386,7 @@ class TestCaveman(unittest.TestCase):
         self.assertGreater(caveman_units.CavemanUnit.HEAL, 0)
         self.assertGreater(caveman_units.CavemanUnit.CITY_HEAL, caveman_units.CavemanUnit.HEAL)
         self.assertEqual(caveman_units.Settler.ATTACK, NO_DICE)
-        self.assertGreater(caveman_units.Warrior.ATTACK.average(), NO_ATTACK)
+        self.assertGreater(caveman_units.Clubber.ATTACK.average(), NO_ATTACK)
         self.assertEqual(Caveman.LEVEL_HIT_POINTS_PERCENT, LEVEL_HIT_POINTS_PERCENT)
 
     def test_every_caveman_unit_and_building_costs_something_to_support(self):
@@ -432,24 +416,18 @@ class TestCaveman(unittest.TestCase):
         self.assertGreater(both, technologies.Clubs.UNIT_SUPPORT_BONUS)
         self.assertEqual(unit_support_percent((Feasting, Feasting)), FREE)
 
-    def test_a_technology_allows_the_warrior(self):
-        self.assertEqual(caveman_units.Warrior.REQUIRES, (caveman_technologies.Clubs,))
+    def test_a_technology_allows_the_clubber(self):
+        self.assertEqual(caveman_units.Clubber.REQUIRES, (caveman_technologies.Clubs,))
         self.assertIn(caveman_technologies.Clubs, Caveman.TECHNOLOGIES)
 
-    def test_the_granary_requires_agriculture_feeds_the_city_from_grassland_and_grows_it_sooner(self):
+    def test_the_granary_requires_sewing_feeds_the_city_from_grassland_and_grows_it_sooner(self):
         granary = caveman_buildings.Granary
         self.assertIn(granary, Caveman.BUILDINGS)
-        self.assertIn(caveman_technologies.Agriculture, Caveman.TECHNOLOGIES)
-        self.assertEqual(granary.REQUIRES, (caveman_technologies.Agriculture,))
+        self.assertIn(caveman_technologies.Sewing, Caveman.TECHNOLOGIES)
+        self.assertEqual(granary.REQUIRES, (caveman_technologies.Sewing,))
         self.assertEqual(granary.WORKED_TILE_BONUS, {caveman_terrains.Grassland: {caveman_resources.Food: GRANARY_FOOD}})
         self.assertEqual(granary.GROWS_SOONER, GRANARY_TURNS_SOONER)
         self.assertFalse(issubclass(granary, Wonder))
-
-    def test_caveman_has_clubs_agriculture_discipline_and_fire_and_none_requires_anything(self):
-        technologies = caveman_technologies
-        self.assertEqual(Caveman.TECHNOLOGIES, (technologies.Clubs, technologies.Agriculture, technologies.Leadership, technologies.Discipline, technologies.Fire))
-        for technology in Caveman.TECHNOLOGIES:
-            self.assertEqual(technology.REQUIRES, ())
 
     def test_stone_comes_from_mountains(self):
         giving_stone = [terrain for terrain in Caveman.TERRAINS if caveman_resources.Stone in terrain.GIVES]
@@ -511,12 +489,6 @@ class TestClassic(unittest.TestCase):
         self.assertEqual(classic_terrains.Mountains.CAN_HAVE, (classic_resources.Iron, classic_resources.Gold, classic_resources.Uranium))
         self.assertEqual([terrain for terrain in Classic.TERRAINS if terrain.CAN_HAVE], [classic_terrains.Mountains])
 
-    def test_caveman_has_flint_in_the_mountains_as_its_one_strategic_resource(self):
-        strategic = [resource for resource in Caveman.RESOURCES if issubclass(resource, StrategicResource)]
-        self.assertEqual(strategic, [caveman_resources.Flint])
-        self.assertEqual(caveman_terrains.Mountains.CAN_HAVE, (caveman_resources.Flint,))
-        self.assertEqual([terrain for terrain in Caveman.TERRAINS if terrain.CAN_HAVE], [caveman_terrains.Mountains])
-
     def test_caveman_has_bison_and_elephants_as_terrain_bonuses_on_grassland_that_give_more_food(self):
         bonuses = caveman_terrain_bonuses
         self.assertEqual(Caveman.TERRAIN_BONUSES, (bonuses.Bison, bonuses.Elephants))
@@ -529,7 +501,6 @@ class TestClassic(unittest.TestCase):
         watchtower = caveman_buildings.Watchtower
         self.assertEqual(watchtower.REQUIRES, (caveman_technologies.Fire, caveman_resources.Flint))
         self.assertEqual(watchtower.ARMOR_BONUS, WATCHTOWER_ARMOR_BONUS)
-        self.assertEqual([building for building in Caveman.BUILDINGS if building.ARMOR_BONUS], [watchtower])
         self.assertEqual(Building.ARMOR_BONUS, 0)
         self.assertIn(caveman_technologies.Fire, Caveman.TECHNOLOGIES)
 

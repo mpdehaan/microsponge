@@ -28,5 +28,7 @@ class Technology(Kind):
     HARVEST_BONUS = {}
     # The percent it takes off what every unit costs to support each turn.
     UNIT_SUPPORT_BONUS = 0
+    # The turns sooner every city of the civilization that knows it grows a citizen.
+    GROWS_SOONER = 0
     # Whether knowing it ends the fog of war: the civilization then sees every unit everywhere.
     ENDS_FOG_OF_WAR = False

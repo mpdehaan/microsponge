@@ -18,13 +18,13 @@
 
 from microsponge.engine.kinds.building import Building, Wonder
 from microsponge.engine.kinds.control_points import Command, Policy
-from microsponge.themes.caveman.resources import Currency, Flint, Food, Stone
-from microsponge.themes.caveman.technologies import Agriculture, Discipline, Fire, Leadership
+from microsponge.themes.caveman.resources import Currency, Flint, Food, Ivory, Stone, Wood
+from microsponge.themes.caveman.technologies import Astrology, Barter, Carpentry, ChurchOfTheCaveBear, Discipline, Fire, Leadership, Sewing
 from microsponge.themes.caveman.terrains import Grassland
 
 
 class Granary(Building):
-    REQUIRES = (Agriculture,)
+    REQUIRES = (Sewing,)
     COST = {Currency: 30}
     BUILD_TURNS = 5
     SUPPORT = {Currency: 1}
@@ -65,6 +65,31 @@ class ChieftainsHut(Building):
     CONTROL_POINTS = {Policy: 2}
 
 
+class CityWalls(Building):
+    REQUIRES = (Carpentry,)
+    COST = {Currency: 20, Wood: 20, Stone: 30}
+    BUILD_TURNS = 6
+    SUPPORT = {Currency: 1}
+    ARMOR_BONUS = 1
+    WALLS = True
+
+
+class CaveBearShrine(Building):
+    REQUIRES = (ChurchOfTheCaveBear,)
+    COST = {Currency: 30, Stone: 10}
+    BUILD_TURNS = 5
+    SUPPORT = {Currency: 1}
+    RESEARCH_POINTS = 2
+
+
+class TradingPost(Building):
+    REQUIRES = (Barter,)
+    COST = {Currency: 30, Ivory: 10}
+    BUILD_TURNS = 5
+    SUPPORT = {Currency: 1}
+    INCOME_BONUS = 10
+
+
 class GreatCavePainting(Wonder):
     COST = {Currency: 40}
     BUILD_TURNS = 8
@@ -73,8 +98,10 @@ class GreatCavePainting(Wonder):
 
 
 class ArrangementOfRocks(Wonder):
+    REQUIRES = (Astrology,)
     COST = {Currency: 20, Stone: 50}
     BUILD_TURNS = 10
     SUPPORT = {Currency: 1}
     PRODUCES = {Currency: 2}
     CONTROL_POINTS = {Policy: 1}
+    UNIT_SUPPORT_DISCOUNT = {Currency: 1}

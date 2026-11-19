@@ -164,11 +164,12 @@ class Orders:
 
     @staticmethod
     def enter_city(*, game, unit, city, led=False):
-        """Move a unit from a tile next to the center of a city into the city, taking the city when the city is another civilization's and has no unit inside."""
+        """Move a unit from a tile next to the center of a city into the city, taking the city when the city is another civilization's and has no unit inside. A civilization left with nothing by losing the city has lost."""
         cost = game.get_theme().STRAIGHT_MOVE_COST_BASE
         Orders.check_points(game=game, unit=unit, cost=cost, led=led)
         WorkControl.check_idle(game=game, unit=unit)
         CityControl.enter(game=game, unit=unit, city=city)
+        Combat.settle_losses(game)
         Sight.look_around_city(game=game, city=city)
         Orders.charge(game=game, unit=unit, cost=cost, led=led)
 

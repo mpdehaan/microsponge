@@ -48,6 +48,8 @@ class Theme:
     # and after this many turns in a row of it, the game ends.
     BANKRUPTCY_HARVEST_PENALTY = 50
     BANKRUPTCY_TURNS = 50
+    # The least currency a civilization with a city gains in a turn, after its cities collect and its units and buildings are paid for, so that a civilization with a city never goes bankrupt, or None for no least income.
+    LEAST_INCOME = 1
     # The percent of what a city has paid for a build that comes back when the city switches to another build, or to nothing.
     SWITCH_REFUND_PERCENT = 20
     # The hit points each level adds to a unit, as a percent of its kind's hit points, so that a level 20 unit is only about half again as strong.

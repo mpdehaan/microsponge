@@ -81,9 +81,10 @@ class TurnControl:
         TurnControl.check_playing(game)
         civilization = game.get_playing()
         WorkControl.advance(game=game, civilization=civilization)
+        before = TurnControl.currency_held(game=game, civilization=civilization)
         TurnControl.collect(game=game, civilization=civilization)
         TurnControl.feed(game=game, civilization=civilization)
-        TurnControl.pay_support(game=game, civilization=civilization)
+        TurnControl.pay_support(game=game, civilization=civilization, before=before)
         Production.advance(game=game, civilization=civilization)
         TurnControl.grow(game=game, civilization=civilization)
         TurnControl.heal(game=game, civilization=civilization)
@@ -131,15 +132,27 @@ class TurnControl:
     def support_cost(*, game, civilization):
         """Return what a civilization's units and buildings cost to support this turn: each resource's id with its amount.
 
-        The civilization's technologies can take a percent off what all its units cost of each resource, rounded down.
+        The civilization's technologies can take a percent off what all its units cost of each resource, rounded down,
+        and its buildings can then take an amount off each unit's upkeep, never below nothing.
         """
         percent = unit_support_percent(known_technologies(game=game, civilization=civilization))
         units = [UnitControl.kind_of(game=game, unit=unit) for unit in UnitControl.units_of(game=game, civilization=civilization)]
-        cost = {resource: amount * percent // WHOLE for resource, amount in TurnControl.support_of(units).items()}
-        for resource, amount in TurnControl.support_of(buildings_held(game=game, civilization=civilization)).items():
+        buildings = buildings_held(game=game, civilization=civilization)
+        discount = TurnControl.unit_support_discount(buildings)
+        cost = {resource: max(amount * percent // WHOLE - discount.get(resource, NOTHING_OWED) * len(units), NOTHING_OWED) for resource, amount in TurnControl.support_of(units).items()}
+        for resource, amount in TurnControl.support_of(buildings).items():
             cost[resource] = cost.get(resource, NOTHING_OWED) + amount
         catalog = game.get_catalog()
         return {catalog.get_id(category=Category.RESOURCES, kind=resource): amount for resource, amount in cost.items()}
+
+    @staticmethod
+    def unit_support_discount(buildings):
+        """Return what some buildings take off the upkeep of each unit, added up: each resource with its amount."""
+        discount = {}
+        for building in buildings:
+            for resource, amount in building.UNIT_SUPPORT_DISCOUNT.items():
+                discount[resource] = discount.get(resource, NOTHING_OWED) + amount
+        return discount
 
     @staticmethod
     def support_of(kinds):
@@ -151,16 +164,27 @@ class TurnControl:
         return cost
 
     @staticmethod
-    def pay_support(*, game, civilization):
+    def currency_held(*, game, civilization):
+        """Return how much of the theme's primary resource a civilization holds."""
+        currency = game.get_catalog().get_id(category=Category.RESOURCES, kind=game.get_theme().PRIMARY_RESOURCE)
+        return game.get_civilization(civilization).get_amount(currency)
+
+    @staticmethod
+    def pay_support(*, game, civilization, before):
         """Pay what a civilization's units and buildings cost this turn, as far as what it holds goes, and count the turn as bankrupt when its currency is at 0 afterwards.
 
-        A civilization that has been bankrupt for as many turns in a row as the theme allows has lost.
+        A civilization with a city ends the payment with at least the theme's least income more
+        currency than it held before its cities collected, which is before, so that it
+        never goes bankrupt: what it cannot pay is let off. A civilization that has been bankrupt
+        for as many turns in a row as the theme allows has lost.
         """
         theme = game.get_theme()
         holder = game.get_civilization(civilization)
         for resource, amount in TurnControl.support_cost(game=game, civilization=civilization).items():
             holder.pay(resource=resource, amount=amount)
         currency = game.get_catalog().get_id(category=Category.RESOURCES, kind=theme.PRIMARY_RESOURCE)
+        if theme.LEAST_INCOME is not None and game.get_cities_of(civilization):
+            holder.add(resource=currency, amount=max(before + theme.LEAST_INCOME - holder.get_amount(currency), NOTHING_OWED))
         bankrupt = holder.get_amount(currency) == NO_CURRENCY
         holder.set_bankrupt_turns(holder.get_bankrupt_turns() + 1 if bankrupt else NOT_BANKRUPT)
         if holder.get_bankrupt_turns() >= theme.BANKRUPTCY_TURNS:
@@ -168,10 +192,11 @@ class TurnControl:
 
     @staticmethod
     def growth_turns(*, game, city):
-        """Return how many turns in a row with enough food a city needs to grow, at the size it is. Its buildings can make that sooner."""
+        """Return how many turns in a row with enough food a city needs to grow, at the size it is. Its buildings and its civilization's technologies can make that sooner."""
         turns = game.get_theme().CITY.GROWTH_TURNS
         plain = turns[min(game.get_city(city).get_citizens(), len(turns)) - 1]
         sooner = sum(building.GROWS_SOONER for building in CityControl.buildings_of(game=game, city=city))
+        sooner += sum(technology.GROWS_SOONER for technology in known_technologies(game=game, civilization=game.get_city(city).get_owner()))
         return max(plain - sooner, LEAST_GROWTH_TURNS)
 
     @staticmethod

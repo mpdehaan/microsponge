@@ -17,14 +17,14 @@
 """The computer player of caveman: which of caveman's kinds the player researches, raises its division from and has its villages build."""
 
 from microsponge.engine.players.computer_player import ComputerPlayer
-from microsponge.themes.caveman.buildings import ArrangementOfRocks, Barracks, ChieftainsHut, Granary, GreatCavePainting
-from microsponge.themes.caveman.technologies import Agriculture, Clubs, Discipline, Fire, Leadership
-from microsponge.themes.caveman.units import CaptainCaveman, Warrior
+from microsponge.themes.caveman.buildings import ArrangementOfRocks, Barracks, CaveBearShrine, ChieftainsHut, CityWalls, Granary, GreatCavePainting, TradingPost
+from microsponge.themes.caveman.technologies import Agriculture, Astrology, Barter, Carpentry, ChurchOfTheCaveBear, Clubs, Discipline, Fire, Leadership, Sewing
+from microsponge.themes.caveman.units import CaptainCaveman, Clubber, WildClubber
 
 
 class CavemanPlayer(ComputerPlayer):
     __slots__ = ()
-    SCIENCE_RESEARCH = (Agriculture, Clubs, Leadership, Discipline, Fire)
-    MILITARY_RESEARCH = (Clubs, Discipline, Fire, Leadership, Agriculture)
-    FIGHTERS = (CaptainCaveman, Warrior)
-    ECONOMY = (Granary, ChieftainsHut, GreatCavePainting, Barracks, ArrangementOfRocks)
+    SCIENCE_RESEARCH = (Agriculture, Clubs, Fire, Sewing, Leadership, ChurchOfTheCaveBear, Barter, Carpentry, Discipline, Astrology)
+    MILITARY_RESEARCH = (Clubs, Fire, Leadership, Discipline, Carpentry, Agriculture, Sewing, ChurchOfTheCaveBear, Barter, Astrology)
+    FIGHTERS = (CaptainCaveman, WildClubber, Clubber)
+    ECONOMY = (Granary, ChieftainsHut, CaveBearShrine, TradingPost, GreatCavePainting, Barracks, CityWalls, ArrangementOfRocks)

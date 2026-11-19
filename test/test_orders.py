@@ -41,7 +41,7 @@ from microsponge.themes.caveman.city import Village
 from microsponge.themes.caveman.resources import Food, Stone
 from microsponge.themes.caveman.terrains import Mountains, Tarpit, Water
 from microsponge.themes.caveman.theme import Caveman
-from microsponge.themes.caveman.units import AngryBird, Settler, Warrior
+from microsponge.themes.caveman.units import AngryBird, Settler, Clubber
 
 FIRST_CIVILIZATION = 1
 SECOND_CIVILIZATION = 2
@@ -88,8 +88,8 @@ class OrdersCase(Refusals, unittest.TestCase):
         self.settler = settler_of(game=self.game, civilization=FIRST_CIVILIZATION)
         self.other_settler = settler_of(game=self.game, civilization=SECOND_CIVILIZATION)
 
-    def warrior(self, *, civilization, x, y):
-        return UnitControl.place(game=self.game, kind=Warrior, owner=civilization, world=THE_WORLD, x=x, y=y)
+    def clubber(self, *, civilization, x, y):
+        return UnitControl.place(game=self.game, kind=Clubber, owner=civilization, world=THE_WORLD, x=x, y=y)
 
     def points_of(self, unit):
         return self.units.get_value(column=UnitColumn.ACTION_POINTS, unit=unit)
@@ -131,18 +131,18 @@ class TestMoving(OrdersCase):
 
     def test_moving_onto_mountains_costs_the_terrains_cost_and_needs_that_many_points(self):
         x, y = MOUNTAIN_TILE
-        climber = self.warrior(civilization=FIRST_CIVILIZATION, x=x - ONE_STEP, y=y)
-        tired = self.warrior(civilization=FIRST_CIVILIZATION, x=x - ONE_STEP, y=y + TWO_STEPS)
+        climber = self.clubber(civilization=FIRST_CIVILIZATION, x=x - ONE_STEP, y=y)
+        tired = self.clubber(civilization=FIRST_CIVILIZATION, x=x - ONE_STEP, y=y + TWO_STEPS)
         Orders.move(game=self.game, unit=climber, x=x, y=y)
         self.assertEqual(self.place_of(climber), (x, y))
-        self.assertEqual(self.points_of(climber), Warrior.ACTION_POINTS - STRAIGHT * Mountains.MOVE_COST)
+        self.assertEqual(self.points_of(climber), Clubber.ACTION_POINTS - STRAIGHT * Mountains.MOVE_COST)
         self.assertEqual(self.first.get_policy_points(), points_given(by=Caveman, points=Policy) - STRAIGHT * Mountains.MOVE_COST)
         Orders.move(game=self.game, unit=tired, x=x - ONE_STEP, y=y + ONE_STEP)
         message = self.refused_and_unchanged(lambda: Orders.move(game=self.game, unit=tired, x=x, y=y + ONE_STEP))
-        self.assertEqual(message, ERR_NO_ACTION_POINTS.format(unit=tired, left=Warrior.ACTION_POINTS - STRAIGHT, cost=STRAIGHT * Mountains.MOVE_COST))
+        self.assertEqual(message, ERR_NO_ACTION_POINTS.format(unit=tired, left=Clubber.ACTION_POINTS - STRAIGHT, cost=STRAIGHT * Mountains.MOVE_COST))
 
     def test_a_unit_moves_around_the_world_from_the_east_edge_to_the_west_edge_and_back(self):
-        walker = self.warrior(civilization=FIRST_CIVILIZATION, x=EAST_EDGE, y=OPEN_ROW)
+        walker = self.clubber(civilization=FIRST_CIVILIZATION, x=EAST_EDGE, y=OPEN_ROW)
         Orders.move(game=self.game, unit=walker, x=EAST_EDGE + ONE_STEP, y=OPEN_ROW)
         self.assertEqual(self.place_of(walker), (WEST_EDGE, OPEN_ROW))
         self.assertEqual(self.unit_at(x=WEST_EDGE, y=OPEN_ROW), walker)
@@ -150,8 +150,8 @@ class TestMoving(OrdersCase):
         self.assertEqual(self.place_of(walker), (EAST_EDGE, OPEN_ROW + ONE_STEP))
 
     def test_a_unit_cannot_move_past_the_top_or_the_bottom_of_the_world(self):
-        top = self.warrior(civilization=FIRST_CIVILIZATION, x=OPEN_COLUMN, y=TOP_ROW)
-        bottom = self.warrior(civilization=FIRST_CIVILIZATION, x=OPEN_COLUMN, y=BOTTOM_ROW)
+        top = self.clubber(civilization=FIRST_CIVILIZATION, x=OPEN_COLUMN, y=TOP_ROW)
+        bottom = self.clubber(civilization=FIRST_CIVILIZATION, x=OPEN_COLUMN, y=BOTTOM_ROW)
         for unit, y in ((top, TOP_ROW - ONE_STEP), (bottom, BOTTOM_ROW + ONE_STEP)):
             with self.subTest(y=y):
                 message = self.refused_and_unchanged(lambda: Orders.move(game=self.game, unit=unit, x=OPEN_COLUMN, y=y))
@@ -166,23 +166,23 @@ class TestMoving(OrdersCase):
 
     def test_a_land_unit_cannot_move_into_a_tarpit_and_an_air_unit_flies_over(self):
         x, y = TARPIT_TILE
-        walker = self.warrior(civilization=FIRST_CIVILIZATION, x=x - ONE_STEP, y=y)
+        walker = self.clubber(civilization=FIRST_CIVILIZATION, x=x - ONE_STEP, y=y)
         message = self.refused_and_unchanged(lambda: Orders.move(game=self.game, unit=walker, x=x, y=y))
-        self.assertEqual(message, ERR_CANNOT_BE_ON.format(unit=shown_name(Warrior), terrain=shown_name(Tarpit)))
+        self.assertEqual(message, ERR_CANNOT_BE_ON.format(unit=shown_name(Clubber), terrain=shown_name(Tarpit)))
         bird = UnitControl.place(game=self.game, kind=AngryBird, owner=FIRST_CIVILIZATION, world=THE_WORLD, x=x + ONE_STEP, y=y)
         Orders.move(game=self.game, unit=bird, x=x, y=y)
         self.assertEqual(self.place_of(bird), (x, y))
 
     def test_a_land_unit_cannot_move_into_water(self):
         x, y = SHORE_TILE
-        wader = self.warrior(civilization=FIRST_CIVILIZATION, x=x, y=y)
+        wader = self.clubber(civilization=FIRST_CIVILIZATION, x=x, y=y)
         x, y = LAKE_TILE
         message = self.refused_and_unchanged(lambda: Orders.move(game=self.game, unit=wader, x=x, y=y))
-        self.assertEqual(message, ERR_CANNOT_BE_ON.format(unit=shown_name(Warrior), terrain=shown_name(Water)))
+        self.assertEqual(message, ERR_CANNOT_BE_ON.format(unit=shown_name(Clubber), terrain=shown_name(Water)))
 
     def test_a_unit_cannot_move_onto_a_tile_that_holds_a_unit(self):
         x, y = SETTLER_TILES[0]
-        self.warrior(civilization=FIRST_CIVILIZATION, x=x + ONE_STEP, y=y)
+        self.clubber(civilization=FIRST_CIVILIZATION, x=x + ONE_STEP, y=y)
         message = self.refused_and_unchanged(lambda: Orders.move(game=self.game, unit=self.settler, x=x + ONE_STEP, y=y))
         self.assertEqual(message, ERR_TILE_HAS_A_UNIT.format(x=x + ONE_STEP, y=y))
 
@@ -206,7 +206,7 @@ class TestMoving(OrdersCase):
         self.assertEqual(self.place_of(self.settler), (beyond, y))
 
     def test_a_civilization_cannot_move_all_of_its_units_once_its_policy_points_run_out(self):
-        movers = [self.warrior(civilization=FIRST_CIVILIZATION, x=OPEN_COLUMN + TWO_STEPS * place, y=OPEN_ROW) for place in range(points_given(by=Caveman, points=Policy) + ONE_STEP)]
+        movers = [self.clubber(civilization=FIRST_CIVILIZATION, x=OPEN_COLUMN + TWO_STEPS * place, y=OPEN_ROW) for place in range(points_given(by=Caveman, points=Policy) + ONE_STEP)]
         *moved, left_behind = movers
         for unit in moved:
             x, y = self.place_of(unit)
@@ -215,7 +215,7 @@ class TestMoving(OrdersCase):
         x, y = self.place_of(left_behind)
         message = self.refused_and_unchanged(lambda: Orders.move(game=self.game, unit=left_behind, x=x, y=y + ONE_STEP))
         self.assertEqual(message, ERR_NO_POLICY_POINTS.format(name=FIRST_NAME, left=NO_POINTS, cost=STRAIGHT))
-        self.assertEqual(self.points_of(left_behind), Warrior.ACTION_POINTS)
+        self.assertEqual(self.points_of(left_behind), Clubber.ACTION_POINTS)
 
     def test_no_order_is_taken_after_the_game_ends(self):
         x, y = SETTLER_TILES[0]
@@ -264,24 +264,24 @@ class TestVillageOrders(OrdersCase):
     def test_going_into_a_village_and_coming_out_each_cost_an_action_point_from_both_pools(self):
         city = Orders.found_city(game=self.game, settler=self.settler, name=A_NAME)
         x, y = SETTLER_TILES[0]
-        guard = self.warrior(civilization=FIRST_CIVILIZATION, x=x + JUST_PAST_CENTER, y=y)
+        guard = self.clubber(civilization=FIRST_CIVILIZATION, x=x + JUST_PAST_CENTER, y=y)
         pool = self.first.get_policy_points()
         Orders.enter_city(game=self.game, unit=guard, city=city)
         self.assertEqual(self.game.get_city(city).get_units(), [guard])
-        self.assertEqual((self.points_of(guard), self.first.get_policy_points()), (Warrior.ACTION_POINTS - STRAIGHT, pool - STRAIGHT))
+        self.assertEqual((self.points_of(guard), self.first.get_policy_points()), (Clubber.ACTION_POINTS - STRAIGHT, pool - STRAIGHT))
         message = self.refused_and_unchanged(lambda: Orders.move(game=self.game, unit=guard, x=x + ONE_STEP, y=y))
         self.assertEqual(message, ERR_UNIT_IN_A_CITY.format(unit=guard, city=VILLAGE))
         Orders.leave_city(game=self.game, unit=guard, x=x + JUST_PAST_CENTER, y=y + ONE_STEP)
         self.assertEqual(self.game.get_city(city).get_units(), [])
         self.assertEqual(self.place_of(guard), (x + JUST_PAST_CENTER, y + ONE_STEP))
-        self.assertEqual((self.points_of(guard), self.first.get_policy_points()), (Warrior.ACTION_POINTS - STRAIGHT - STRAIGHT, pool - STRAIGHT - STRAIGHT))
+        self.assertEqual((self.points_of(guard), self.first.get_policy_points()), (Clubber.ACTION_POINTS - STRAIGHT - STRAIGHT, pool - STRAIGHT - STRAIGHT))
         message = self.refused_and_unchanged(lambda: Orders.enter_city(game=self.game, unit=guard, city=city))
         self.assertEqual(message, ERR_NO_ACTION_POINTS.format(unit=guard, left=NO_POINTS, cost=STRAIGHT))
 
     def test_a_unit_walks_up_to_a_village_center_but_not_onto_it(self):
         Orders.found_city(game=self.game, settler=self.settler, name=A_NAME)
         x, y = SETTLER_TILES[0]
-        guard = self.warrior(civilization=FIRST_CIVILIZATION, x=x + JUST_PAST_CENTER, y=y)
+        guard = self.clubber(civilization=FIRST_CIVILIZATION, x=x + JUST_PAST_CENTER, y=y)
         message = self.refused_and_unchanged(lambda: Orders.move(game=self.game, unit=guard, x=x + JUST_PAST_CENTER - ONE_STEP, y=y))
         self.assertEqual(message, ERR_TILE_IN_A_CITY_CENTER.format(city=VILLAGE, x=x + JUST_PAST_CENTER - ONE_STEP, y=y))
 
@@ -314,9 +314,9 @@ class TestWarAndTerritory(OrdersCase):
         super().setUp()
         self.village = Orders.found_city(game=self.game, settler=self.settler, name=A_NAME)
         x, y = SETTLER_TILES[0]
-        # The second civilization's warrior stands just outside the first village's radius, to the east.
+        # The second civilization's clubber stands just outside the first village's radius, to the east.
         self.border = (x + RADIUS_REACH, y)
-        self.raider = self.warrior(civilization=SECOND_CIVILIZATION, x=x + JUST_PAST_RADIUS, y=y)
+        self.raider = self.clubber(civilization=SECOND_CIVILIZATION, x=x + JUST_PAST_RADIUS, y=y)
         end_turn_by_order(game=self.game, civilization=FIRST_CIVILIZATION)
 
     def test_a_unit_cannot_enter_the_radius_of_another_civilizations_village_without_a_war(self):
@@ -337,7 +337,7 @@ class TestWarAndTerritory(OrdersCase):
     def test_a_civilizations_own_units_walk_its_own_radius_without_a_war(self):
         x, y = self.border
         end_turn_by_order(game=self.game, civilization=SECOND_CIVILIZATION)
-        guard = self.warrior(civilization=FIRST_CIVILIZATION, x=x, y=y + ONE_STEP)
+        guard = self.clubber(civilization=FIRST_CIVILIZATION, x=x, y=y + ONE_STEP)
         Orders.move(game=self.game, unit=guard, x=x - ONE_STEP, y=y + ONE_STEP)
         self.assertEqual(self.place_of(guard), (x - ONE_STEP, y + ONE_STEP))
 

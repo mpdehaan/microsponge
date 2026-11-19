@@ -29,7 +29,7 @@ from microsponge.themes.caveman.buildings import GreatCavePainting
 from microsponge.themes.caveman.resources import Food
 from microsponge.themes.caveman.technologies import Clubs
 from microsponge.themes.caveman.theme import Caveman
-from microsponge.themes.caveman.units import Settler, Warrior
+from microsponge.themes.caveman.units import Settler, Clubber
 from microsponge.themes.classic.units import Phalanx
 
 FIRST_ID = 1
@@ -97,7 +97,7 @@ class TestCatalog(Refusals, unittest.TestCase):
                 self.assertEqual(message, ERR_NOT_IN_THEME.format(kind=kind, category=shown_category(Category.UNITS), theme=saved_name(Caveman)))
 
     def test_a_theme_that_lists_a_kind_twice_is_refused(self):
-        twice = later_caveman({Category.UNITS: (Settler, Warrior, Settler)})
+        twice = later_caveman({Category.UNITS: (Settler, Clubber, Settler)})
         message = self.refused(lambda: Catalog(twice))
         self.assertEqual(message, ERR_KIND_TWICE.format(category=shown_category(Category.UNITS), theme=saved_name(twice), name=saved_name(Settler)))
 

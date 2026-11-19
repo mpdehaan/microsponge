@@ -35,5 +35,13 @@ class Wood(Resource):
     pass
 
 
+class Ivory(Resource):
+    pass
+
+
 class Flint(StrategicResource):
+    pass
+
+
+class Poppies(StrategicResource):
     pass

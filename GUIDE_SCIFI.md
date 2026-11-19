@@ -48,7 +48,7 @@ The buildings of SciFi:
 | -------- | ----: |
 | stargate |     1 |
 
-no building of SciFi sets these, so their columns are left out: world wonder, requires, cost, support, produces, income bonus %, research points, control points, grows sooner, worked tile bonus, armor bonus, level bonus, walls, beside water
+no building of SciFi sets these, so their columns are left out: world wonder, requires, cost, support, produces, income bonus %, research points, control points, grows sooner, worked tile bonus, armor bonus, level bonus, walls, beside water, off each unit upkeep
 
 SciFi has no world wonders yet
 

@@ -21,22 +21,50 @@ from microsponge.themes.caveman.resources import Food
 
 
 class Clubs(Technology):
-    RESEARCH = 10
+    RESEARCH = 15
     UNIT_SUPPORT_BONUS = 10
 
 
+class Fire(Technology):
+    RESEARCH = 15
+
+
 class Agriculture(Technology):
-    RESEARCH = 30
+    RESEARCH = 20
     HARVEST_BONUS = {Food: 10}
 
 
-class Discipline(Technology):
-    RESEARCH = 40
+class Sewing(Technology):
+    REQUIRES = (Agriculture,)
+    RESEARCH = 50
+    GROWS_SOONER = 1
 
 
-class Fire(Technology):
-    RESEARCH = 20
+class Carpentry(Technology):
+    RESEARCH = 50
 
 
 class Leadership(Technology):
-    RESEARCH = 25
+    REQUIRES = (Fire,)
+    RESEARCH = 50
+
+
+class Discipline(Technology):
+    REQUIRES = (Leadership,)
+    RESEARCH = 90
+
+
+class ChurchOfTheCaveBear(Technology):
+    NAME = 'church of the cave bear'
+    REQUIRES = (Fire, Leadership)
+    RESEARCH = 90
+
+
+class Barter(Technology):
+    REQUIRES = (Sewing, Leadership)
+    RESEARCH = 100
+
+
+class Astrology(Technology):
+    REQUIRES = (ChurchOfTheCaveBear, Leadership)
+    RESEARCH = 200

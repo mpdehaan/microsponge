@@ -47,11 +47,12 @@ def without(*, kinds, kind):
 
 
 # The same kinds in another order, and one more unit and one more improvement first: every id of a unit and of an
-# improvement differs, the first and last terrain, resource, technology and building swap ids, and the terrain
+# improvement differs, every resource moves one place, so that every resource's id differs however many the theme has,
+# the first and last terrain, technology and building swap ids, and the terrain
 # bonuses swap ids.
 REORDERED_CAVEMAN = later_caveman({
     Category.TERRAINS: tuple(reversed(Caveman.TERRAINS)),
-    Category.RESOURCES: tuple(reversed(Caveman.RESOURCES)),
+    Category.RESOURCES: (*Caveman.RESOURCES[1:], Caveman.RESOURCES[0]),
     Category.TECHNOLOGIES: tuple(reversed(Caveman.TECHNOLOGIES)),
     Category.UNITS: (Hunter, *Caveman.UNITS),
     Category.BUILDINGS: tuple(reversed(Caveman.BUILDINGS)),

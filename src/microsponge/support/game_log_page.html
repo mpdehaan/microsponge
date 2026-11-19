@@ -11,16 +11,21 @@
 }
 body { margin: 0; padding: 24px 16px 64px; background: var(--surface); color: var(--text); font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
 main { max-width: 1280px; margin: 0 auto; }
-h1 { font-size: 22px; margin: 0 0 24px; text-wrap: balance; }
-h2 { font-size: 17px; margin: 40px 0 12px; }
+h1 { font-size: 22px; margin: 0 0 16px; text-wrap: balance; }
+.tabs { display: flex; flex-wrap: wrap; gap: 4px; margin: 0 0 20px; padding: 0 0 8px; border-bottom: 1px solid var(--rule); }
+.tabs button { font: inherit; font-size: 14px; color: var(--muted); background: none; border: 1px solid transparent; border-radius: 6px; padding: 6px 12px; cursor: pointer; }
+.tabs button:hover { color: var(--text); background: var(--panel); border-color: var(--rule); }
+.tabs button[aria-selected="true"] { color: var(--text); background: var(--panel); border-color: var(--rule); font-weight: 600; }
+.tabs button:focus-visible { outline: 2px solid var(--s1); outline-offset: 1px; }
+.note { color: var(--muted); }
 h3 { font-size: 14px; margin: 0 0 8px; font-weight: 600; }
 .wide, .cell, .timeline { background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; padding: 16px; }
 .wide { margin-bottom: 16px; }
 .wide .plot { height: 340px; }
-.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 16px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(380px, 100%), 1fr)); gap: 16px; }
 .cell .plot { height: 220px; }
 .plot { position: relative; }
-.timelines { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; }
+.timelines { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr)); gap: 16px; }
 .timeline h3 { display: flex; align-items: center; gap: 8px; }
 .swatch { width: 12px; height: 12px; border-radius: 3px; flex: none; }
 .timeline ol { list-style: none; margin: 0; padding: 0; max-height: 420px; overflow-y: auto; color: var(--muted); font-size: 13px; }
@@ -38,13 +43,8 @@ th:first-child, td:first-child, td.words, th.words { text-align: left; }
 <main>
 <h1 id="title"></h1>
 <p id="warning" hidden></p>
-<div id="main-charts"></div>
-<h2 id="timelines-heading"></h2>
-<div class="timelines" id="timelines"></div>
-<h2 id="charts-heading"></h2>
-<div class="grid" id="charts"></div>
-<h2 id="tables-heading"></h2>
-<div id="tables"></div>
+<nav class="tabs" role="tablist" id="tabs"></nav>
+<div id="panels"></div>
 </main>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
@@ -63,23 +63,22 @@ const element = (tag, text, parent, className) => {
 
 document.title = PAGE.title;
 document.getElementById('title').textContent = PAGE.title;
-document.getElementById('timelines-heading').textContent = PAGE.timelinesHeading;
-document.getElementById('charts-heading').textContent = PAGE.chartsHeading;
-document.getElementById('tables-heading').textContent = PAGE.tablesHeading;
 
-function draw(chart, parent, className) {
-  const box = element('div', null, parent, className);
+function draw(chart, parent) {
+  const box = element('div', null, parent, chart.wide ? 'wide' : 'cell');
   element('h3', chart.title, box);
   const plot = element('div', null, box, 'plot');
   const canvas = element('canvas', null, plot);
   const longest = Math.max(...chart.series.map((series) => series.values.length));
+  // A chart of bars has a label for each bar, like a span of turns; a chart of lines has a turn for each point.
+  const labels = chart.labels || Array.from({length: longest}, (_, turn) => turn);
   new Chart(canvas, {
-    type: 'line',
+    type: chart.bars ? 'bar' : 'line',
     data: {
-      labels: Array.from({length: longest}, (_, turn) => turn),
+      labels,
       datasets: chart.series.map((series, place) => ({
         label: series.name, data: series.values, borderColor: colorOf(place), backgroundColor: colorOf(place),
-        borderWidth: 2, pointRadius: 0, pointHoverRadius: 4, tension: 0, stepped: chart.stepped,
+        borderWidth: chart.bars ? 0 : 2, borderRadius: 4, pointRadius: 0, pointHoverRadius: 4, tension: 0, stepped: chart.stepped,
       })),
     },
     options: {
@@ -87,47 +86,94 @@ function draw(chart, parent, className) {
       interaction: {mode: 'index', intersect: false},
       plugins: {
         legend: {position: 'bottom', labels: {color: token('--muted'), boxWidth: 12, boxHeight: 12, usePointStyle: false}},
-        tooltip: {callbacks: {title: (items) => PAGE.turnLabel.replace('{turn}', items[0].label)}},
+        tooltip: {callbacks: {title: (items) => chart.labels ? items[0].label : PAGE.turnLabel.replace('{turn}', items[0].label)}},
       },
       scales: {
         x: {ticks: {color: token('--muted'), maxTicksLimit: 9}, grid: {display: false}, border: {color: token('--rule')}},
-        y: {beginAtZero: true, ticks: {color: token('--muted'), maxTicksLimit: 6}, grid: {color: token('--rule')}, border: {display: false}},
+        y: {beginAtZero: true, ticks: {color: token('--muted'), maxTicksLimit: 6, precision: chart.bars ? 0 : undefined}, grid: {color: token('--rule')}, border: {display: false}},
       },
     },
   });
 }
 
-if (window.Chart) {
-  PAGE.mainCharts.forEach((chart) => draw(chart, document.getElementById('main-charts'), 'wide'));
-  PAGE.charts.forEach((chart) => draw(chart, document.getElementById('charts'), 'cell'));
-} else {
+// The charts of a tab: the wide ones first, each across the page, and then the rest in a grid.
+function drawCharts(tab, panel) {
+  if (tab.note) element('p', tab.note, panel, 'note');
+  drawTableList(tab.tables, panel);
+  if (!window.Chart) return;
+  const wide = element('div', null, panel);
+  const grid = element('div', null, panel, 'grid');
+  tab.charts.forEach((chart) => draw(chart, chart.wide ? wide : grid));
+}
+
+function drawTimelines(tab, panel) {
+  const list = element('div', null, panel, 'timelines');
+  PAGE.timelines.forEach((timeline, place) => {
+    const box = element('div', null, list, 'timeline');
+    const heading = element('h3', null, box);
+    element('span', null, heading, 'swatch').style.background = colorOf(place);
+    element('span', timeline.title, heading);
+    const lines = element('ol', null, box);
+    timeline.lines.forEach((line) => element('li', line.trim(), lines));
+  });
+}
+
+const isNumber = (cell) => /^-?[0-9.]+$/.test(cell);
+function drawTables(tab, panel) {
+  drawTableList(PAGE.tables, panel);
+}
+
+function drawTableList(list, panel) {
+  list.forEach((table) => {
+    const made = element('table', null, element('div', null, panel, 'scroll'));
+    element('caption', table.title, made);
+    const head = element('tr', null, element('thead', null, made));
+    const words = table.heading.map((_, column) => table.rows.some((row) => row[column] !== '-' && !isNumber(row[column])));
+    table.heading.forEach((cell, column) => element('th', cell, head, words[column] ? 'words' : ''));
+    const body = element('tbody', null, made);
+    table.rows.forEach((row) => {
+      const line = element('tr', null, body);
+      row.forEach((cell, column) => element('td', cell, line, words[column] ? 'words' : ''));
+    });
+  });
+}
+
+const DRAWERS = {charts: drawCharts, timelines: drawTimelines, tables: drawTables};
+
+if (!window.Chart) {
   const warning = document.getElementById('warning');
   warning.textContent = PAGE.noCharts;
   warning.hidden = false;
 }
 
-PAGE.timelines.forEach((timeline, place) => {
-  const box = element('div', null, document.getElementById('timelines'), 'timeline');
-  const heading = element('h3', null, box);
-  element('span', null, heading, 'swatch').style.background = colorOf(place);
-  element('span', timeline.title, heading);
-  const list = element('ol', null, box);
-  timeline.lines.forEach((line) => element('li', line.trim(), list));
+// Each tab is drawn the first time it is shown, so that a chart is drawn at the size of a visible tab. The tab shown is kept in the address, so that a reload keeps it.
+const tabs = PAGE.tabs.map((tab) => {
+  const button = element('button', tab.name, document.getElementById('tabs'));
+  button.type = 'button';
+  button.setAttribute('role', 'tab');
+  const panel = element('section', null, document.getElementById('panels'));
+  panel.setAttribute('role', 'tabpanel');
+  panel.hidden = true;
+  button.addEventListener('click', () => { location.hash = tab.id; });
+  return {tab, button, panel, drawn: false};
 });
 
-const isNumber = (cell) => /^-?[0-9.]+$/.test(cell);
-PAGE.tables.forEach((table) => {
-  const made = element('table', null, element('div', null, document.getElementById('tables'), 'scroll'));
-  element('caption', table.title, made);
-  const head = element('tr', null, element('thead', null, made));
-  const words = table.heading.map((_, column) => table.rows.some((row) => row[column] !== '-' && !isNumber(row[column])));
-  table.heading.forEach((cell, column) => element('th', cell, head, words[column] ? 'words' : ''));
-  const body = element('tbody', null, made);
-  table.rows.forEach((row) => {
-    const line = element('tr', null, body);
-    row.forEach((cell, column) => element('td', cell, line, words[column] ? 'words' : ''));
+function show() {
+  const wanted = location.hash.slice(1);
+  const shown = tabs.find((entry) => entry.tab.id === wanted) || tabs[0];
+  tabs.forEach((entry) => {
+    const selected = entry === shown;
+    entry.button.setAttribute('aria-selected', selected ? 'true' : 'false');
+    entry.panel.hidden = !selected;
   });
-});
+  if (!shown.drawn) {
+    shown.drawn = true;
+    DRAWERS[shown.tab.content](shown.tab, shown.panel);
+  }
+}
+
+window.addEventListener('hashchange', show);
+show();
 </script>
 </body>
 </html>

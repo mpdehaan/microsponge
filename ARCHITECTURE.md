@@ -72,7 +72,7 @@ The text UI will be a package of its own, described here when it exists.
 
 ## How a game is held
 
-- **A theme is short classes.** A kind, like the warrior, is a class that only sets what differs
+- **A theme is short classes.** A kind, like caveman's clubber, is a class that only sets what differs
   from its base, and is never made into an object. A theme lists its kinds.
 - **The map is layers of numbers.** A world holds one grid of integers for each fact about its
   tiles, like the terrain or the unit on each tile, not an object for each tile, so that a huge

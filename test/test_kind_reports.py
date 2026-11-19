@@ -33,8 +33,8 @@ from microsponge.support.tables import shown_amounts, shown_flag, shown_kinds, s
 from microsponge.support.theme_tools import FAILED, MARKDOWN_FLAG, SUCCEEDED, parse, run_theme_tool, theme_called
 from microsponge.themes.caveman import buildings as caveman_buildings
 from microsponge.themes.caveman.theme import Caveman
-from microsponge.themes.caveman.technologies import Agriculture, Clubs
-from microsponge.themes.caveman.units import SlingshotCaveman, Warrior, Worker
+from microsponge.themes.caveman.technologies import Agriculture, Clubs, Sewing
+from microsponge.themes.caveman.units import SlingshotCaveman, Clubber, Worker
 from microsponge.themes.classic.theme import Classic
 from microsponge.themes.planetwars.theme import PlanetWars
 from microsponge.ui_strings import (
@@ -43,11 +43,21 @@ from microsponge.ui_strings import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
+# Where the first field of a message template starts.
+FIELD_START = '{'
 TOOLS = {units_report: 'unit_report.py', buildings_report: 'building_report.py', wonders_report: 'wonder_report.py', tech_report: 'tech_report.py'}
 NO_SUCH_THEME = 'atlantis'
+# Caveman without its city walls, so that no building of the theme sets the walls column.
+WALLESS_CAVEMAN = later_caveman({Category.BUILDINGS: tuple(building for building in Caveman.BUILDINGS if not building.WALLS)})
 BARE_CAVEMAN = later_caveman({Category.BUILDINGS: (), Category.TECHNOLOGIES: (), Category.UNITS: ()})
 A_HEADING = ('name', 'empty', 'full')
 ROWS = [['one', MSG_NONE_MARK, '1'], ['two', MSG_NONE_MARK, MSG_NONE_MARK]]
+
+
+def table_lines_of(report):
+    """Return the lines of a plain report that are its table: everything after the title but the sentence that names the columns left out."""
+    left_out = MSG_UNUSED_COLUMNS.split(FIELD_START)[0]
+    return [line for line in report[1:] if not line.startswith(left_out)]
 
 
 def names(line):
@@ -63,7 +73,7 @@ class TestKindReports(unittest.TestCase):
         self.assertEqual(row[MSG_UNITS_HEADING.index('attack dice')], SlingshotCaveman.ATTACK.shown())
         self.assertEqual(row[MSG_UNITS_HEADING.index('extra dice')], MSG_EXTRA_DICE.format(dice=1, domain=Domain.AIR))
         self.assertEqual(row[MSG_UNITS_HEADING.index('cannot hit')], MSG_NONE_MARK)
-        self.assertEqual(unit_row(Warrior)[MSG_UNITS_HEADING.index('cannot hit')], Domain.AIR)
+        self.assertEqual(unit_row(Clubber)[MSG_UNITS_HEADING.index('cannot hit')], Domain.AIR)
         self.assertEqual(unit_row(Worker)[MSG_UNITS_HEADING.index('attack dice')], MSG_NONE_MARK)
         self.assertEqual(unit_row(Worker)[MSG_UNITS_HEADING.index('builds')], shown_kinds(Worker.BUILDS))
 
@@ -72,6 +82,9 @@ class TestKindReports(unittest.TestCase):
         painting = caveman_buildings.GreatCavePainting
         self.assertEqual(len(building_row(granary)), len(MSG_BUILDINGS_HEADING))
         self.assertEqual(len(wonder_row(painting)), len(MSG_WONDERS_HEADING))
+        rocks = caveman_buildings.ArrangementOfRocks
+        self.assertEqual(building_row(rocks)[MSG_BUILDINGS_HEADING.index('off each unit upkeep')], shown_amounts(rocks.UNIT_SUPPORT_DISCOUNT))
+        self.assertEqual(building_row(granary)[MSG_BUILDINGS_HEADING.index('off each unit upkeep')], MSG_NONE_MARK)
         self.assertEqual(building_row(granary)[:2], [shown_name(granary), shown_flag(False)])
         self.assertEqual(building_row(painting)[:2], [shown_name(painting), shown_flag(True)])
         self.assertEqual(building_row(painting)[2:], wonder_row(painting)[1:])
@@ -84,6 +97,7 @@ class TestKindReports(unittest.TestCase):
         self.assertIn(Worker, allowed_by(theme=Caveman, technology=Agriculture))
         row = technology_row(theme=Caveman, technology=Agriculture)
         self.assertEqual(len(row), len(MSG_TECH_HEADING))
+        self.assertEqual(technology_row(theme=Caveman, technology=Sewing)[MSG_TECH_HEADING.index('grows sooner')], shown_number(Sewing.GROWS_SOONER))
         self.assertEqual(row[MSG_TECH_HEADING.index('research points')], str(Agriculture.RESEARCH))
         self.assertEqual(row[MSG_TECH_HEADING.index('allows')], shown_kinds(allowed_by(theme=Caveman, technology=Agriculture)))
 
@@ -91,11 +105,11 @@ class TestKindReports(unittest.TestCase):
         self.assertEqual(unused_columns(heading=A_HEADING, rows=ROWS), ['empty'])
         heading, rows = without_columns(heading=A_HEADING, rows=ROWS, names=['empty'])
         self.assertEqual((heading, rows), (['name', 'full'], [['one', '1'], ['two', MSG_NONE_MARK]]))
-        lines = buildings_report(Caveman)
-        self.assertEqual(lines[0], MSG_BUILDINGS_TITLE.format(theme=shown_name(Caveman)))
-        unused = unused_columns(heading=MSG_BUILDINGS_HEADING, rows=[building_row(building) for building in Caveman.BUILDINGS])
+        lines = buildings_report(WALLESS_CAVEMAN)
+        self.assertEqual(lines[0], MSG_BUILDINGS_TITLE.format(theme=shown_name(WALLESS_CAVEMAN)))
+        unused = unused_columns(heading=MSG_BUILDINGS_HEADING, rows=[building_row(building) for building in WALLESS_CAVEMAN.BUILDINGS])
         self.assertIn('walls', unused)
-        self.assertEqual(lines[-1], MSG_UNUSED_COLUMNS.format(kind=MSG_KIND_BUILDING, theme=shown_name(Caveman), columns=MSG_LIST_SEPARATOR.join(unused)))
+        self.assertEqual(lines[-1], MSG_UNUSED_COLUMNS.format(kind=MSG_KIND_BUILDING, theme=shown_name(WALLESS_CAVEMAN), columns=MSG_LIST_SEPARATOR.join(unused)))
         self.assertNotIn('walls', lines[1])
 
     def test_each_report_has_a_row_for_each_kind_and_says_so_when_a_theme_has_none(self):
@@ -116,7 +130,7 @@ class TestKindReports(unittest.TestCase):
                 plain = report(Caveman)
                 marked = report(Caveman, markdown=True)
                 self.assertFalse(any(line.startswith(MSG_MARKDOWN_ROW[0]) for line in plain))
-                self.assertEqual(len([line for line in marked if line.startswith(MSG_MARKDOWN_ROW[0])]), len(plain) - 2 + 1)
+                self.assertEqual(len([line for line in marked if line.startswith(MSG_MARKDOWN_ROW[0])]), len(table_lines_of(plain)) + 1)
 
     def test_the_command_line_names_a_theme_and_may_ask_for_markdown(self):
         self.assertEqual(parse([shown_name(Caveman)]), (Caveman, False))

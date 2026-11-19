@@ -36,7 +36,7 @@ from microsponge.err_messages import ERR_NO_MEMORY
 from microsponge.themes import THEMES
 from microsponge.themes.caveman.terrains import Forest, Grassland
 from microsponge.themes.caveman.theme import Caveman
-from microsponge.themes.caveman.units import Settler, Warrior
+from microsponge.themes.caveman.units import Settler, Clubber
 
 FIRST = 1
 SECOND = 2
@@ -52,7 +52,7 @@ RADIUS_EDGE_TILE = (12, 14)
 # A tile by the west edge, from which vision wraps around to the east edge.
 WEST_EDGE_TILE = (1, 12)
 WRAPPED_TILE = (47, 12)
-# Where another civilization's warrior stands within the first settler's vision, and where it does not.
+# Where another civilization's clubber stands within the first settler's vision, and where it does not.
 NEAR_TILE = (8, 12)
 # From here a unit sees a tile of the second civilization's city radius, which starts 7 columns west of the city at (35, 12).
 WATCHING_TILE = (24, 12)
@@ -131,7 +131,7 @@ class TestSight(Refusals, unittest.TestCase):
         self.assertFalse(self.can_see(civilization=FIRST, tile=(x - Settler.VISION, y)))
 
     def test_vision_wraps_around_the_world_from_west_to_east(self):
-        self.place(kind=Warrior, owner=FIRST, tile=WEST_EDGE_TILE)
+        self.place(kind=Clubber, owner=FIRST, tile=WEST_EDGE_TILE)
         self.assertTrue(self.can_see(civilization=FIRST, tile=WRAPPED_TILE))
         self.assertTrue(self.has_seen(civilization=FIRST, tile=WRAPPED_TILE))
         x, y = WEST_EDGE_TILE
@@ -177,8 +177,8 @@ class TestSight(Refusals, unittest.TestCase):
 
     def test_another_civilizations_unit_is_seen_only_in_vision_and_its_own_always(self):
         settler = settler_of(game=self.game, civilization=FIRST)
-        near = self.place(kind=Warrior, owner=SECOND, tile=NEAR_TILE)
-        far = self.place(kind=Warrior, owner=SECOND, tile=FAR_TILE)
+        near = self.place(kind=Clubber, owner=SECOND, tile=NEAR_TILE)
+        far = self.place(kind=Clubber, owner=SECOND, tile=FAR_TILE)
         view = self.view(FIRST)
         self.assertEqual(view.units_seen(), [near])
         x, y = NEAR_TILE
@@ -194,7 +194,7 @@ class TestSight(Refusals, unittest.TestCase):
     def test_a_technology_that_ends_the_fog_of_war_shows_every_unit_but_reveals_no_land(self):
         game = started_caveman_game(theme=SEEING_CAVEMAN)
         x, y = FAR_TILE
-        far = UnitControl.place(game=game, kind=Warrior, owner=SECOND, world=THE_WORLD, x=x, y=y)
+        far = UnitControl.place(game=game, kind=Clubber, owner=SECOND, world=THE_WORLD, x=x, y=y)
         self.assertFalse(Sight.sees_every_unit(game=game, civilization=FIRST))
         self.assertNotIn(far, Sight.view(game=game, civilization=FIRST).units_seen())
         learn(game=game, civilization=FIRST, technology=SeeingRocks)
@@ -210,17 +210,17 @@ class TestSight(Refusals, unittest.TestCase):
         learn(game=game, civilization=FIRST, technology=SeeingRocks)
         city = found_village(game=game, civilization=SECOND, name=VILLAGE_NAME)
         x, y = CityControl.ring_tiles(game=game, city=city)[0]
-        warrior = UnitControl.place(game=game, kind=Warrior, owner=SECOND, world=THE_WORLD, x=x, y=y)
-        self.assertIn(warrior, Sight.view(game=game, civilization=FIRST).units_seen())
-        CityControl.enter(game=game, unit=warrior, city=city)
-        self.assertNotIn(warrior, Sight.view(game=game, civilization=FIRST).units_seen())
+        clubber = UnitControl.place(game=game, kind=Clubber, owner=SECOND, world=THE_WORLD, x=x, y=y)
+        self.assertIn(clubber, Sight.view(game=game, civilization=FIRST).units_seen())
+        CityControl.enter(game=game, unit=clubber, city=city)
+        self.assertNotIn(clubber, Sight.view(game=game, civilization=FIRST).units_seen())
 
     def test_a_city_seen_once_stays_on_the_map_with_the_owner_it_had_until_seen_again(self):
         city = found_village(game=self.game, civilization=SECOND, name=VILLAGE_NAME)
         Sight.look_around_city(game=self.game, city=city)
         self.assertEqual(self.view(FIRST).owner_of(city), NOTHING)
         self.assertEqual(self.view(SECOND).owner_of(city), SECOND)
-        watcher = self.place(kind=Warrior, owner=FIRST, tile=WATCHING_TILE)
+        watcher = self.place(kind=Clubber, owner=FIRST, tile=WATCHING_TILE)
         self.assertEqual(self.view(FIRST).owner_of(city), SECOND)
         x, y = AWAY_TILE
         UnitControl.move_to(game=self.game, unit=watcher, x=x, y=y)
@@ -229,7 +229,7 @@ class TestSight(Refusals, unittest.TestCase):
         self.game.get_city(city).set_owner(FIRST)
         self.assertEqual(self.view(SECOND).owner_of(city), SECOND)
         self.assertEqual(self.view(FIRST).owner_of(city), FIRST)
-        self.place(kind=Warrior, owner=SECOND, tile=WATCHING_TILE)
+        self.place(kind=Clubber, owner=SECOND, tile=WATCHING_TILE)
         self.assertEqual(self.view(SECOND).owner_of(city), FIRST)
         radius_x, radius_y = CityControl.radius_tiles(game=self.game, city=city)[0]
         self.assertEqual(self.view(FIRST).remembered(world=THE_WORLD, layer=Layer.CITY, x=radius_x, y=radius_y), city)

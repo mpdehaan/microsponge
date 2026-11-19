@@ -30,16 +30,16 @@ Everything below follows from the model and from caveman's numbers, and changes 
   with 0 currency for 50 turns in a row loses. Food matters the same way: citizens eat 1 food
   each, and a city grows only while the civilization holds 5 food for each citizen of the city.
 - Research is slow: 1 point per city per turn, and nothing else, until the great cave painting.
-  Clubs, which allows the warrior, takes 10 turns with one city and 5 with two. Discipline, which
+  Clubs, which allows the clubber, takes 10 turns with one city and 5 with two. Discipline, which
   allows the barracks and then captain caveman, takes 40 points. Fire, for the watchtower, takes
   20, and the watchtower also needs flint within the borders.
 - A unit has 2 action points a turn, so it moves 2 grassland tiles, and the pool allows 3 unit
   moves a turn with one city and 4 with two. The two starting positions of the test world are
   about 30 tiles apart, so an army takes about 15 turns to arrive, longer through forest.
-- Fights are long: a warrior needs 5 attacks to kill a warrior, and takes a fifth of its attack
-  back each time. Captain caveman kills a warrior in 2 attacks and a captain caveman in 4. A unit
-  inside a city heals 3 hit points a turn, outside 1. Behind a watchtower a warrior defends with
-  3 instead of 2, so a warrior needs 7 attacks to kill it.
+- Fights are long: a clubber needs 5 attacks to kill a clubber, and takes a fifth of its attack
+  back each time. Captain caveman kills a clubber in 2 attacks and a captain caveman in 4. A unit
+  inside a city heals 3 hit points a turn, outside 1. Behind a watchtower a clubber defends with
+  3 instead of 2, so a clubber needs 7 attacks to kill it.
 - A city holds 3 units inside, and only the units inside defend it. A city with no unit inside
   is taken by walking in, and the taker gets the buildings. The angry bird cannot take a city.
 - A settler costs a citizen, and a city of one citizen cannot build one; a city grows a citizen
@@ -57,9 +57,9 @@ so that a turn costs about as long as walking the units and cities once.
    radius away, in the direction of the enemy if the ground allows, so that the border is closer
    to the enemy and the second city doubles research and action points. A third city is worth
    it while the turn limit is far off.
-3. **Research in this order:** clubs, then discipline, then fire. Clubs gives the warrior, the
+3. **Research in this order:** clubs, then discipline, then fire. Clubs gives the clubber, the
    first unit that can fight. Discipline gives the barracks and captain caveman, which wins
-   fights twice as fast and holds a city against warriors. Fire gives the watchtower, worth
+   fights twice as fast and holds a city against clubbers. Fire gives the watchtower, worth
    building only when flint is within the borders. Agriculture, the granary and farms are for a
    player that is behind on food, which the test world's grassland rarely causes.
 4. **Keep one unit inside each city at all times.** An empty city is lost to any unit that walks
@@ -70,17 +70,17 @@ so that a turn costs about as long as walking the units and cities once.
    one citizen each can afford about three units beyond its defenders. A player that goes
    bankrupt loses to the clock.
 6. **Attack with a group, never alone.** Gather three attackers next to the own city, declare war,
-   and walk together toward the enemy city, each unit 2 tiles a turn. A lone warrior is killed
+   and walk together toward the enemy city, each unit 2 tiles a turn. A lone clubber is killed
    by the defenders' strike back and by the city's healing. On arrival, stand next to the city
    center, attack with every unit every turn, and keep attacking the same city until no unit is
    inside, then walk in with a unit that can take cities. Units below half their hit points
    step back and heal for a turn when the group can spare them.
-7. **Replace losses from the nearest city.** The city nearest the front builds warriors, or
+7. **Replace losses from the nearest city.** The city nearest the front builds clubbers, or
    captain caveman when it has a barracks, as long as the income allows; the other cities grow
    and build settlers.
 8. **Pick research every turn and never leave a city idle.** The game forces a pick, and a city
    with an empty queue wastes turns. When nothing above wants anything, the city builds a
-   warrior if the income allows and a settler otherwise.
+   clubber if the income allows and a settler otherwise.
 
 ## How the user would try to win
 
@@ -153,7 +153,7 @@ The user wants variance programmed in, so that no two computer players are the s
   many turns: the log should show how many turns a siege takes and how many units each side
   loses, so that the rules, or the numbers in caveman, can be tuned.
 - A player that expands too much is rich but defenseless when the other arrives early; a player
-  that attacks early with warriors loses them against a healing defender. The balance between
+  that attacks early with clubbers loses them against a healing defender. The balance between
   rules 2, 5 and 6 is the whole game, and the first version will pick fixed thresholds that the
   log will show to be right or wrong.
 - The action point pool is small: with 4 plus 2 a city, a player with many units cannot move them
@@ -166,7 +166,7 @@ The user wants variance programmed in, so that no two computer players are the s
   with the outcome of each attack, and what each civilization holds, so that a person can read
   how the game went and a test can check that it went the way the rules intend.
 - A game is measured by who won and in how many turns, how long each turn took to compute, how
-  many units each side lost, and when the first city was founded, the first warrior built, the
+  many units each side lost, and when the first city was founded, the first clubber built, the
   war declared and the first attack made.
 
 - For now, the first thing to see is whether games naturally end or stalemate, with the

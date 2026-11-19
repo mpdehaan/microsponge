@@ -26,11 +26,12 @@ civilization decides as a whole, whom to declare war on and when to end the turn
 are subclasses that say which kinds are the theme's: `CavemanPlayer` is the first.
 """
 
+from microsponge.engine.cities.harvest import Harvest
 from microsponge.engine.kinds.category import Category
 from microsponge.engine.kinds.catalog import NOTHING
 from microsponge.engine.kinds.control_points import CONTROL_POINTS, Command
 from microsponge.engine.orders.given_order import Reason
-from microsponge.engine.orders.order import BuildOrder, ExpandOrder, GarrisonOrder, MarchOrder, RaiseOrder, ResearchOrder, SettlerOrder
+from microsponge.engine.orders.order import BuildOrder, ExpandOrder, GarrisonOrder, MarchOrder, RaiseOrder, ResearchOrder, RetireOrder, SettlerOrder
 from microsponge.engine.orders.order_control import OrderControl
 from microsponge.engine.orders.thing import city_thing, civilization_thing, division_thing, unit_thing
 from microsponge.engine.orders.what import BuildTarget, Buildings, CityTarget, Garrison, March, NoDetails, Technologies, Units
@@ -61,10 +62,11 @@ class ComputerPlayer:
 
     @classmethod
     def play_turn(cls, *, game, civilization):
-        """Play a civilization's whole turn: set the orders, have the Hand carry them out, and end the turn."""
+        """Play a civilization's whole turn: set the orders, have the Hand carry them out, and end the turn, unless carrying them out won the game."""
         cls.plan(game=game, civilization=civilization)
         Hand.carry_out(game=game, civilization=civilization)
-        Orders.end_turn(game=game, civilization=civilization)
+        if not game.is_over():
+            Orders.end_turn(game=game, civilization=civilization)
 
     @classmethod
     def plan(cls, *, game, civilization):
@@ -74,6 +76,7 @@ class ComputerPlayer:
         cls.plan_first_settlers(game=game, civilization=civilization)
         cls.plan_cities(game=game, civilization=civilization)
         cls.plan_division(game=game, civilization=civilization)
+        cls.plan_retirement(game=game, civilization=civilization)
         cls.consider_war(game=game, civilization=civilization)
         cls.plan_march(game=game, civilization=civilization)
         cls.keep_within_points(game=game, civilization=civilization)
@@ -116,7 +119,7 @@ class ComputerPlayer:
         """Take out of the table the orders that are invalid and the orders to settle or to march that are completed, and switch every order the player disabled back on, to be weighed again this turn."""
         table = cls.table_of(game=game, civilization=civilization)
         for order in table.get_orders():
-            finished = order.get_reason() is Reason.COMPLETED and (order.is_a(SettlerOrder) or order.is_a(MarchOrder))
+            finished = order.get_reason() is Reason.COMPLETED and (order.is_a(SettlerOrder) or order.is_a(MarchOrder) or order.is_a(RetireOrder))
             if order.get_reason() is Reason.INVALID or finished:
                 table.remove(order)
             elif order.get_reason() is Reason.DISABLED:
@@ -186,6 +189,8 @@ class ComputerPlayer:
         size = len(division.get_units())
         if size < len(game.get_cities_of(civilization)) * GARRISON:
             return True
+        if cls.is_starved(game=game, civilization=civilization):
+            return False
         if size >= cls.wanted_size(game=game, civilization=civilization) or cls.bank(game=game, civilization=civilization) < cls.RESERVE:
             return False
         return not cls.favors(game=game, civilization=civilization, trait=ECONOMICS)
@@ -217,6 +222,37 @@ class ComputerPlayer:
                 order.disable()
             if not cls.given_garrison(game=game, civilization=civilization, city=city):
                 cls.give(game=game, civilization=civilization, kind=GarrisonOrder, giver=here, receiver=me, what=Garrison(place=CityTarget(city=city), count=GARRISON))
+
+    @classmethod
+    def income(cls, *, game, civilization):
+        """Return the primary resource the civilization's cities collect in a turn, before upkeep."""
+        primary = game.get_theme().PRIMARY_RESOURCE
+        return sum(Harvest.of_city(game=game, city=city).get(primary, 0) for city in game.get_cities_of(civilization))
+
+    @classmethod
+    def upkeep(cls, *, game, civilization):
+        """Return the primary resource the civilization's units and buildings cost each turn."""
+        currency = game.get_catalog().get_id(category=Category.RESOURCES, kind=game.get_theme().PRIMARY_RESOURCE)
+        return TurnControl.support_cost(game=game, civilization=civilization).get(currency, 0)
+
+    @classmethod
+    def is_starved(cls, *, game, civilization):
+        """Return whether the upkeep takes more than the cities collect while the bank is below the reserve, which leaves nothing to build with."""
+        return cls.bank(game=game, civilization=civilization) < cls.RESERVE and cls.upkeep(game=game, civilization=civilization) > cls.income(game=game, civilization=civilization)
+
+    @classmethod
+    def plan_retirement(cls, *, game, civilization):
+        """Retire one fighter a turn beyond the garrisons while the civilization is starved, one outside a city first, so that the upkeep stops taking everything."""
+        division = cls.division_of(game=game, civilization=civilization)
+        if division is None or not cls.is_starved(game=game, civilization=civilization):
+            return
+        alive = Knowledge.units_of(game=game, civilization=civilization)
+        fighters = [unit for unit in division.get_units() if unit in alive]
+        if len(fighters) <= len(game.get_cities_of(civilization)) * GARRISON:
+            return
+        outside = [unit for unit in fighters if Knowledge.city_of(game=game, unit=unit) == NOTHING]
+        unit = (outside or fighters)[-1]
+        cls.give(game=game, civilization=civilization, kind=RetireOrder, giver=division_thing(division.get_id()), receiver=unit_thing(unit), what=NoDetails())
 
     @classmethod
     def given_garrison(cls, *, game, civilization, city):

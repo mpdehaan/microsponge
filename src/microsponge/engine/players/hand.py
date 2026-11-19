@@ -35,10 +35,10 @@ from microsponge.engine.civilizations.sight import Sight
 from microsponge.engine.kinds.catalog import NOTHING
 from microsponge.engine.kinds.category import Category
 from microsponge.engine.kinds.unit_kinds import SettlerUnit
-from microsponge.engine.orders.order import BuildOrder, BuildTargetOrder, ExpandOrder, GarrisonOrder, MarchOrder, RaiseOrder, ResearchOrder, SettlerOrder
+from microsponge.engine.orders.order import BuildOrder, BuildTargetOrder, ExpandOrder, GarrisonOrder, MarchOrder, RaiseOrder, ResearchOrder, RetireOrder, SettlerOrder
 from microsponge.engine.orders.order_control import OrderControl
 from microsponge.engine.orders.referee import Referee
-from microsponge.engine.orders.thing import city_thing, unit_thing
+from microsponge.engine.orders.thing import ThingType, city_thing, unit_thing
 from microsponge.engine.orders.what import NoDetails
 from microsponge.engine.players.helper_ai import HelperAI
 from microsponge.engine.players.knowledge import Knowledge, distance
@@ -76,6 +76,7 @@ class Hand:
         """Do this turn's work for every active order of a civilization: the referee reviews the orders first, new units join what asked for them, and then research, the cities, the settlers and the divisions are seen to."""
         Referee.review(game=game, civilization=civilization)
         cls.muster(game=game, civilization=civilization)
+        cls.retire(game=game, civilization=civilization)
         cls.research(game=game, civilization=civilization)
         cls.direct_cities(game=game, civilization=civilization)
         cls.direct_settlers(game=game, civilization=civilization)
@@ -84,6 +85,31 @@ class Hand:
     @classmethod
     def table_of(cls, *, game, civilization):
         return game.get_civilization(civilization).get_orders()
+
+    @classmethod
+    def units_of_thing(cls, *, game, civilization, thing):
+        """Return the units a thing that receives orders stands for: a unit itself, every unit of a division, or every unit of every division of an army."""
+        forces = cls.forces_of(game=game, civilization=civilization)
+        if thing.type is ThingType.UNIT:
+            return [thing.id]
+        if thing.type is ThingType.DIVISION:
+            return forces.get_division(thing.id).get_units()
+        if thing.type is ThingType.ARMY:
+            return [unit for division in forces.get_divisions() if division.get_army() == thing.id for unit in division.get_units()]
+        return []
+
+    @classmethod
+    def retire(cls, *, game, civilization):
+        """Take out of the game the units of every active order to retire, and complete each order. Nothing comes back for a retired unit."""
+        forces = cls.forces_of(game=game, civilization=civilization)
+        for order in cls.table_of(game=game, civilization=civilization).active(RetireOrder):
+            alive = Knowledge.units_of(game=game, civilization=civilization)
+            for unit in [unit for unit in cls.units_of_thing(game=game, civilization=civilization, thing=order.get_receiver()) if unit in alive]:
+                division = forces.division_of(unit)
+                if division is not None:
+                    division.remove_unit(unit)
+                UnitControl.remove(game=game, unit=unit)
+            order.complete()
 
     @classmethod
     def forces_of(cls, *, game, civilization):
@@ -312,7 +338,9 @@ class Hand:
 
     @classmethod
     def repeat(cls, *, game, unit, action):
-        """Have a unit do one thing after another while it can, at most once for each of its kind's action points."""
+        """Have a unit do one thing after another while it can, at most once for each of its kind's action points. A unit already gone, killed earlier in the turn, does nothing."""
+        if unit not in game.get_units().get_ids():
+            return
         for _ in range(UnitControl.kind_of(game=game, unit=unit).ACTION_POINTS):
             if unit not in game.get_units().get_ids() or not action():
                 return

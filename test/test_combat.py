@@ -45,7 +45,7 @@ from microsponge.themes.caveman.improvements import Farm
 from microsponge.themes.caveman.resources import Currency
 from microsponge.themes.caveman.technologies import Agriculture, Clubs
 from microsponge.themes.caveman.theme import Caveman
-from microsponge.themes.caveman.units import AngryBird, CaptainCaveman, Settler, SlingshotCaveman, Warrior, Worker
+from microsponge.themes.caveman.units import AngryBird, CaptainCaveman, Settler, SlingshotCaveman, Clubber, Worker
 
 FIRST_CIVILIZATION = 1
 SECOND_CIVILIZATION = 2
@@ -85,20 +85,20 @@ def strike_back_range(*, attacker, defender):
     return UnitControl.mitigated(roll=least, armor_class=armor), UnitControl.mitigated(roll=most, armor_class=armor)
 
 
-class Grunt(Warrior):
-    """A warrior that does not strike back."""
+class Grunt(Clubber):
+    """A clubber that does not strike back."""
 
     STRIKES_BACK = False
 
 
-class Rockthrower(Warrior):
-    """A warrior that bypasses city walls."""
+class Rockthrower(Clubber):
+    """A clubber that bypasses city walls."""
 
     BYPASSES_WALLS = True
 
 
-class Turtle(Warrior):
-    """A warrior with the best armor there is."""
+class Turtle(Clubber):
+    """A clubber with the best armor there is."""
 
     ARMOR_CLASS = BEST_ARMOR_CLASS
 
@@ -154,9 +154,9 @@ class CombatCase(Refusals, unittest.TestCase):
         self.assertEqual(game_facts(self.game), before)
         return message
 
-    def two_warriors(self, *, defender=Warrior):
-        """Put a warrior of the first civilization and a unit of the second next to each other on the open row, and return their ids."""
-        attacker = self.place(kind=Warrior, civilization=FIRST_CIVILIZATION, x=OPEN_COLUMN, y=OPEN_ROW)
+    def two_clubbers(self, *, defender=Clubber):
+        """Put a clubber of the first civilization and a unit of the second next to each other on the open row, and return their ids."""
+        attacker = self.place(kind=Clubber, civilization=FIRST_CIVILIZATION, x=OPEN_COLUMN, y=OPEN_ROW)
         target = self.place(kind=defender, civilization=SECOND_CIVILIZATION, x=OPEN_COLUMN + ONE_STEP, y=OPEN_ROW)
         return attacker, target
 
@@ -164,16 +164,16 @@ class CombatCase(Refusals, unittest.TestCase):
 class TestAttackingAUnit(CombatCase):
 
     def test_an_attack_rolls_the_dice_through_the_armor_of_the_defender_and_the_defender_strikes_back_through_the_armor_of_the_attacker(self):
-        attacker, target = self.two_warriors()
+        attacker, target = self.two_clubbers()
         outcome = self.attack(unit=attacker, x=OPEN_COLUMN + ONE_STEP, y=OPEN_ROW)
         self.assertEqual(outcome.defender, target)
-        self.assertWithin(value=outcome.damage, bounds=damage_range(attacker=Warrior, defender=Warrior))
-        self.assertWithin(value=outcome.strike_back, bounds=strike_back_range(attacker=Warrior, defender=Warrior))
+        self.assertWithin(value=outcome.damage, bounds=damage_range(attacker=Clubber, defender=Clubber))
+        self.assertWithin(value=outcome.strike_back, bounds=strike_back_range(attacker=Clubber, defender=Clubber))
         self.assertEqual(outcome.striker, target)
         self.assertEqual((outcome.defender_killed, outcome.attacker_killed), (False, False))
-        self.assertEqual(self.hit_points(target), Warrior.HIT_POINTS - outcome.damage)
-        self.assertEqual(self.hit_points(attacker), Warrior.HIT_POINTS - outcome.strike_back)
-        self.assertEqual(self.points_of(attacker), Warrior.ACTION_POINTS - STRAIGHT)
+        self.assertEqual(self.hit_points(target), Clubber.HIT_POINTS - outcome.damage)
+        self.assertEqual(self.hit_points(attacker), Clubber.HIT_POINTS - outcome.strike_back)
+        self.assertEqual(self.points_of(attacker), Clubber.ACTION_POINTS - STRAIGHT)
         self.assertEqual(self.game.get_civilization(FIRST_CIVILIZATION).get_policy_points(), points_given(by=Caveman, points=Policy) - STRAIGHT)
 
     def test_the_same_seed_rolls_the_same_fight(self):
@@ -182,26 +182,26 @@ class TestAttackingAUnit(CombatCase):
             self.game = started_caveman_game(theme=self.THEME)
             self.setUp_after_theme()
             self.game.set_seed(A_SEED)
-            attacker, _ = self.two_warriors()
+            attacker, _ = self.two_clubbers()
             outcomes.append([self.attack(unit=attacker, x=OPEN_COLUMN + ONE_STEP, y=OPEN_ROW) for _ in range(2)])
         self.assertEqual(outcomes[0], outcomes[1])
 
     def test_an_attack_always_deals_chip_damage_however_good_the_armor(self):
         self.game = started_caveman_game(theme=MEEK_CAVEMAN)
         self.setUp_after_theme()
-        attacker, turtle = self.two_warriors(defender=Turtle)
+        attacker, turtle = self.two_clubbers(defender=Turtle)
         outcome = self.attack(unit=attacker, x=OPEN_COLUMN + ONE_STEP, y=OPEN_ROW)
         self.assertEqual(outcome.damage, CHIP_DAMAGE)
         self.assertEqual(self.hit_points(turtle), Turtle.HIT_POINTS - CHIP_DAMAGE)
-        self.assertEqual(damage_range(attacker=Warrior, defender=Turtle), (CHIP_DAMAGE, CHIP_DAMAGE))
+        self.assertEqual(damage_range(attacker=Clubber, defender=Turtle), (CHIP_DAMAGE, CHIP_DAMAGE))
 
     def test_a_land_unit_cannot_strike_back_at_an_air_unit_and_a_slingshot_caveman_can(self):
         bird = self.place(kind=AngryBird, civilization=FIRST_CIVILIZATION, x=OPEN_COLUMN, y=OPEN_ROW)
-        warrior = self.place(kind=Warrior, civilization=SECOND_CIVILIZATION, x=OPEN_COLUMN + ONE_STEP, y=OPEN_ROW)
+        clubber = self.place(kind=Clubber, civilization=SECOND_CIVILIZATION, x=OPEN_COLUMN + ONE_STEP, y=OPEN_ROW)
         outcome = self.attack(unit=bird, x=OPEN_COLUMN + ONE_STEP, y=OPEN_ROW)
         self.assertEqual(outcome.strike_back, NO_DAMAGE)
         self.assertEqual(self.hit_points(bird), AngryBird.HIT_POINTS)
-        self.assertEqual(self.hit_points(warrior), Warrior.HIT_POINTS - outcome.damage)
+        self.assertEqual(self.hit_points(clubber), Clubber.HIT_POINTS - outcome.damage)
         slingshot = self.place(kind=SlingshotCaveman, civilization=SECOND_CIVILIZATION, x=OPEN_COLUMN - ONE_STEP, y=OPEN_ROW)
         self.units.set_value(column=UnitColumn.HIT_POINTS, unit=bird, value=TOUGH)
         outcome = self.attack(unit=bird, x=OPEN_COLUMN - ONE_STEP, y=OPEN_ROW)
@@ -213,11 +213,11 @@ class TestAttackingAUnit(CombatCase):
     def test_a_kind_that_does_not_strike_back_deals_nothing_back(self):
         self.game = started_caveman_game(theme=MEEK_CAVEMAN)
         self.setUp_after_theme()
-        attacker, grunt = self.two_warriors(defender=Grunt)
+        attacker, grunt = self.two_clubbers(defender=Grunt)
         outcome = self.attack(unit=attacker, x=OPEN_COLUMN + ONE_STEP, y=OPEN_ROW)
-        self.assertWithin(value=outcome.damage, bounds=damage_range(attacker=Warrior, defender=Grunt))
+        self.assertWithin(value=outcome.damage, bounds=damage_range(attacker=Clubber, defender=Grunt))
         self.assertEqual((outcome.strike_back, outcome.striker), (NO_DAMAGE, None))
-        self.assertEqual(self.hit_points(attacker), Warrior.HIT_POINTS)
+        self.assertEqual(self.hit_points(attacker), Clubber.HIT_POINTS)
 
     def setUp_after_theme(self):
         """Redo the setup over a game of another theme."""
@@ -226,7 +226,7 @@ class TestAttackingAUnit(CombatCase):
         Orders.declare_war(game=self.game, civilization=FIRST_CIVILIZATION, on=SECOND_CIVILIZATION)
 
     def test_a_defender_whose_hit_points_reach_0_is_gone_and_does_not_strike_back(self):
-        attacker, target = self.two_warriors()
+        attacker, target = self.two_clubbers()
         self.units.set_value(column=UnitColumn.HIT_POINTS, unit=target, value=CHIP_DAMAGE)
         before = self.hit_points(attacker)
         outcome = self.attack(unit=attacker, x=OPEN_COLUMN + ONE_STEP, y=OPEN_ROW)
@@ -236,7 +236,7 @@ class TestAttackingAUnit(CombatCase):
         self.assertEqual(self.hit_points(attacker), before)
 
     def test_an_attacker_can_be_killed_by_the_strike_back(self):
-        attacker, target = self.two_warriors()
+        attacker, target = self.two_clubbers()
         self.units.set_value(column=UnitColumn.HIT_POINTS, unit=attacker, value=CHIP_DAMAGE)
         outcome = self.attack(unit=attacker, x=OPEN_COLUMN + ONE_STEP, y=OPEN_ROW)
         self.assertEqual((outcome.defender_killed, outcome.attacker_killed), (False, True))
@@ -245,18 +245,18 @@ class TestAttackingAUnit(CombatCase):
         self.assertTrue(self.units.exists(target))
 
     def test_attacking_diagonally_costs_the_diagonal_base(self):
-        attacker = self.place(kind=Warrior, civilization=FIRST_CIVILIZATION, x=OPEN_COLUMN, y=OPEN_ROW)
-        self.place(kind=Warrior, civilization=SECOND_CIVILIZATION, x=OPEN_COLUMN + ONE_STEP, y=OPEN_ROW + ONE_STEP)
+        attacker = self.place(kind=Clubber, civilization=FIRST_CIVILIZATION, x=OPEN_COLUMN, y=OPEN_ROW)
+        self.place(kind=Clubber, civilization=SECOND_CIVILIZATION, x=OPEN_COLUMN + ONE_STEP, y=OPEN_ROW + ONE_STEP)
         self.attack(unit=attacker, x=OPEN_COLUMN + ONE_STEP, y=OPEN_ROW + ONE_STEP)
-        self.assertEqual(self.points_of(attacker), Warrior.ACTION_POINTS - DIAGONAL)
+        self.assertEqual(self.points_of(attacker), Clubber.ACTION_POINTS - DIAGONAL)
 
 
 class TestWhatCannotBeAttacked(CombatCase):
 
     def test_an_empty_tile_a_far_tile_and_an_own_unit_cannot_be_attacked(self):
-        attacker = self.place(kind=Warrior, civilization=FIRST_CIVILIZATION, x=OPEN_COLUMN, y=OPEN_ROW)
-        own = self.place(kind=Warrior, civilization=FIRST_CIVILIZATION, x=OPEN_COLUMN - ONE_STEP, y=OPEN_ROW)
-        self.place(kind=Warrior, civilization=SECOND_CIVILIZATION, x=OPEN_COLUMN + 2, y=OPEN_ROW)
+        attacker = self.place(kind=Clubber, civilization=FIRST_CIVILIZATION, x=OPEN_COLUMN, y=OPEN_ROW)
+        own = self.place(kind=Clubber, civilization=FIRST_CIVILIZATION, x=OPEN_COLUMN - ONE_STEP, y=OPEN_ROW)
+        self.place(kind=Clubber, civilization=SECOND_CIVILIZATION, x=OPEN_COLUMN + 2, y=OPEN_ROW)
         message = self.refused_and_unchanged(lambda: self.attack(unit=attacker, x=OPEN_COLUMN + ONE_STEP, y=OPEN_ROW))
         self.assertEqual(message, ERR_NOTHING_TO_ATTACK.format(x=OPEN_COLUMN + ONE_STEP, y=OPEN_ROW))
         message = self.refused_and_unchanged(lambda: self.attack(unit=attacker, x=OPEN_COLUMN + 2, y=OPEN_ROW))
@@ -269,18 +269,18 @@ class TestWhatCannotBeAttacked(CombatCase):
         self.game = started_caveman_game()
         self.units = self.game.get_units()
         self.world = self.game.get_world(THE_WORLD)
-        attacker, target = self.two_warriors()
+        attacker, target = self.two_clubbers()
         message = self.refused_and_unchanged(lambda: self.attack(unit=attacker, x=OPEN_COLUMN + ONE_STEP, y=OPEN_ROW))
         self.assertEqual(message, ERR_NOT_AT_WAR.format(name=SECOND_NAME))
 
     def test_a_kind_that_cannot_hit_the_target_cannot_attack_it(self):
-        attacker = self.place(kind=Warrior, civilization=FIRST_CIVILIZATION, x=OPEN_COLUMN, y=OPEN_ROW)
+        attacker = self.place(kind=Clubber, civilization=FIRST_CIVILIZATION, x=OPEN_COLUMN, y=OPEN_ROW)
         self.place(kind=AngryBird, civilization=SECOND_CIVILIZATION, x=OPEN_COLUMN + ONE_STEP, y=OPEN_ROW)
         message = self.refused_and_unchanged(lambda: self.attack(unit=attacker, x=OPEN_COLUMN + ONE_STEP, y=OPEN_ROW))
-        self.assertEqual(message, ERR_CANNOT_HIT.format(unit=shown_name(Warrior), target=shown_name(AngryBird)))
+        self.assertEqual(message, ERR_CANNOT_HIT.format(unit=shown_name(Clubber), target=shown_name(AngryBird)))
 
     def test_a_unit_with_no_action_points_a_working_unit_and_a_unit_inside_a_city_cannot_attack(self):
-        attacker, target = self.two_warriors()
+        attacker, target = self.two_clubbers()
         self.units.set_value(column=UnitColumn.ACTION_POINTS, unit=attacker, value=NOTHING)
         message = self.refused_and_unchanged(lambda: self.attack(unit=attacker, x=OPEN_COLUMN + ONE_STEP, y=OPEN_ROW))
         self.assertEqual(message, ERR_NO_ACTION_POINTS.format(unit=attacker, left=NOTHING, cost=STRAIGHT))
@@ -291,15 +291,15 @@ class TestWhatCannotBeAttacked(CombatCase):
         self.assertEqual(message, ERR_UNIT_WORKING.format(unit=worker, improvement=shown_name(Farm)))
         city = found_village(game=self.game, civilization=FIRST_CIVILIZATION, name=A_NAME)
         x, y = SETTLER_TILES[0]
-        inside = self.place(kind=Warrior, civilization=FIRST_CIVILIZATION, x=x + 3, y=y)
+        inside = self.place(kind=Clubber, civilization=FIRST_CIVILIZATION, x=x + 3, y=y)
         Orders.enter_city(game=self.game, unit=inside, city=city)
-        self.place(kind=Warrior, civilization=SECOND_CIVILIZATION, x=x + 3, y=y)
+        self.place(kind=Clubber, civilization=SECOND_CIVILIZATION, x=x + 3, y=y)
         message = self.refused_and_unchanged(lambda: self.attack(unit=inside, x=x + 3, y=y))
         self.assertEqual(message, ERR_UNIT_IN_A_CITY.format(unit=inside, city=VILLAGE))
 
 
 class CityCombatCase(CombatCase):
-    """The first civilization's village with the second civilization's warrior next to its center, to the east."""
+    """The first civilization's village with the second civilization's clubber next to its center, to the east."""
 
     def setUp(self):
         super().setUp()
@@ -309,7 +309,7 @@ class CityCombatCase(CombatCase):
         self.east = (x + 3, y)
         self.south = (x, y + 3)
         self.game.set_playing(SECOND_CIVILIZATION)
-        self.raider = self.place(kind=Warrior, civilization=SECOND_CIVILIZATION, x=self.east[0], y=self.east[1])
+        self.raider = self.place(kind=Clubber, civilization=SECOND_CIVILIZATION, x=self.east[0], y=self.east[1])
 
     def put_inside(self, kind):
         """Put a unit of the first civilization inside the village, and return its id."""
@@ -334,89 +334,89 @@ class TestAttackingACity(CityCombatCase):
         self.assertEqual(Combat.striker_of_city(game=self.game, city=self.city, attacker=self.raider), captain)
         outcome = self.raid()
         self.assertEqual(outcome.defender, captain)
-        self.assertWithin(value=outcome.damage, bounds=damage_range(attacker=Warrior, defender=CaptainCaveman))
-        self.assertWithin(value=outcome.strike_back, bounds=strike_back_range(attacker=Warrior, defender=CaptainCaveman))
+        self.assertWithin(value=outcome.damage, bounds=damage_range(attacker=Clubber, defender=CaptainCaveman))
+        self.assertWithin(value=outcome.strike_back, bounds=strike_back_range(attacker=Clubber, defender=CaptainCaveman))
         self.assertEqual(outcome.striker, captain)
         self.assertEqual(self.hit_points(bird), AngryBird.HIT_POINTS)
         self.assertEqual(self.hit_points(slingshot), SlingshotCaveman.HIT_POINTS)
-        self.assertEqual(self.hit_points(self.raider), Warrior.HIT_POINTS - outcome.strike_back)
+        self.assertEqual(self.hit_points(self.raider), Clubber.HIT_POINTS - outcome.strike_back)
 
     def test_the_striker_can_be_another_unit_than_the_one_hit(self):
         self.put_inside(Settler)
-        warrior = self.put_inside(Warrior)
-        self.assertGreater(Settler.ARMOR_CLASS, Warrior.ARMOR_CLASS)
-        self.assertEqual(Combat.defender_of_city(game=self.game, city=self.city), warrior)
-        self.assertEqual(Combat.striker_of_city(game=self.game, city=self.city, attacker=self.raider), warrior)
+        clubber = self.put_inside(Clubber)
+        self.assertGreater(Settler.ARMOR_CLASS, Clubber.ARMOR_CLASS)
+        self.assertEqual(Combat.defender_of_city(game=self.game, city=self.city), clubber)
+        self.assertEqual(Combat.striker_of_city(game=self.game, city=self.city, attacker=self.raider), clubber)
         bird = self.put_inside(AngryBird)
         raider = self.place(kind=AngryBird, civilization=SECOND_CIVILIZATION, x=self.east[0], y=self.east[1] + ONE_STEP)
         self.assertEqual(Combat.striker_of_city(game=self.game, city=self.city, attacker=raider), bird)
         x, y = self.middle
         outcome = Orders.attack(game=self.game, unit=raider, x=x + 2, y=y + 1)
-        self.assertEqual((outcome.defender, outcome.striker), (warrior, bird))
+        self.assertEqual((outcome.defender, outcome.striker), (clubber, bird))
         self.assertWithin(value=outcome.strike_back, bounds=strike_back_range(attacker=AngryBird, defender=AngryBird))
         self.assertEqual(self.hit_points(raider), AngryBird.HIT_POINTS - outcome.strike_back)
 
     def test_a_watchtower_makes_the_armor_class_of_every_unit_inside_better(self):
-        warrior = self.put_inside(Warrior)
+        clubber = self.put_inside(Clubber)
         give_building(game=self.game, city=self.city, building=Watchtower)
-        self.assertEqual(CityControl.armor_bonus(game=self.game, city=self.city, against=Warrior), Watchtower.ARMOR_BONUS)
-        self.assertEqual(UnitControl.armor_class_of(game=self.game, unit=warrior, bonus=Watchtower.ARMOR_BONUS), Warrior.ARMOR_CLASS - Watchtower.ARMOR_BONUS)
+        self.assertEqual(CityControl.armor_bonus(game=self.game, city=self.city, against=Clubber), Watchtower.ARMOR_BONUS)
+        self.assertEqual(UnitControl.armor_class_of(game=self.game, unit=clubber, bonus=Watchtower.ARMOR_BONUS), Clubber.ARMOR_CLASS - Watchtower.ARMOR_BONUS)
         self.game.set_seed(A_SEED)
         outcome = self.raid()
-        self.assertWithin(value=outcome.damage, bounds=damage_range(attacker=Warrior, defender=Warrior, armor_bonus=Watchtower.ARMOR_BONUS))
-        self.assertEqual(self.hit_points(warrior), Warrior.HIT_POINTS - outcome.damage)
-        self.assertLess(damage_range(attacker=Warrior, defender=Warrior, armor_bonus=Watchtower.ARMOR_BONUS)[1], damage_range(attacker=Warrior, defender=Warrior)[1])
+        self.assertWithin(value=outcome.damage, bounds=damage_range(attacker=Clubber, defender=Clubber, armor_bonus=Watchtower.ARMOR_BONUS))
+        self.assertEqual(self.hit_points(clubber), Clubber.HIT_POINTS - outcome.damage)
+        self.assertLess(damage_range(attacker=Clubber, defender=Clubber, armor_bonus=Watchtower.ARMOR_BONUS)[1], damage_range(attacker=Clubber, defender=Clubber)[1])
 
     def test_a_city_with_no_unit_inside_cannot_be_attacked_but_taken(self):
         message = self.refused_and_unchanged(self.raid)
         self.assertEqual(message, ERR_CITY_UNDEFENDED.format(name=A_NAME, city=VILLAGE))
 
     def test_attacking_any_tile_of_the_city_center_attacks_the_city(self):
-        warrior = self.put_inside(Warrior)
+        clubber = self.put_inside(Clubber)
         x, y = self.east
         outcome = Orders.attack(game=self.game, unit=self.raider, x=x - ONE_STEP, y=y + ONE_STEP)
-        self.assertEqual(outcome.defender, warrior)
+        self.assertEqual(outcome.defender, clubber)
 
 
 class TestExperienceAndLevels(CombatCase):
 
     def test_a_new_unit_is_at_the_first_level_with_no_experience(self):
-        attacker, _ = self.two_warriors()
+        attacker, _ = self.two_clubbers()
         self.assertEqual((self.level_of(attacker), self.experience_of(attacker)), (FIRST_LEVEL, NO_EXPERIENCE))
-        self.assertEqual(UnitControl.max_hit_points(game=self.game, unit=attacker), Warrior.HIT_POINTS)
+        self.assertEqual(UnitControl.max_hit_points(game=self.game, unit=attacker), Clubber.HIT_POINTS)
 
     def test_an_attack_gives_the_attacker_and_a_surviving_defender_a_little_experience(self):
-        attacker, target = self.two_warriors()
+        attacker, target = self.two_clubbers()
         self.attack(unit=attacker, x=OPEN_COLUMN + ONE_STEP, y=OPEN_ROW)
         self.assertEqual(self.experience_of(attacker), ATTACK_EXPERIENCE)
         self.assertEqual(self.experience_of(target), SURVIVAL_EXPERIENCE)
 
     def test_a_kill_gives_the_worth_of_the_kind_killed_plus_its_level_and_a_dead_defender_gains_nothing(self):
-        attacker, target = self.two_warriors()
+        attacker, target = self.two_clubbers()
         self.units.set_value(column=UnitColumn.LEVEL, unit=target, value=FIRST_LEVEL + ONE_LEVEL)
         self.units.set_value(column=UnitColumn.HIT_POINTS, unit=target, value=CHIP_DAMAGE)
         outcome = self.attack(unit=attacker, x=OPEN_COLUMN + ONE_STEP, y=OPEN_ROW)
         self.assertTrue(outcome.defender_killed)
-        self.assertEqual(self.experience_of(attacker), ATTACK_EXPERIENCE + Warrior.EXPERIENCE_WORTH + FIRST_LEVEL + ONE_LEVEL)
-        self.assertEqual(Levels.kill_experience(killed=Warrior, level=FIRST_LEVEL), Warrior.EXPERIENCE_WORTH + FIRST_LEVEL)
+        self.assertEqual(self.experience_of(attacker), ATTACK_EXPERIENCE + Clubber.EXPERIENCE_WORTH + FIRST_LEVEL + ONE_LEVEL)
+        self.assertEqual(Levels.kill_experience(killed=Clubber, level=FIRST_LEVEL), Clubber.EXPERIENCE_WORTH + FIRST_LEVEL)
         self.assertLess(Levels.kill_experience(killed=Settler, level=FIRST_LEVEL), Levels.kill_experience(killed=CaptainCaveman, level=FIRST_LEVEL))
 
     def test_a_striker_that_kills_the_attacker_gets_the_prize_and_the_dead_attacker_gets_nothing(self):
-        attacker, target = self.two_warriors()
+        attacker, target = self.two_clubbers()
         self.units.set_value(column=UnitColumn.HIT_POINTS, unit=attacker, value=CHIP_DAMAGE)
         outcome = self.attack(unit=attacker, x=OPEN_COLUMN + ONE_STEP, y=OPEN_ROW)
         self.assertTrue(outcome.attacker_killed)
-        self.assertEqual(self.experience_of(target), SURVIVAL_EXPERIENCE + Warrior.EXPERIENCE_WORTH + FIRST_LEVEL)
+        self.assertEqual(self.experience_of(target), SURVIVAL_EXPERIENCE + Clubber.EXPERIENCE_WORTH + FIRST_LEVEL)
 
     def test_experience_that_reaches_a_level_raises_the_level_and_adds_the_hit_points_on_top_of_the_wounds(self):
-        attacker, target = self.two_warriors()
+        attacker, target = self.two_clubbers()
         needed = Levels.experience_for(level=FIRST_LEVEL + ONE_LEVEL)
         self.units.set_value(column=UnitColumn.EXPERIENCE, unit=attacker, value=needed - ATTACK_EXPERIENCE)
         outcome = self.attack(unit=attacker, x=OPEN_COLUMN + ONE_STEP, y=OPEN_ROW)
         self.assertEqual(self.level_of(attacker), FIRST_LEVEL + ONE_LEVEL)
-        whole = Levels.hit_points(theme=Caveman, kind=Warrior, level=FIRST_LEVEL + ONE_LEVEL)
+        whole = Levels.hit_points(theme=Caveman, kind=Clubber, level=FIRST_LEVEL + ONE_LEVEL)
         self.assertEqual(UnitControl.max_hit_points(game=self.game, unit=attacker), whole)
-        self.assertEqual(self.hit_points(attacker), Warrior.HIT_POINTS - outcome.strike_back + whole - Warrior.HIT_POINTS)
+        self.assertEqual(self.hit_points(attacker), Clubber.HIT_POINTS - outcome.strike_back + whole - Clubber.HIT_POINTS)
         self.assertEqual(self.level_of(target), FIRST_LEVEL)
 
     def test_the_experience_a_level_takes_and_what_a_level_adds(self):
@@ -428,43 +428,43 @@ class TestExperienceAndLevels(CombatCase):
         self.assertEqual(Levels.level_for(experience=1900 * 2), LAST_LEVEL)
         self.assertEqual([Levels.damage_bonus(level=level) for level in (1, 9, 10, 19, 20)], [0, 0, 1, 1, 2])
         self.assertEqual([Levels.armor_bonus(level=level) for level in (1, 4, 5, 14, 15, 20)], [0, 0, 1, 1, 2, 2])
-        self.assertEqual(Levels.hit_points(theme=Caveman, kind=Warrior, level=FIRST_LEVEL), Warrior.HIT_POINTS)
-        self.assertEqual(Levels.hit_points(theme=Caveman, kind=Warrior, level=LAST_LEVEL), Warrior.HIT_POINTS + Warrior.HIT_POINTS * Caveman.LEVEL_HIT_POINTS_PERCENT * (LAST_LEVEL - FIRST_LEVEL) // WHOLE)
+        self.assertEqual(Levels.hit_points(theme=Caveman, kind=Clubber, level=FIRST_LEVEL), Clubber.HIT_POINTS)
+        self.assertEqual(Levels.hit_points(theme=Caveman, kind=Clubber, level=LAST_LEVEL), Clubber.HIT_POINTS + Clubber.HIT_POINTS * Caveman.LEVEL_HIT_POINTS_PERCENT * (LAST_LEVEL - FIRST_LEVEL) // WHOLE)
 
     def test_a_unit_heals_up_to_the_hit_points_of_its_level(self):
-        attacker, _ = self.two_warriors()
+        attacker, _ = self.two_clubbers()
         self.units.set_value(column=UnitColumn.LEVEL, unit=attacker, value=LAST_LEVEL)
-        whole = Levels.hit_points(theme=Caveman, kind=Warrior, level=LAST_LEVEL)
-        self.assertGreater(whole, Warrior.HIT_POINTS)
+        whole = Levels.hit_points(theme=Caveman, kind=Clubber, level=LAST_LEVEL)
+        self.assertGreater(whole, Clubber.HIT_POINTS)
         self.units.set_value(column=UnitColumn.HIT_POINTS, unit=attacker, value=whole - CHIP_DAMAGE)
         end_rounds(game=self.game, rounds=ONE_ROUND)
         self.assertEqual(self.hit_points(attacker), whole)
 
 
 class TestCityWalls(CityCombatCase):
-    """The village has a palisade and a watchtower, and a warrior inside."""
+    """The village has a palisade and a watchtower, and a clubber inside."""
 
     THEME = MEEK_CAVEMAN
 
     def setUp(self):
         super().setUp()
-        self.warrior = self.put_inside(Warrior)
+        self.clubber = self.put_inside(Clubber)
         give_building(game=self.game, city=self.city, building=Palisade)
         give_building(game=self.game, city=self.city, building=Watchtower)
 
     def test_city_walls_add_their_armor_against_a_unit_that_does_not_bypass_them(self):
-        bonus = CityControl.armor_bonus(game=self.game, city=self.city, against=Warrior)
+        bonus = CityControl.armor_bonus(game=self.game, city=self.city, against=Clubber)
         self.assertEqual(bonus, Palisade.ARMOR_BONUS + Watchtower.ARMOR_BONUS)
         outcome = self.raid()
-        self.assertWithin(value=outcome.damage, bounds=damage_range(attacker=Warrior, defender=Warrior, armor_bonus=bonus))
-        self.assertLess(damage_range(attacker=Warrior, defender=Warrior, armor_bonus=bonus)[1], damage_range(attacker=Warrior, defender=Warrior, armor_bonus=Watchtower.ARMOR_BONUS)[1])
+        self.assertWithin(value=outcome.damage, bounds=damage_range(attacker=Clubber, defender=Clubber, armor_bonus=bonus))
+        self.assertLess(damage_range(attacker=Clubber, defender=Clubber, armor_bonus=bonus)[1], damage_range(attacker=Clubber, defender=Clubber, armor_bonus=Watchtower.ARMOR_BONUS)[1])
 
     def test_a_unit_that_bypasses_city_walls_ignores_the_walls_but_not_the_other_buildings(self):
         self.assertEqual(CityControl.armor_bonus(game=self.game, city=self.city, against=Rockthrower), Watchtower.ARMOR_BONUS)
         x, y = self.east
         thrower = self.place(kind=Rockthrower, civilization=SECOND_CIVILIZATION, x=x, y=y + ONE_STEP)
         outcome = Orders.attack(game=self.game, unit=thrower, x=x - ONE_STEP, y=y + ONE_STEP)
-        self.assertWithin(value=outcome.damage, bounds=damage_range(attacker=Rockthrower, defender=Warrior, armor_bonus=Watchtower.ARMOR_BONUS))
+        self.assertWithin(value=outcome.damage, bounds=damage_range(attacker=Rockthrower, defender=Clubber, armor_bonus=Watchtower.ARMOR_BONUS))
 
 
 class TestTakingACity(CityCombatCase):
@@ -473,7 +473,7 @@ class TestTakingACity(CityCombatCase):
         give_building(game=self.game, city=self.city, building=Watchtower)
         self.game.set_playing(FIRST_CIVILIZATION)
         learn(game=self.game, civilization=FIRST_CIVILIZATION, technology=Clubs)
-        Orders.build(game=self.game, city=self.city, kind=Warrior)
+        Orders.build(game=self.game, city=self.city, kind=Clubber)
         end_rounds(game=self.game, rounds=ONE_ROUND)
         self.game.set_playing(SECOND_CIVILIZATION)
         currency = self.game.get_civilization(FIRST_CIVILIZATION).get_amount(resource_id(game=self.game, resource=Currency))
@@ -489,10 +489,10 @@ class TestTakingACity(CityCombatCase):
         self.assertEqual(self.game.get_civilization(FIRST_CIVILIZATION).get_amount(resource_id(game=self.game, resource=Currency)), currency)
         self.assertEqual(self.game.get_cities_of(SECOND_CIVILIZATION), [self.city])
         self.assertEqual(self.game.get_cities_of(FIRST_CIVILIZATION), [])
-        self.assertEqual(self.points_of(self.raider), Warrior.ACTION_POINTS - Caveman.STRAIGHT_MOVE_COST_BASE)
+        self.assertEqual(self.points_of(self.raider), Clubber.ACTION_POINTS - Caveman.STRAIGHT_MOVE_COST_BASE)
 
     def test_a_city_with_a_unit_inside_is_not_taken(self):
-        self.put_inside(Warrior)
+        self.put_inside(Clubber)
         message = self.refused_and_unchanged(lambda: Orders.enter_city(game=self.game, unit=self.raider, city=self.city))
         self.assertEqual(message, ERR_CITY_DEFENDED.format(name=A_NAME))
 
@@ -510,7 +510,7 @@ class TestTakingACity(CityCombatCase):
         city = found_village(game=self.game, civilization=FIRST_CIVILIZATION, name=A_NAME)
         self.game.set_playing(SECOND_CIVILIZATION)
         x, y = self.east
-        raider = self.place(kind=Warrior, civilization=SECOND_CIVILIZATION, x=x, y=y)
+        raider = self.place(kind=Clubber, civilization=SECOND_CIVILIZATION, x=x, y=y)
         message = self.refused_and_unchanged(lambda: Orders.enter_city(game=self.game, unit=raider, city=city))
         self.assertEqual(message, ERR_NOT_AT_WAR.format(name=FIRST_NAME))
 
@@ -520,11 +520,10 @@ class TestLosing(CityCombatCase):
     def test_a_civilization_that_founded_cities_loses_when_its_last_city_is_taken_and_its_units_are_gone(self):
         first = self.game.get_civilization(FIRST_CIVILIZATION)
         x, y = self.south
-        stray = self.place(kind=Warrior, civilization=FIRST_CIVILIZATION, x=x, y=y + ONE_STEP)
+        stray = self.place(kind=Clubber, civilization=FIRST_CIVILIZATION, x=x, y=y + ONE_STEP)
         self.assertEqual(first.get_cities_founded(), 1)
         self.assertFalse(first.has_lost())
         Orders.enter_city(game=self.game, unit=self.raider, city=self.city)
-        Combat.settle_losses(self.game)
         self.assertTrue(first.has_lost())
         self.assertFalse(self.units.exists(stray))
         self.assertEqual(self.game.get_still_playing(), [SECOND_CIVILIZATION])

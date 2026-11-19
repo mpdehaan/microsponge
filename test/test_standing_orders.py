@@ -39,7 +39,7 @@ from microsponge.themes.caveman.buildings import ChieftainsHut, Watchtower
 from microsponge.themes.caveman.city import Village
 from microsponge.themes.caveman.technologies import Clubs
 from microsponge.themes.caveman.theme import Caveman
-from microsponge.themes.caveman.units import AngryBird, Warrior
+from microsponge.themes.caveman.units import AngryBird, Clubber
 from refusals import Refusals
 
 FIRST = FIRST_CIVILIZATION
@@ -112,8 +112,8 @@ class OrdersCase(Refusals, unittest.TestCase):
         army = OrderControl.add_army(game=self.game, civilization=FIRST)
         return OrderControl.add_division(game=self.game, civilization=FIRST, army=army)
 
-    def warriors(self, *, division, count):
-        units = [UnitControl.place(game=self.game, kind=Warrior, owner=FIRST, world=THE_WORLD, x=x, y=y) for x, y in OPEN_TILES[:count]]
+    def clubbers(self, *, division, count):
+        units = [UnitControl.place(game=self.game, kind=Clubber, owner=FIRST, world=THE_WORLD, x=x, y=y) for x, y in OPEN_TILES[:count]]
         for unit in units:
             division.add_unit(unit)
         return units
@@ -204,7 +204,7 @@ class TestWhatOrdersCost(OrdersCase):
 
     def test_a_command_order_costs_for_each_unit_it_leads_and_a_garrison_order_leads_only_the_units_it_keeps(self):
         division = self.division()
-        self.warriors(division=division, count=A_FEW)
+        self.clubbers(division=division, count=A_FEW)
         me = division_thing(division.get_id())
         march = self.give(kind=MarchOrder, giver=me, receiver=me, what=March(target=CityTarget(city=self.city)))
         garrison = self.give(kind=GarrisonOrder, giver=self.here, receiver=me, what=Garrison(place=CityTarget(city=self.city), count=1))
@@ -281,7 +281,7 @@ class TestForces(OrdersCase):
 
     def test_a_division_holds_its_units_and_its_bases_and_a_unit_is_found_by_its_division(self):
         division = self.division()
-        units = self.warriors(division=division, count=A_FEW)
+        units = self.clubbers(division=division, count=A_FEW)
         division.add_unit(units[0])
         division.set_bases([self.city])
         forces = self.first.get_forces()
@@ -296,7 +296,7 @@ class TestForces(OrdersCase):
 class TestReferee(OrdersCase):
 
     def test_an_order_for_a_unit_that_is_gone_is_invalid_and_costs_nothing(self):
-        unit = UnitControl.place(game=self.game, kind=Warrior, owner=FIRST, world=THE_WORLD, x=OPEN_TILES[0][0], y=OPEN_TILES[0][1])
+        unit = UnitControl.place(game=self.game, kind=Clubber, owner=FIRST, world=THE_WORLD, x=OPEN_TILES[0][0], y=OPEN_TILES[0][1])
         order = self.give(kind=SettlerOrder, giver=unit_thing(unit), receiver=unit_thing(unit), what=NoDetails())
         kept = self.build_order()
         Referee.review(game=self.game, civilization=FIRST)
