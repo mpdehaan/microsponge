@@ -65,7 +65,7 @@ BARREN_CAVEMAN = later_caveman({Category.TERRAINS: (*Caveman.TERRAINS, Barren)})
 
 
 class Hoard(Building):
-    """A building that adds a percent to the currency of its city, which does not come out even for a city of several citizens."""
+    """A building that adds a percent to the currency of its city, which does not come out even for a city of many citizens."""
 
     INCOME_BONUS = 25
 
@@ -260,7 +260,7 @@ class TestHarvest(unittest.TestCase):
 
     def test_a_building_can_add_a_percent_to_the_currency_of_its_village_rounded_down(self):
         game = new_caveman_game(theme=HOARD_CAVEMAN)
-        city = self.village(game=game, civilization=FIRST_CIVILIZATION, citizens=SEVERAL_CITIZENS)
+        city = self.village(game=game, civilization=FIRST_CIVILIZATION, citizens=MANY_CITIZENS)
         plain = Harvest.of_city(game=game, city=city)
         give_building(game=game, city=city, building=Hoard)
         richer = Harvest.of_city(game=game, city=city)

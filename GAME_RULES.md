@@ -123,6 +123,8 @@ otherwise. What classic itself chooses, like its list of resources, is kept in
   cities of a civilization are gone, nobody has to search the map for its hiding settlers.
   The units of a civilization that has lost are taken off the map.
 - A game that was given an ending turn, at setup or by a test, also ends at that turn.
+  When more than one civilization remains at a game's last turn, the civilization with the
+  highest score wins. The user decided this.
 - Allies could win together.
 - A theme with no combat needs another way to win. It would probably involve a building goal, so
   that a computer player would typically want to acquire lots of land, and there may be other
@@ -186,8 +188,11 @@ otherwise. What classic itself chooses, like its list of resources, is kept in
 - When a civilization has been bankrupt for 50 turns in a row, the civilization loses, which
   ends a game of two civilizations. This also keeps a test from getting stuck, and the
   guardrail may be removed later.
-- Each citizen eats food every turn, taken from what the civilization holds. How much a citizen
-  eats is set in the theme.
+- Food is never held by the civilization. Each city stores its own food: each turn, the food its
+  citizens collect goes into the city's store, and its citizens eat from the store, how much
+  each citizen eats being set in the theme. When the store cannot feed the citizens, the
+  city loses a citizen, though never its last, and the store is empty. Units eat no food; a
+  unit's upkeep is paid in other resources, like currency. The user decided this.
 - The rules about resources that follow are generic: they hold in every theme, and are not
   a theme's to change.
 - No resource is ever used up from a tile: a mountain goes on giving metal, a farm goes on
@@ -210,8 +215,8 @@ otherwise. What classic itself chooses, like its list of resources, is kept in
 - A terrain bonus is something else: a special tile, like cows on grassland, that provides
   more food when the tile is worked. A terrain bonus is not a strategic resource, and is not
   required by anything.
-- A terrain bonus can give more once the civilization of the city working the tile knows a
-  technology, like caveman's elephants, which give ivory once sewing is known.
+- A terrain bonus can provide a strategic resource within the borders of a civilization that
+  knows a technology, like caveman's elephants, which provide ivory once sewing is known.
 - A terrain bonus has a list of compatible terrain types, which is usually just one type, like
   grassland for cows. A terrain bonus goes away when the terrain of the tile changes
   incompatibly, to a terrain not on the list, and most changes are incompatible changes:
@@ -290,8 +295,8 @@ otherwise. What classic itself chooses, like its list of resources, is kept in
 - A pick is forced: while a technology is left to pick and none is picked, the turn cannot
   end.
 
-- A technology can make every city of the civilization that knows it grow a citizen sooner,
-  by a number of turns the theme sets, like caveman's sewing.
+- A technology can make every city of the civilization that knows it grow a citizen sooner, by
+  taking food off each citizen's share of a full store, like caveman's sewing.
 
 ## Points
 
@@ -428,14 +433,12 @@ otherwise. What classic itself chooses, like its list of resources, is kept in
   the two are friendly or in a state of war.
 - A civilization can declare war on another civilization. For now, declaring war is required
   before a unit enters the territory of the other civilization.
-- A city has citizens. A city grows more citizens over time, when there has been enough food for
-  enough turns in a row.
-- A turn counts toward growth when the civilization holds at least a set amount of food for
-  each citizen of the city. When the count of such turns in a row reaches the number the city's
-  size requires, the city grows one citizen and the count starts again. Growing spends no food.
-- How many turns in a row each size requires is set in the theme: something like 5 turns for
-  the first growth and 10 turns for each growth after that, and 20 turns for a city above 10
-  citizens if cities are ever allowed that large. The numbers will be tuned.
+- A city has citizens. A city's food store holds at most what one more citizen takes, which
+  is a number the theme sets for each citizen times the city's citizens. When the store is
+  full, the city grows one citizen and the store goes back to nothing. A city of the most
+  citizens grows no more and keeps a full store.
+- Buildings and technologies that make a city grow sooner take food off each citizen's share
+  of a full store, never below 1.
 - A city has at most 10 citizens.
 - A city can build only one thing at a time, one thing in a turn.
 - The cost of what a city builds is paid a part each turn, not all at once, so that switching a
@@ -1010,8 +1013,10 @@ single units, and are rewritten as the details are decided.
 - Orders can assign units to a division, which takes no points. Moving any number of units out
   of one division into another, or into no division, costs 1 Command, a number each theme
   sets. Moving a division to another army costs 50 Command, making a new division 5 Command
-  and making a new army 5 Command, each a number the theme sets. Whether these costs are paid
-  once or every turn is not decided, and these orders are not built yet.
+  and making a new army 5 Command, each a number the theme sets. These are a type of order
+  called an ImmediateReorganization: each is carried out once and paid once, out of the
+  Command of the turn it is carried out, and is not given again each turn.
+- Orders can defend arbitrary areas, not only cities.
 - A completed order is set disabled. A disabled order costs no Policy and does nothing, and
   stays in the table as a convenience, so that a person can remove the order or modify the
   order. A computer player will probably just remove a disabled order.
@@ -1115,6 +1120,22 @@ single units, and are rewritten as the details are decided.
   frustrating. Tuning that would help is noted whenever the scripted games show it.
 - The details are to be discussed, in `AI_STRATEGIES_CAVEMAN.md` for caveman and in a file like
   it for each theme.
+- The computer player never knows a theme: it only knows how to play themes, and reads every
+  choice from the theme's properties, so that it plays any theme well with no training for
+  one. Whether a unit can take a city is a property of the unit.
+- A computer player may build air units when it sees enemy units that cannot attack air units
+  and it wants to defend its cities. It may need units that can fight air units when there
+  are no anti-air units to be had, or when it sees air units and its cities are far apart.
+- Air units need more movement than other units.
+- A scout is any unit with many movement points. A real scout unit has an attack of 0, so that
+  other civilizations are less angry when it is around.
+- A civilization cannot send units across another civilization's borders without war. A
+  computer player whose traits make it aggressive may be provoked by, among other things,
+  units massing near its borders. How is not decided.
+- A computer player decides whether to build a world wonder from the warning that another
+  civilization has started it: it starts something else when another civilization started
+  the wonder first, unless its boldness makes it gamble that the earlier builder is blocked or
+  loses the city.
 
 ## Not decided yet
 

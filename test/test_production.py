@@ -24,6 +24,7 @@ from later_caveman import later_caveman
 from refusals import Refusals
 from microsponge.engine.cities.city import City
 from microsponge.engine.cities.city_control import CityControl
+from microsponge.engine.cities.harvest import Harvest
 from microsponge.engine.cities.production import Production
 from microsponge.engine.civilizations.strategic import Strategic
 from microsponge.engine.kinds.catalog import NOTHING
@@ -574,14 +575,18 @@ class TestWhereAFinishedUnitGoes(ProductionCase):
         self.assertEqual(self.place_of(worker), (x, y))
         self.assertFalse(self.city.is_blocked())
         self.assertEqual(Production.queue_of(game=self.game, city=self.city_id), [])
-        self.assertLess(self.currency(), paid + INCOME)
+        self.assertGreater(TurnControl.support_cost(game=self.game, civilization=FIRST_CIVILIZATION)[resource_id(game=self.game, resource=Currency)], INCOME)
+        self.assertEqual(self.currency(), paid + Caveman.LEAST_INCOME)
 
     def test_a_settler_uses_up_a_citizen_of_the_city_that_builds_the_settler(self):
         self.city.set_citizens(TWO_CITIZENS)
         self.build(Settler)
-        self.rounds(Settler.BUILD_TURNS)
+        self.rounds(Settler.BUILD_TURNS - ONE_ROUND)
+        self.city.set_food(NOTHING_HELD)
+        before = self.city.get_citizens()
+        self.rounds(ONE_ROUND)
         self.assertEqual(self.kinds_inside(), [Settler])
-        self.assertEqual(self.city.get_citizens(), ONE_CITIZEN)
+        self.assertEqual(self.city.get_citizens(), before - Settler.CITIZENS)
 
     def test_a_clubber_uses_up_no_citizen(self):
         self.city.set_citizens(TWO_CITIZENS)
@@ -625,11 +630,15 @@ class TestBuildingBuildings(ProductionCase):
 
     def test_a_building_stands_in_its_city_when_the_last_part_is_paid(self):
         self.build(Granary)
-        self.rounds(Granary.BUILD_TURNS - ONE_ROUND)
+        earned = NOTHING_HELD
+        for _ in range(Granary.BUILD_TURNS - ONE_ROUND):
+            earned += Harvest.of_city(game=self.game, city=self.city_id)[Currency]
+            self.rounds(ONE_ROUND)
         self.assertEqual(CityControl.buildings_of(game=self.game, city=self.city_id), [])
+        earned += Harvest.of_city(game=self.game, city=self.city_id)[Currency]
         self.rounds(ONE_ROUND)
         self.assertEqual(CityControl.buildings_of(game=self.game, city=self.city_id), [Granary])
-        self.assertEqual(self.currency(), STARTING_CURRENCY + INCOME * Granary.BUILD_TURNS - Granary.COST[Currency])
+        self.assertEqual(self.currency(), STARTING_CURRENCY + earned - Granary.COST[Currency])
         self.assertEqual(CityControl.buildings_of(game=self.game, city=self.other_id), [])
 
     def test_a_city_has_one_of_each_building(self):

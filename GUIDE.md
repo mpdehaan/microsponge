@@ -55,8 +55,10 @@ cities can never overlap, so a settler cannot build a city within reach of anoth
 
 A city has citizens, and each citizen works one tile of the city radius outside the center,
 taking the tile that gives the most food unless the player sets a priority for another resource.
-A city grows a citizen when the civilization has held enough food for each of the city's
-citizens for enough turns in a row, and holds at most 10 citizens.
+Each city stores its own food: what its citizens collect goes into the store, and they eat
+from it. When the store is full, the city grows a citizen and the store starts again from
+nothing, and a bigger city needs a bigger store. A city whose store cannot feed its citizens
+loses one, though never its last. A city holds at most 10 citizens.
 
 A city builds one thing at a time, from a queue the player fills: units, buildings and world
 wonders. The cost is paid a part each turn over the turns the thing takes, so that switching to
@@ -76,8 +78,8 @@ everything the city was building is lost.
 A civilization holds all of its resources in one place, which this guide calls the bank: every
 city adds to the bank and spends from it, and no city holds anything of its own. One resource
 is the primary resource, called currency. Each turn the cities collect what their worked tiles
-give, the citizens eat food, and every unit and building is paid for in currency, and in food for
-units. A civilization with at least one city always ends a turn's collecting and upkeep at least
+give, the citizens eat from their city's food, and every unit and building is paid for in
+currency. A civilization with at least one city always ends a turn's collecting and upkeep at least
 1 currency richer, whatever its upkeep, so it is never bankrupt, though a civilization whose
 units cost everything it collects can hardly build anything: retiring a unit, which is free and
 gives nothing back, saves its upkeep. A civilization with no city that ends a turn with no

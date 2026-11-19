@@ -35,7 +35,7 @@ class Wood(Resource):
     pass
 
 
-class Ivory(Resource):
+class Ivory(StrategicResource):
     pass
 
 

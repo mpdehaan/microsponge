@@ -20,7 +20,7 @@ import os
 import tempfile
 import unittest
 
-from caveman_game import FLINT_TILE, THE_WORLD, end_rounds, found_village, game_facts, held, started_caveman_game, terrain_id
+from caveman_game import FLINT_TILE, GRASSLAND_TILE, THE_WORLD, end_rounds, found_village, game_facts, held, learn, started_caveman_game, terrain_id
 from later_caveman import later_caveman, later_theme
 from refusals import Refusals
 from microsponge.engine.cities.city_control import CityControl
@@ -35,11 +35,13 @@ from microsponge.engine.kinds.kind import shown_name
 from microsponge.engine.kinds.resource import StrategicResource
 from microsponge.engine.kinds.technology import Technology
 from microsponge.engine.kinds.terrain import Terrain
+from microsponge.engine.kinds.terrain_bonus import TerrainBonus
 from microsponge.engine.kinds.unit_kinds import LandUnit
 from microsponge.engine.saving.saved_game import load_game, save_game
 from microsponge.engine.turns.orders import Orders
 from microsponge.engine.units.unit_control import UnitControl
 from microsponge.engine.world.layer import Layer
+from microsponge.engine.world.terrain_bonus_control import TerrainBonusControl
 from microsponge.err_messages import ERR_BUILD_REQUIRES, ERR_NOT_STRATEGIC, ERR_RESOURCE_NOT_ON
 from microsponge.themes.caveman.resources import Currency, Food
 from microsponge.themes.caveman.terrains import Grassland
@@ -58,6 +60,8 @@ ONE_CITIZEN = 1
 INSIDE = (10, 7)
 ALSO_INSIDE = (9, 17)
 INSIDE_AND_GRASSLAND = (8, 7)
+# A grassland tile outside every city radius.
+OUTSIDE_AND_GRASSLAND = GRASSLAND_TILE
 # A tile inside the city limits of the second civilization's first city.
 INSIDE_THE_SECOND = (33, 7)
 # A tile no city reaches.
@@ -349,3 +353,51 @@ class TestSavingStrategicResources(StrategicCase):
         )
         self.assertEqual(game_facts(loaded), game_facts(self.game))
 
+
+
+class Tusks(StrategicResource):
+    """A strategic resource that no terrain has, which only a terrain bonus provides."""
+
+
+class Taming(Technology):
+    """The technology with which mammoths provide tusks."""
+
+
+class Mammoths(TerrainBonus):
+    """A terrain bonus that provides tusks within the borders of a civilization that knows taming."""
+
+    ON = (Grassland,)
+    PROVIDES = {Taming: (Tusks,)}
+
+
+TUSK_CAVEMAN = later_caveman({
+    Category.RESOURCES: (*Caveman.RESOURCES, Tusks),
+    Category.TECHNOLOGIES: (*Caveman.TECHNOLOGIES, Taming),
+    Category.TERRAIN_BONUSES: (*Caveman.TERRAIN_BONUSES, Mammoths),
+})
+
+
+class TestAStrategicResourceATerrainBonusProvides(unittest.TestCase):
+
+    def setUp(self):
+        self.game = started_caveman_game(theme=TUSK_CAVEMAN)
+        self.city = found_village(game=self.game, civilization=FIRST_CIVILIZATION, name=A_NAME)
+
+    def held_now(self):
+        return Strategic.held(game=self.game, civilization=FIRST_CIVILIZATION)
+
+    def test_a_terrain_bonus_provides_its_resource_within_the_borders_only_once_the_technology_is_known(self):
+        x, y = INSIDE_AND_GRASSLAND
+        TerrainBonusControl.place(game=self.game, world=THE_WORLD, x=x, y=y, bonus=Mammoths)
+        self.assertNotIn(Tusks, self.held_now())
+        learn(game=self.game, civilization=FIRST_CIVILIZATION, technology=Taming)
+        self.assertIn(Tusks, self.held_now())
+        self.assertNotIn(Tusks, Strategic.held(game=self.game, civilization=SECOND_CIVILIZATION))
+        self.assertNotIn(Tusks, Harvest.city_tile_gives(game=self.game, city=self.city, x=x, y=y))
+
+    def test_a_terrain_bonus_outside_the_borders_provides_nothing(self):
+        x, y = OUTSIDE_AND_GRASSLAND
+        self.assertNotIn((x, y), CityControl.radius_tiles(game=self.game, city=self.city))
+        TerrainBonusControl.place(game=self.game, world=THE_WORLD, x=x, y=y, bonus=Mammoths)
+        learn(game=self.game, civilization=FIRST_CIVILIZATION, technology=Taming)
+        self.assertNotIn(Tusks, self.held_now())

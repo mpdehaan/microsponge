@@ -39,6 +39,7 @@ class Caveman(Theme):
     CITIES_PER_DIVISION = 2
     LEVEL_HIT_POINTS_PERCENT = 2
     LAND_STARTS_EXPLORED = False
+    RESEARCH_TO_CURRENCY = 0
     PLAYER = CavemanPlayer
     CITY = Village
     MAP = CavemanMap

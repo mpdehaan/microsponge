@@ -19,7 +19,7 @@
 import unittest
 
 from caveman_game import (
-    CIVILIZATION_NAMES, THE_WORLD, end_rounds, found_village, give_building, held, learn, new_caveman_game, resource_id, settler_of, started_caveman_game,
+    CIVILIZATION_NAMES, SETTLER_TILES, THE_WORLD, end_rounds, found_village, give_building, held, learn, new_caveman_game, resource_id, settler_of, started_caveman_game,
 )
 from later_caveman import later_caveman
 from refusals import Refusals
@@ -32,8 +32,9 @@ from microsponge.engine.cities.production import Production
 from microsponge.engine.kinds.building import Building
 from microsponge.engine.kinds.catalog import NOTHING
 from microsponge.engine.kinds.category import Category
+from microsponge.engine.kinds.technology import Technology
 from microsponge.engine.turns.orders import Orders
-from microsponge.engine.turns.turn_control import LEAST_GROWTH_TURNS, TurnControl
+from microsponge.engine.turns.turn_control import LEAST_STORE_FOOD, TurnControl
 from microsponge.engine.units.unit_column import UnitColumn
 from microsponge.engine.units.unit_control import UnitControl
 from microsponge.err_messages import ERR_GAME_NOT_STARTED, ERR_GAME_OVER, ERR_GAME_STARTED, ERR_NO_CIVILIZATIONS
@@ -80,8 +81,6 @@ CITY = 'CITY'
 BESIDE_CENTER = 3
 # Open grassland with room for a second village of the first civilization, as (x, y).
 A_SECOND_SITE = (20, 20)
-NOT_COUNTING = 0
-ONE_TURN_COUNTED = 1
 ONE_CLUBBER = 1
 TWO_CLUBBERS = 2
 
@@ -107,7 +106,7 @@ HUNGRY_CAVEMAN = later_caveman({CITY: HungryVillage})
 
 
 class Hothouse(Building):
-    """A building that makes its city grow sooner by more turns than growing takes."""
+    """A building that takes more food off each citizen's share of a full store than the share is."""
 
     GROWS_SOONER = 100
 
@@ -201,6 +200,10 @@ class TestEndingATurn(unittest.TestCase):
     def held(self, *, civilization, resource):
         return held(game=self.game, civilization=civilization, resource=resource)
 
+    def stored(self, city):
+        """Return the food a village has stored."""
+        return self.game.get_city(city).get_food()
+
     def village(self, citizens):
         """Build the first civilization's village, give it so many citizens, and return its id."""
         city = found_village(game=self.game, civilization=FIRST_CIVILIZATION, name=A_NAME)
@@ -217,53 +220,50 @@ class TestEndingATurn(unittest.TestCase):
     def hit_points(self, unit):
         return self.units.get_value(column=UnitColumn.HIT_POINTS, unit=unit)
 
-    def test_a_village_adds_what_it_collects_to_what_its_civilization_holds(self):
-        self.village(ONE_CITIZEN)
+    def test_a_village_adds_its_currency_to_what_its_civilization_holds_and_its_food_to_its_own_store(self):
+        city = self.village(ONE_CITIZEN)
         end_rounds(game=self.game, rounds=ONE_ROUND)
         self.assertEqual(self.held(civilization=FIRST_CIVILIZATION, resource=Currency), STARTING_CURRENCY + CURRENCY_A_TURN)
-        self.assertEqual(self.held(civilization=FIRST_CIVILIZATION, resource=Food), FOOD_A_TURN)
+        self.assertEqual(self.stored(city), FOOD_A_TURN)
+        self.assertEqual(self.held(civilization=FIRST_CIVILIZATION, resource=Food), NOTHING_HELD)
         self.assertEqual(self.held(civilization=FIRST_CIVILIZATION, resource=Stone), NOTHING_HELD)
         end_rounds(game=self.game, rounds=ONE_ROUND)
-        self.assertEqual(self.held(civilization=FIRST_CIVILIZATION, resource=Food), FOOD_A_TURN + FOOD_A_TURN)
+        self.assertEqual(self.stored(city), FOOD_A_TURN + FOOD_A_TURN)
 
-    def test_every_village_of_a_civilization_adds_to_the_same_holdings(self):
-        self.village(ONE_CITIZEN)
+    def test_every_village_of_a_civilization_adds_its_currency_to_the_same_holdings_and_keeps_its_own_food(self):
+        city = self.village(ONE_CITIZEN)
         x, y = A_SECOND_SITE
         second_settler = UnitControl.place(game=self.game, kind=Settler, owner=FIRST_CIVILIZATION, world=THE_WORLD, x=x, y=y)
-        CityControl.found(game=self.game, settler=second_settler, name=ANOTHER_NAME)
+        other = CityControl.found(game=self.game, settler=second_settler, name=ANOTHER_NAME)
         end_rounds(game=self.game, rounds=ONE_ROUND)
-        self.assertEqual(self.held(civilization=FIRST_CIVILIZATION, resource=Food), FOOD_A_TURN + FOOD_A_TURN)
         self.assertEqual(self.held(civilization=FIRST_CIVILIZATION, resource=Currency), STARTING_CURRENCY + CURRENCY_A_TURN + CURRENCY_A_TURN)
+        self.assertEqual((self.stored(city), self.stored(other)), (FOOD_A_TURN, FOOD_A_TURN))
 
     def test_a_civilization_collects_only_at_the_end_of_its_own_turn(self):
-        self.village(ONE_CITIZEN)
+        city = self.village(ONE_CITIZEN)
         TurnControl.end_turn(self.game)
         TurnControl.end_turn(self.game)
-        self.assertEqual(self.held(civilization=FIRST_CIVILIZATION, resource=Food), FOOD_A_TURN)
+        self.assertEqual(self.stored(city), FOOD_A_TURN)
 
-    def test_every_citizen_eats_food_each_turn(self):
-        self.village(MANY_CITIZENS)
-        self.first.add(resource=resource_id(game=self.game, resource=Food), amount=PLENTY)
+    def test_every_citizen_eats_from_the_store_of_its_own_village_each_turn(self):
+        city = self.village(MANY_CITIZENS)
         end_rounds(game=self.game, rounds=ONE_ROUND)
         collected = Grassland.GIVES[Food] * MANY_CITIZENS + Village.PRODUCES[Food]
-        self.assertEqual(self.held(civilization=FIRST_CIVILIZATION, resource=Food), PLENTY + collected - Village.CITIZEN_FOOD * MANY_CITIZENS)
-        self.assertEqual(self.held(civilization=SECOND_CIVILIZATION, resource=Food), NOTHING_HELD)
+        self.assertEqual(self.stored(city), collected - Village.CITIZEN_FOOD * MANY_CITIZENS)
 
-    def test_citizens_who_would_eat_more_than_there_is_eat_all_there_is_and_the_city_does_not_count_toward_growing(self):
+    def test_a_village_whose_store_cannot_feed_its_citizens_loses_a_citizen_but_never_its_last_and_its_store_is_empty(self):
         game = started_caveman_game(theme=HUNGRY_CAVEMAN)
         city = game.get_city(found_village(game=game, civilization=FIRST_CIVILIZATION, name=A_NAME))
+        city.set_citizens(SEVERAL_CITIZENS)
         self.assertGreater(HungryVillage.CITIZEN_FOOD, Grassland.GIVES[Food] + Village.PRODUCES[Food])
-        end_rounds(game=game, rounds=A_FEW_TURNS)
-        self.assertEqual(held(game=game, civilization=FIRST_CIVILIZATION, resource=Food), NOTHING_HELD)
-        self.assertEqual((city.get_citizens(), city.get_growth()), (ONE_CITIZEN, NOT_COUNTING))
+        end_rounds(game=game, rounds=ONE_ROUND)
+        self.assertEqual((city.get_citizens(), city.get_food()), (SEVERAL_CITIZENS - 1, NOTHING_HELD))
+        end_rounds(game=game, rounds=SEVERAL_CITIZENS)
+        self.assertEqual((city.get_citizens(), city.get_food()), (ONE_CITIZEN, NOTHING_HELD))
 
-    def test_units_are_paid_for_each_turn_in_currency_and_food_as_far_as_what_is_held_goes(self):
+    def test_units_are_paid_for_each_turn_with_what_their_kind_costs_to_support(self):
         end_rounds(game=self.game, rounds=ONE_ROUND)
         self.assertEqual(self.held(civilization=SECOND_CIVILIZATION, resource=Currency), STARTING_CURRENCY - Settler.SUPPORT[Currency])
-        self.assertEqual(self.held(civilization=SECOND_CIVILIZATION, resource=Food), NOTHING_HELD)
-        self.second.add(resource=resource_id(game=self.game, resource=Food), amount=PLENTY)
-        end_rounds(game=self.game, rounds=ONE_ROUND)
-        self.assertEqual(self.held(civilization=SECOND_CIVILIZATION, resource=Food), PLENTY - Settler.SUPPORT[Food])
 
     def test_what_units_cost_to_support_adds_up_over_every_unit_of_the_civilization(self):
         self.clubbers(civilization=SECOND_CIVILIZATION, count=MANY_CLUBBERS)
@@ -283,13 +283,13 @@ class TestEndingATurn(unittest.TestCase):
         self.assertEqual(TurnControl.support_cost(game=self.game, civilization=FIRST_CIVILIZATION)[currency], Settler.SUPPORT[Currency])
 
     def test_a_technology_makes_the_harvest_of_its_resource_faster_rounded_down(self):
-        self.village(MANY_CITIZENS)
+        city = self.village(MANY_CITIZENS)
         learn(game=self.game, civilization=FIRST_CIVILIZATION, technology=Agriculture)
         end_rounds(game=self.game, rounds=ONE_ROUND)
         plain = Grassland.GIVES[Food] * MANY_CITIZENS + Village.PRODUCES[Food]
         faster = plain * (WHOLE + Agriculture.HARVEST_BONUS[Food]) // WHOLE
         self.assertGreater(faster, plain)
-        self.assertEqual(self.held(civilization=FIRST_CIVILIZATION, resource=Food), faster - Village.CITIZEN_FOOD * MANY_CITIZENS)
+        self.assertEqual(self.stored(city), faster - Village.CITIZEN_FOOD * MANY_CITIZENS)
         self.assertEqual(self.held(civilization=FIRST_CIVILIZATION, resource=Currency), STARTING_CURRENCY + Village.CITIZEN_CURRENCY * MANY_CITIZENS)
 
     def test_a_civilization_whose_currency_is_at_nothing_after_paying_is_bankrupt_until_it_holds_currency_again(self):
@@ -304,14 +304,14 @@ class TestEndingATurn(unittest.TestCase):
         self.assertFalse(self.first.is_bankrupt())
 
     def test_a_bankrupt_civilization_collects_less_of_everything(self):
-        self.village(MANY_CITIZENS)
+        city = self.village(MANY_CITIZENS)
         self.spend_all_currency(self.first)
         self.first.set_bankrupt_turns(A_FEW_TURNS)
         end_rounds(game=self.game, rounds=ONE_ROUND)
         kept = WHOLE - Caveman.BANKRUPTCY_HARVEST_PENALTY
         collected = (Grassland.GIVES[Food] * MANY_CITIZENS + Village.PRODUCES[Food]) * kept // WHOLE
-        self.assertEqual(self.held(civilization=FIRST_CIVILIZATION, resource=Food), collected - Village.CITIZEN_FOOD * MANY_CITIZENS)
-        self.assertEqual(self.held(civilization=FIRST_CIVILIZATION, resource=Currency), Village.CITIZEN_CURRENCY * MANY_CITIZENS * kept // WHOLE)
+        self.assertEqual(self.stored(city), collected - Village.CITIZEN_FOOD * MANY_CITIZENS)
+        self.assertEqual(self.held(civilization=FIRST_CIVILIZATION, resource=Currency), max(Village.CITIZEN_CURRENCY * MANY_CITIZENS * kept // WHOLE, Caveman.LEAST_INCOME))
         self.assertFalse(self.first.is_bankrupt())
 
     def test_a_civilization_bankrupt_for_as_many_turns_in_a_row_as_the_theme_allows_loses_and_the_game_of_two_ends(self):
@@ -326,55 +326,35 @@ class TestEndingATurn(unittest.TestCase):
         self.assertEqual(self.game.get_still_playing(), [SECOND_CIVILIZATION])
         self.assertTrue(self.game.is_over())
 
-    def test_a_village_grows_a_citizen_after_enough_turns_in_a_row_with_enough_food_and_then_counts_again(self):
-        city = self.game.get_city(self.village(ONE_CITIZEN))
-        self.first.add(resource=resource_id(game=self.game, resource=Food), amount=PLENTY)
-        first_growth, second_growth = Village.GROWTH_TURNS
-        end_rounds(game=self.game, rounds=first_growth - 1)
-        self.assertEqual((city.get_citizens(), city.get_growth()), (ONE_CITIZEN, first_growth - 1))
-        end_rounds(game=self.game, rounds=ONE_ROUND)
-        self.assertEqual((city.get_citizens(), city.get_growth()), (ONE_CITIZEN + 1, NOT_COUNTING))
-        end_rounds(game=self.game, rounds=second_growth - 1)
-        self.assertEqual((city.get_citizens(), city.get_growth()), (ONE_CITIZEN + 1, second_growth - 1))
-        end_rounds(game=self.game, rounds=ONE_ROUND)
-        self.assertEqual((city.get_citizens(), city.get_growth()), (ONE_CITIZEN + 2, NOT_COUNTING))
-
-    def test_each_size_of_village_needs_the_turns_the_theme_says_and_the_last_number_goes_for_every_larger_size(self):
+    def test_a_village_grows_a_citizen_when_its_food_store_is_full_and_its_store_starts_again_from_nothing(self):
         city = self.village(ONE_CITIZEN)
-        first_growth, later_growth = Village.GROWTH_TURNS
-        self.assertEqual(TurnControl.growth_turns(game=self.game, city=city), first_growth)
-        for citizens in (ONE_CITIZEN + 1, SEVERAL_CITIZENS, MANY_CITIZENS - 1):
+        target = self.game.get_city(city)
+        size = TurnControl.store_size(game=self.game, city=city)
+        target.set_food(size - FOOD_A_TURN - 1)
+        end_rounds(game=self.game, rounds=ONE_ROUND)
+        self.assertEqual((target.get_citizens(), target.get_food()), (ONE_CITIZEN, size - 1))
+        end_rounds(game=self.game, rounds=ONE_ROUND)
+        self.assertEqual((target.get_citizens(), target.get_food()), (ONE_CITIZEN + 1, NOTHING_HELD))
+
+    def test_a_full_store_holds_the_themes_food_for_each_citizen_of_the_village(self):
+        city = self.village(ONE_CITIZEN)
+        for citizens in (ONE_CITIZEN, ONE_CITIZEN + 1, SEVERAL_CITIZENS, MANY_CITIZENS):
             with self.subTest(citizens=citizens):
                 self.game.get_city(city).set_citizens(citizens)
-                self.assertEqual(TurnControl.growth_turns(game=self.game, city=city), later_growth)
+                self.assertEqual(TurnControl.store_size(game=self.game, city=city), Village.STORE_FOOD * citizens)
 
-    def test_a_turn_counts_toward_growing_only_when_the_civilization_holds_enough_food_for_each_citizen(self):
-        city = self.game.get_city(self.village(ONE_CITIZEN))
-        self.assertLess(FOOD_A_TURN, Village.GROWTH_FOOD)
-        self.assertGreaterEqual(FOOD_A_TURN + FOOD_A_TURN, Village.GROWTH_FOOD)
-        end_rounds(game=self.game, rounds=ONE_ROUND)
-        self.assertEqual(city.get_growth(), NOT_COUNTING)
-        end_rounds(game=self.game, rounds=ONE_ROUND)
-        self.assertEqual(city.get_growth(), ONE_TURN_COUNTED)
-
-    def test_a_turn_without_enough_food_starts_the_count_again(self):
-        city = self.game.get_city(self.village(SEVERAL_CITIZENS))
-        city.set_growth(A_FEW_TURNS)
-        self.assertLess(Grassland.GIVES[Food] * SEVERAL_CITIZENS + Village.PRODUCES[Food], Village.GROWTH_FOOD * SEVERAL_CITIZENS)
-        end_rounds(game=self.game, rounds=ONE_ROUND)
-        self.assertEqual((city.get_citizens(), city.get_growth()), (SEVERAL_CITIZENS, NOT_COUNTING))
-
-    def test_growing_spends_no_food(self):
+    def test_food_is_never_held_by_the_civilization(self):
         self.village(ONE_CITIZEN)
-        self.first.add(resource=resource_id(game=self.game, resource=Food), amount=PLENTY)
-        end_rounds(game=self.game, rounds=Village.GROWTH_TURNS[0])
-        self.assertEqual(self.held(civilization=FIRST_CIVILIZATION, resource=Food), PLENTY + FOOD_A_TURN * Village.GROWTH_TURNS[0])
+        end_rounds(game=self.game, rounds=SEVERAL_CITIZENS)
+        self.assertEqual(self.held(civilization=FIRST_CIVILIZATION, resource=Food), NOTHING_HELD)
 
-    def test_a_village_of_the_most_citizens_does_not_grow_or_count(self):
-        city = self.game.get_city(self.village(MANY_CITIZENS))
-        self.first.add(resource=resource_id(game=self.game, resource=Food), amount=PLENTY)
-        end_rounds(game=self.game, rounds=Village.GROWTH_TURNS[-1] + 1)
-        self.assertEqual((city.get_citizens(), city.get_growth()), (MANY_CITIZENS, NOT_COUNTING))
+    def test_a_village_of_the_most_citizens_does_not_grow_and_keeps_a_full_store(self):
+        city = self.village(MANY_CITIZENS)
+        target = self.game.get_city(city)
+        size = TurnControl.store_size(game=self.game, city=city)
+        target.set_food(size)
+        end_rounds(game=self.game, rounds=ONE_ROUND)
+        self.assertEqual((target.get_citizens(), target.get_food()), (MANY_CITIZENS, size))
 
     def test_a_unit_on_a_tile_heals_a_little_each_turn_and_a_unit_inside_a_village_heals_more(self):
         city = self.village(ONE_CITIZEN)
@@ -455,29 +435,20 @@ class TestEndingATurn(unittest.TestCase):
         give_building(game=self.game, city=city, building=Granary)
         self.assertEqual(TurnControl.support_cost(game=self.game, civilization=FIRST_CIVILIZATION), {resource_id(game=self.game, resource=Currency): Granary.SUPPORT[Currency]})
 
-    def test_a_granary_makes_its_village_grow_a_turn_sooner_and_no_other_village(self):
+    def test_a_granary_makes_the_store_of_its_village_smaller_and_no_other_village(self):
         city = self.village(ONE_CITIZEN)
         other = found_village(game=self.game, civilization=SECOND_CIVILIZATION, name=ANOTHER_NAME)
         give_building(game=self.game, city=city, building=Granary)
-        first_growth, later_growth = Village.GROWTH_TURNS
-        sooner = first_growth - Granary.GROWS_SOONER
-        self.assertEqual(TurnControl.growth_turns(game=self.game, city=city), sooner)
-        self.assertEqual(TurnControl.growth_turns(game=self.game, city=other), first_growth)
-        self.first.add(resource=resource_id(game=self.game, resource=Food), amount=PLENTY)
-        end_rounds(game=self.game, rounds=sooner - ONE_ROUND)
-        self.assertEqual(self.game.get_city(city).get_citizens(), ONE_CITIZEN)
-        end_rounds(game=self.game, rounds=ONE_ROUND)
-        self.assertEqual(self.game.get_city(city).get_citizens(), ONE_CITIZEN + 1)
-        self.assertEqual(TurnControl.growth_turns(game=self.game, city=city), later_growth - Granary.GROWS_SOONER)
+        self.assertEqual(TurnControl.store_size(game=self.game, city=city), Village.STORE_FOOD - Granary.GROWS_SOONER)
+        self.assertEqual(TurnControl.store_size(game=self.game, city=other), Village.STORE_FOOD)
 
-    def test_growing_takes_at_least_one_turn_however_much_sooner_buildings_make_it(self):
+    def test_each_citizens_share_of_a_full_store_is_never_less_than_the_least_however_much_sooner_buildings_make_it(self):
         game = started_caveman_game(theme=HOTHOUSE_CAVEMAN)
         city = found_village(game=game, civilization=FIRST_CIVILIZATION, name=A_NAME)
         give_building(game=game, city=city, building=Hothouse)
-        self.assertGreater(Hothouse.GROWS_SOONER, max(Village.GROWTH_TURNS))
-        self.assertEqual(TurnControl.growth_turns(game=game, city=city), LEAST_GROWTH_TURNS)
-        game.get_civilization(FIRST_CIVILIZATION).add(resource=resource_id(game=game, resource=Food), amount=PLENTY)
-        end_rounds(game=game, rounds=LEAST_GROWTH_TURNS)
+        self.assertGreater(Hothouse.GROWS_SOONER, Village.STORE_FOOD)
+        self.assertEqual(TurnControl.store_size(game=game, city=city), LEAST_STORE_FOOD)
+        end_rounds(game=game, rounds=ONE_ROUND)
         self.assertEqual(game.get_city(city).get_citizens(), ONE_CITIZEN + 1)
 
     def test_a_building_can_add_policy_points_to_its_civilization(self):
@@ -503,3 +474,49 @@ class TestEndingATurn(unittest.TestCase):
         self.assertTrue(self.game.get_city(city).is_blocked())
         self.assertEqual(self.held(civilization=FIRST_CIVILIZATION, resource=Currency), after_support)
         self.assertFalse(self.first.is_bankrupt())
+
+
+class Haste(Technology):
+    """A technology that makes every city of the civilization that knows it grow a citizen sooner."""
+
+    GROWS_SOONER = 2
+
+
+class Feast(Building):
+    """A building that takes an amount off the upkeep of each unit of its civilization."""
+
+    SUPPORT = {Currency: 1}
+    UNIT_SUPPORT_DISCOUNT = {Currency: 2}
+
+
+class Banquet(Building):
+    """A building that takes more off the upkeep of each unit than any unit costs, so that the units cost nothing."""
+
+    SUPPORT = {Currency: 1}
+    UNIT_SUPPORT_DISCOUNT = {Currency: 100}
+
+
+HASTY_CAVEMAN = later_caveman({Category.TECHNOLOGIES: (*Caveman.TECHNOLOGIES, Haste), Category.BUILDINGS: (*Caveman.BUILDINGS, Feast, Banquet)})
+
+
+class TestGrowthAndUpkeepEffects(unittest.TestCase):
+
+    def setUp(self):
+        self.game = started_caveman_game(theme=HASTY_CAVEMAN)
+        self.city = found_village(game=self.game, civilization=FIRST_CIVILIZATION, name=A_NAME)
+
+    def test_a_technology_makes_the_store_of_every_city_of_its_civilization_smaller(self):
+        plain = TurnControl.store_size(game=self.game, city=self.city)
+        learn(game=self.game, civilization=FIRST_CIVILIZATION, technology=Haste)
+        self.assertEqual(TurnControl.store_size(game=self.game, city=self.city), plain - Haste.GROWS_SOONER)
+
+    def test_a_building_takes_an_amount_off_each_units_upkeep_and_never_below_nothing(self):
+        currency = resource_id(game=self.game, resource=Currency)
+        x, _ = SETTLER_TILES[0]
+        units = [UnitControl.place(game=self.game, kind=Clubber, owner=FIRST_CIVILIZATION, world=THE_WORLD, x=x + step, y=OPEN_ROW) for step in range(TWO_CLUBBERS)]
+        plain = TurnControl.support_cost(game=self.game, civilization=FIRST_CIVILIZATION)[currency]
+        give_building(game=self.game, city=self.city, building=Feast)
+        each = min(Feast.UNIT_SUPPORT_DISCOUNT[Currency], Clubber.SUPPORT[Currency])
+        self.assertEqual(TurnControl.support_cost(game=self.game, civilization=FIRST_CIVILIZATION)[currency], plain - each * len(units) + Feast.SUPPORT[Currency])
+        give_building(game=self.game, city=self.city, building=Banquet)
+        self.assertEqual(TurnControl.support_cost(game=self.game, civilization=FIRST_CIVILIZATION)[currency], Feast.SUPPORT[Currency] + Banquet.SUPPORT[Currency])

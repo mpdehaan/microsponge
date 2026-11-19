@@ -68,16 +68,3 @@ class TerrainBonusControl:
         """Return what the terrain bonus on a tile adds to what the tile gives: each resource with its amount, and nothing when the tile has no bonus."""
         bonus = TerrainBonusControl.bonus_at(game=game, world=world, x=x, y=y)
         return {} if bonus is None else bonus.GIVES
-
-    @staticmethod
-    def gives_with(*, game, world, x, y, technologies):
-        """Return what the terrain bonus on a tile adds to what the tile gives with some technologies known, beside what the bonus always gives: each resource with its amount."""
-        bonus = TerrainBonusControl.bonus_at(game=game, world=world, x=x, y=y)
-        gives = {}
-        if bonus is None:
-            return gives
-        for technology, amounts in bonus.GIVES_WITH.items():
-            if technology in technologies:
-                for resource, amount in amounts.items():
-                    gives[resource] = gives.get(resource, 0) + amount
-        return gives

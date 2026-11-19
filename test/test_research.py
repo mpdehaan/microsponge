@@ -30,7 +30,8 @@ from microsponge.support.numbers import divided_rounding_up
 from microsponge.err_messages import ERR_ALREADY_KNOWN, ERR_ALREADY_RESEARCHING, ERR_BUILD_REQUIRES, ERR_MUST_PICK_RESEARCH, ERR_NOT_YOUR_TURN, ERR_RESEARCH_REQUIRES
 from microsponge.themes.caveman.buildings import GreatCavePainting
 from microsponge.themes.caveman.city import Village
-from microsponge.themes.caveman.resources import Currency
+from microsponge.themes.caveman.resources import Currency, Food
+from microsponge.themes.caveman.terrains import Grassland
 from microsponge.themes.caveman.technologies import Agriculture, Clubs
 from microsponge.themes.caveman.theme import Caveman
 from microsponge.themes.caveman.units import Clubber
@@ -49,8 +50,10 @@ CITY_POINTS = Village.RESEARCH_POINTS
 PAINTING_POINTS = CITY_POINTS + GreatCavePainting.RESEARCH_POINTS
 # The rounds one city takes to research clubs, and half of them.
 CLUBS_ROUNDS = Clubs.RESEARCH // CITY_POINTS
-# Fewer rounds than clubs takes, and fewer than a village of one citizen takes to grow, so that the village's income stays the same.
-HALF_THE_ROUNDS = min(CLUBS_ROUNDS, Village.GROWTH_TURNS[0]) // 2
+# The food a village of one citizen on grassland stores each turn.
+FOOD_A_TURN = Grassland.GIVES[Food] + Village.PRODUCES[Food] - Village.CITIZEN_FOOD
+# Fewer rounds than clubs takes, and fewer than a village of one citizen takes to fill its food store and grow, so that the village's income stays the same.
+HALF_THE_ROUNDS = min(CLUBS_ROUNDS, Village.STORE_FOOD // FOOD_A_TURN) // 2
 
 
 

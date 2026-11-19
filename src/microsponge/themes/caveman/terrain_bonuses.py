@@ -30,4 +30,4 @@ class Bison(TerrainBonus):
 class Elephants(TerrainBonus):
     ON = (Grassland,)
     GIVES = {Food: 2}
-    GIVES_WITH = {Sewing: {Ivory: 1}}
+    PROVIDES = {Sewing: (Ivory,)}

@@ -37,7 +37,7 @@ class Agriculture(Technology):
 class Sewing(Technology):
     REQUIRES = (Agriculture,)
     RESEARCH = 50
-    GROWS_SOONER = 1
+    GROWS_SOONER = 2
 
 
 class Carpentry(Technology):

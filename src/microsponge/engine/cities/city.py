@@ -20,7 +20,7 @@ from microsponge.engine.kinds.catalog import renumbered, renumbered_keys
 from microsponge.engine.kinds.category import Category
 from microsponge.engine.saving.keys import number_keys, text_keys
 from microsponge.err_messages import (
-    ERR_BUILDING_ALREADY_HELD, ERR_CITIZENS, ERR_CITY_NAME, ERR_GROWTH, ERR_NOTHING_QUEUED, ERR_PRIORITY, ERR_PROGRESS, ERR_UNIT_ALREADY_HELD, ERR_UNIT_NOT_HELD,
+    ERR_BUILDING_ALREADY_HELD, ERR_CITIZENS, ERR_CITY_NAME, ERR_FOOD_STORE, ERR_NOTHING_QUEUED, ERR_PRIORITY, ERR_PROGRESS, ERR_UNIT_ALREADY_HELD, ERR_UNIT_NOT_HELD,
 )
 from microsponge.support.numbers import is_a_count
 from microsponge.support.text import is_a_name
@@ -34,7 +34,9 @@ Y_KEY = 'y'
 FOUNDED_KEY = 'founded'
 CITIZENS_KEY = 'citizens'
 UNITS_KEY = 'units'
-GROWTH_KEY = 'growth'
+FOOD_KEY = 'food'
+# A city saved before cities stored food has none stored.
+NO_FOOD = 0
 PRIORITIES_KEY = 'priorities'
 BUILDINGS_KEY = 'buildings'
 QUEUE_KEY = 'queue'
@@ -57,10 +59,10 @@ def check_citizens(citizens):
     return citizens
 
 
-def check_growth(turns):
-    if not is_a_count(turns):
-        raise ValueError(ERR_GROWTH.format(value=turns))
-    return turns
+def check_food(food):
+    if not is_a_count(food):
+        raise ValueError(ERR_FOOD_STORE.format(value=food))
+    return food
 
 
 def check_progress(turns):
@@ -87,7 +89,7 @@ class City:
     """
 
     __slots__ = (
-        '_name', '_owner', '_world', '_x', '_y', '_founded', '_citizens', '_units', '_growth', '_priorities',
+        '_name', '_owner', '_world', '_x', '_y', '_founded', '_citizens', '_units', '_food', '_priorities',
         '_buildings', '_queue', '_progress', '_blocked', '_builds_nothing',
     )
 
@@ -100,7 +102,7 @@ class City:
         self._founded = founded
         self._citizens = check_citizens(citizens)
         self._units = []
-        self._growth = 0
+        self._food = 0
         self._priorities = {}
         self._buildings = []
         self._queue = []
@@ -139,12 +141,12 @@ class City:
     def set_citizens(self, citizens):
         self._citizens = check_citizens(citizens)
 
-    def get_growth(self):
-        """Return how many turns in a row there has been enough food for the city to grow."""
-        return self._growth
+    def get_food(self):
+        """Return the food the city has stored toward growing its next citizen."""
+        return self._food
 
-    def set_growth(self, turns):
-        self._growth = check_growth(turns)
+    def set_food(self, food):
+        self._food = check_food(food)
 
     def get_priorities(self):
         """Return the city's settings for its citizens: each resource's id with how many citizens look for that resource first."""
@@ -250,7 +252,7 @@ class City:
             FOUNDED_KEY: self._founded,
             CITIZENS_KEY: self._citizens,
             UNITS_KEY: list(self._units),
-            GROWTH_KEY: self._growth,
+            FOOD_KEY: self._food,
             PRIORITIES_KEY: text_keys(self._priorities),
             BUILDINGS_KEY: list(self._buildings),
             QUEUE_KEY: [list(item) for item in self._queue],
@@ -267,7 +269,7 @@ class City:
         )
         for unit in data[UNITS_KEY]:
             city.add_unit(unit)
-        city.set_growth(data[GROWTH_KEY])
+        city.set_food(data.get(FOOD_KEY, NO_FOOD))
         city._priorities = number_keys(data[PRIORITIES_KEY])
         city._buildings = list(data[BUILDINGS_KEY])
         city._queue = [tuple(item) for item in data[QUEUE_KEY]]

@@ -27,9 +27,9 @@ import webbrowser
 from pathlib import Path
 
 from microsponge.support.game_log import Key, Series
-from microsponge.support.game_log_report import built_table, civilization_ids, forces_table, made_table, name_of, orders_table, series_of, tables, timelines, title_of
+from microsponge.support.game_log_report import built_table, civilization_ids, forces_table, winner_line, made_table, name_of, orders_table, series_of, tables, timelines, title_of
 from microsponge.ui_strings import (
-    MSG_PAGE_CHART_BUILDINGS, MSG_PAGE_CHART_CITIES, MSG_PAGE_CHART_CITIZENS, MSG_PAGE_CHART_COMMAND, MSG_PAGE_CHART_COMMAND_TAKEN, MSG_PAGE_CHART_DEVELOPMENT_SCORE, MSG_PAGE_CHART_HIT_POINTS,
+    MSG_PAGE_CHART_BUILDINGS, MSG_PAGE_CHART_CITIES, MSG_PAGE_CHART_CITIZENS, MSG_PAGE_CHART_COMMAND, MSG_PAGE_CHART_COMMAND_TAKEN, MSG_PAGE_CHART_DEVELOPMENT_SCORE, MSG_PAGE_CHART_FOOD_STORED, MSG_PAGE_CHART_HIT_POINTS,
     MSG_PAGE_CHART_IMPROVEMENTS_OF_KIND, MSG_PAGE_CHART_INSIDE, MSG_PAGE_CHART_LEVEL, MSG_PAGE_CHART_MILITARY_SCORE, MSG_PAGE_CHART_POLICY, MSG_PAGE_CHART_POLICY_TAKEN,
     MSG_PAGE_CHART_POPULATION_SCORE, MSG_PAGE_CHART_SCIENCE_SCORE, MSG_PAGE_CHART_SCORE, MSG_PAGE_CHART_STRENGTH, MSG_PAGE_CHART_TECHNOLOGIES, MSG_PAGE_CHART_UNITS, MSG_PAGE_CHART_UNITS_OF_KIND,
     MSG_PAGE_CHART_BANK_OF, MSG_PAGE_CHART_ORDERS_OF_KIND, MSG_PAGE_NO_CHARTS, MSG_PAGE_TAB_BUILDINGS, MSG_PAGE_TAB_ORDERS, MSG_PAGE_TURNS_FROM_TO, MSG_PAGE_NO_IMPROVEMENTS, MSG_PAGE_TAB_CITIES, MSG_PAGE_TAB_CONTROL_POINTS, MSG_PAGE_TAB_IMPROVEMENTS, MSG_PAGE_TAB_SCORE, MSG_PAGE_TAB_TABLES,
@@ -59,6 +59,7 @@ CITY_CHARTS = (
     (Series.CITIES, MSG_PAGE_CHART_CITIES),
     (Series.CITIZENS, MSG_PAGE_CHART_CITIZENS),
     (Series.TECHNOLOGIES, MSG_PAGE_CHART_TECHNOLOGIES),
+    (Series.FOOD_STORED, MSG_PAGE_CHART_FOOD_STORED),
 )
 BUILDING_CHARTS = ((Series.BUILDINGS, MSG_PAGE_CHART_BUILDINGS),)
 # The orders tab counts the orders each civilization gave in each span of this many turns.
@@ -77,7 +78,7 @@ CONTROL_POINT_CHARTS = (
     (Series.COMMAND_TAKEN, MSG_PAGE_CHART_COMMAND_TAKEN),
 )
 # Counts that change by whole steps are drawn as steps, and totals that grow every turn as lines.
-SMOOTH = (Series.SCORE, Series.MILITARY_SCORE, Series.SCIENCE_SCORE, Series.POPULATION_SCORE, Series.DEVELOPMENT_SCORE, Series.WEALTH, Series.STRENGTH, Series.HIT_POINTS, Series.LEVEL)
+SMOOTH = (Series.FOOD_STORED, Series.SCORE, Series.MILITARY_SCORE, Series.SCIENCE_SCORE, Series.POPULATION_SCORE, Series.DEVELOPMENT_SCORE, Series.WEALTH, Series.STRENGTH, Series.HIT_POINTS, Series.LEVEL)
 
 
 class PageKey:
@@ -85,6 +86,7 @@ class PageKey:
 
     TITLE = 'title'
     TABS = 'tabs'
+    WINNER = 'winner'
     ID = 'id'
     NAME = 'name'
     CONTENT = 'content'
@@ -218,6 +220,7 @@ def page_data(data):
     """Return everything the page's script reads, worked out from the data of a log."""
     return {
         PageKey.TITLE: title_of(data),
+        PageKey.WINNER: winner_line(data),
         PageKey.TABS: tabs_of(data),
         PageKey.TIMELINES: [{PageKey.TITLE: timeline.title, PageKey.LINES: timeline.lines} for timeline in timelines(data)],
         PageKey.TABLES: [table_data(table) for table in tables(data)],

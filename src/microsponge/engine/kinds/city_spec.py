@@ -34,11 +34,8 @@ class CitySpec:
     # The citizens a new city has, and the most a city grows to.
     STARTING_CITIZENS = 1
     MAX_CITIZENS = 10
-    # The turns in a row with enough food that a city needs to grow, by its size: the first number is for a city
-    # of 1 citizen, the next for 2, and the last number goes for every larger size.
-    GROWTH_TURNS = (5, 10)
-    # A turn has enough food when the civilization holds this much food for each citizen of the city.
-    GROWTH_FOOD = 0
+    # A city stores this much food for each of its citizens, and grows a citizen when the store is full.
+    STORE_FOOD = 10
     # The food each citizen eats each turn.
     CITIZEN_FOOD = 1
     # The currency each working citizen generates each turn.

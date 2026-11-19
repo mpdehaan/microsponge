@@ -42,7 +42,7 @@ from microsponge.support.game_log_page import (
     ALL_UNITS_CHARTS, BUILDING_CHARTS, CITY_CHARTS, CONTROL_POINT_CHARTS, MAIN_CHARTS, MILITARY_CHARTS, ORDER_SPAN_TURNS, PLACEHOLDER, SCORE_PART_CHARTS, Content, PageKey, Tab, given_in_spans,
     page_data, page_path, page_text, spans_of, write_page,
 )
-from microsponge.support.game_log_report import SCORE_PARTS, built_table, forces_table, last_of, made_table, orders_table, ranked, report_lines, series_of, strongest_turn, tables, timelines, title_of
+from microsponge.support.game_log_report import SCORE_PARTS, built_table, forces_table, last_of, name_of, winner_line, made_table, orders_table, ranked, report_lines, series_of, strongest_turn, tables, timelines, title_of
 from microsponge.support.scripted_game import play, started_game
 from microsponge.support.theme_tools import FAILED, SUCCEEDED
 from microsponge.themes.caveman.buildings import Granary
@@ -51,7 +51,7 @@ from microsponge.themes.caveman.technologies import Agriculture, Clubs
 from microsponge.themes.caveman.theme import Caveman
 from microsponge.themes.caveman.units import Settler, Clubber, Worker
 from microsponge.ui_strings import (
-    MSG_LOG_TIMELINE_ENDED, MSG_LOG_TIMELINE_STRONGEST, MSG_LOG_UNITS_HEADING, MSG_LOG_WRITTEN, MSG_PAGE_CHART_IMPROVEMENTS_OF_KIND, MSG_PAGE_CHART_UNITS_OF_KIND, MSG_PAGE_NO_IMPROVEMENTS,
+    MSG_LOG_NO_WINNER, MSG_LOG_WON_BY_CONQUEST, MSG_LOG_WON_ON_SCORE, MSG_LOG_TIMELINE_ENDED, MSG_LOG_TIMELINE_STRONGEST, MSG_LOG_UNITS_HEADING, MSG_LOG_WRITTEN, MSG_PAGE_CHART_IMPROVEMENTS_OF_KIND, MSG_PAGE_CHART_UNITS_OF_KIND, MSG_PAGE_NO_IMPROVEMENTS,
     MSG_PAGE_CHART_BANK_OF, MSG_PAGE_CHART_ORDERS_OF_KIND, MSG_PAGE_TAB_BUILDINGS, MSG_PAGE_TAB_ORDERS,
     MSG_PAGE_TAB_CITIES, MSG_PAGE_TAB_CONTROL_POINTS, MSG_PAGE_TAB_IMPROVEMENTS, MSG_PAGE_TAB_SCORE, MSG_PAGE_TAB_TABLES, MSG_PAGE_TAB_TIMELINES, MSG_PAGE_TAB_UNITS, MSG_STORY_FOUNDED,
 )
@@ -301,9 +301,27 @@ class TestGameLogReport(unittest.TestCase):
         score = last_of(data=self.data, civilization=FIRST, series=Series.SCORE)
         self.assertEqual(first.lines[-1], MSG_LOG_TIMELINE_ENDED.format(turn=TURNS, name=name, place=place, of=THREE, score=score))
 
-    def test_the_report_starts_with_the_title_and_holds_every_timeline_and_table(self):
+    def test_the_winner_is_the_only_civilization_remaining_or_else_the_highest_score_among_those_remaining(self):
+        data = copy.deepcopy(self.data)
+        for entry in data[Key.CIVILIZATIONS]:
+            entry[Key.LOST] = False
+        last_place = ranked(data)[-1]
+        for entry in data[Key.CIVILIZATIONS]:
+            entry[Key.LOST] = entry[Key.ID] != last_place
+        self.assertEqual(winner_line(data), MSG_LOG_WON_BY_CONQUEST.format(turn=TURNS, name=name_of(data=data, civilization=last_place)))
+        for entry in data[Key.CIVILIZATIONS]:
+            entry[Key.LOST] = entry[Key.ID] == ranked(data)[0]
+        remaining = [civilization for civilization in ranked(data) if civilization != ranked(data)[0]]
+        best = remaining[0]
+        expected = MSG_LOG_WON_ON_SCORE.format(turn=TURNS, count=len(remaining), name=name_of(data=data, civilization=best), score=last_of(data=data, civilization=best, series=Series.SCORE))
+        self.assertEqual(winner_line(data), expected)
+        for entry in data[Key.CIVILIZATIONS]:
+            entry[Key.LOST] = True
+        self.assertEqual(winner_line(data), MSG_LOG_NO_WINNER)
+
+    def test_the_report_starts_with_the_title_and_the_winner_and_holds_every_timeline_and_table(self):
         lines = report_lines(data=self.data)
-        self.assertEqual(lines[FIRST_LINE], title_of(self.data))
+        self.assertEqual(lines[:2], [title_of(self.data), winner_line(self.data)])
         for part in (*timelines(self.data), *tables(self.data)):
             self.assertIn(part.title, lines)
 
@@ -371,13 +389,15 @@ class TestWhatTheLogCountsOfBuildingsBanksAndOrders(unittest.TestCase):
         table = built_table(self.data())
         self.assertEqual(table.rows, [[self.data()[Key.CIVILIZATIONS][FIRST - 1][Key.NAME], shown_name(building), str(len(built)), str(A_TURN), str(A_TURN)]])
 
-    def test_the_bank_of_every_collected_resource_is_counted_each_turn(self):
+    def test_the_bank_of_every_collected_resource_is_counted_each_turn_and_the_food_the_cities_store(self):
         self.log.count(self.game)
         banks = self.data()[Key.BANKS]
-        collected = [resource for resource in self.game.get_theme().RESOURCES if not issubclass(resource, StrategicResource)]
+        collected = [resource for resource in self.game.get_theme().RESOURCES if not issubclass(resource, StrategicResource) and resource is not self.game.get_theme().FOOD]
         self.assertEqual(list(banks), [shown_name(resource) for resource in collected])
-        food = self.game.get_theme().FOOD
-        self.assertEqual(banks[shown_name(food)][str(FIRST)], [held(game=self.game, civilization=FIRST, resource=food)])
+        primary = self.game.get_theme().PRIMARY_RESOURCE
+        self.assertEqual(banks[shown_name(primary)][str(FIRST)], [held(game=self.game, civilization=FIRST, resource=primary)])
+        self.assertNotIn(shown_name(self.game.get_theme().FOOD), banks)
+        self.assertEqual(series_of(data=self.data(), civilization=FIRST, series=Series.FOOD_STORED), [self.game.get_city(self.city).get_food()])
 
     def test_an_order_is_counted_once_when_given_and_the_turns_its_kind_was_in_use_are_kept(self):
         here = city_thing(self.city)

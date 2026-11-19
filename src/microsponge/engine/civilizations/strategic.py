@@ -22,6 +22,7 @@ from microsponge.engine.kinds.category import Category
 from microsponge.engine.kinds.kind import shown_name
 from microsponge.engine.kinds.resource import StrategicResource
 from microsponge.engine.world.layer import Layer
+from microsponge.engine.world.terrain_bonus_control import TerrainBonusControl
 from microsponge.err_messages import ERR_NOT_STRATEGIC, ERR_RESOURCE_NOT_ON
 
 
@@ -79,10 +80,25 @@ class Strategic:
 
     @staticmethod
     def of_city(*, game, city):
-        """Return the strategic resources on the tiles that belong to a city, as the theme's classes, one for each tile that has one."""
+        """Return the strategic resources on the tiles that belong to a city, as the theme's classes, one for each tile that has one, and those the terrain bonuses of the tiles provide with the technologies the city's civilization knows."""
         world = game.get_city(city).get_world()
-        found = [Strategic.resource_at(game=game, world=world, x=x, y=y) for x, y in CityControl.radius_tiles(game=game, city=city)]
-        return [resource for resource in found if resource is not None]
+        catalog = game.get_catalog()
+        known = {catalog.get_kind(category=Category.TECHNOLOGIES, kind_id=technology) for technology in game.get_civilization(game.get_city(city).get_owner()).get_technologies()}
+        found = []
+        for x, y in CityControl.radius_tiles(game=game, city=city):
+            resource = Strategic.resource_at(game=game, world=world, x=x, y=y)
+            if resource is not None:
+                found.append(resource)
+            found += Strategic.provided_at(game=game, world=world, x=x, y=y, known=known)
+        return found
+
+    @staticmethod
+    def provided_at(*, game, world, x, y, known):
+        """Return the strategic resources the terrain bonus on a tile provides with some technologies known."""
+        bonus = TerrainBonusControl.bonus_at(game=game, world=world, x=x, y=y)
+        if bonus is None:
+            return []
+        return [resource for technology, resources in bonus.PROVIDES.items() if technology in known for resource in resources]
 
     @staticmethod
     def held(*, game, civilization):

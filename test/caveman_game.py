@@ -218,7 +218,7 @@ def by_resource_name(*, game, amounts):
 def city_facts(*, game, city):
     return (
         city.get_name(), city.get_owner(), city.get_world(), city.get_x(), city.get_y(), city.get_founded(), city.get_citizens(), city.get_units(),
-        city.get_growth(), by_resource_name(game=game, amounts=city.get_priorities()),
+        city.get_food(), by_resource_name(game=game, amounts=city.get_priorities()),
         names_of(game=game, category=Category.BUILDINGS, kind_ids=city.get_buildings()),
         [(category, name_of(game=game, category=category, kind_id=kind)) for category, kind in city.get_queue()],
         city.get_progress(), city.is_blocked(), city.builds_nothing(),

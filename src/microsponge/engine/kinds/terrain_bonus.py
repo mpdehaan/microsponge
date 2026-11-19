@@ -30,5 +30,5 @@ class TerrainBonus(Kind):
     ON = ()
     # What it adds to what its tile gives: each resource with its amount.
     GIVES = {}
-    # What it adds to what its tile gives once the civilization of the city working the tile knows a technology: each technology with each resource and its amount, like elephants that give ivory once sewing is known.
-    GIVES_WITH = {}
+    # The strategic resources it provides, within the borders of a civilization that knows a technology: each technology with the resources, like elephants that provide ivory once sewing is known.
+    PROVIDES = {}

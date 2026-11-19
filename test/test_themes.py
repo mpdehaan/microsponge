@@ -137,7 +137,6 @@ NO_ATTACK = 0
 # Caveman has land units, one sea unit and one air unit.
 CAVEMAN_DOMAINS = (Domain.LAND, Domain.SEA, Domain.AIR)
 MOST_CITIZENS = 10
-GROWTH_TURNS = (5, 10)
 BANK_INCOME_BONUS = 20
 BANKRUPTCY_HARVEST_PENALTY = 50
 BANKRUPTCY_TURNS = 50
@@ -346,11 +345,11 @@ class TestCaveman(unittest.TestCase):
             with self.subTest(theme=theme):
                 self.assertGreater(theme.CITY.CITIZEN_FOOD, 0)
 
-    def test_a_city_grows_to_10_citizens_at_most_after_5_turns_and_then_10(self):
+    def test_a_city_grows_to_10_citizens_at_most_and_stores_food_toward_each_citizen_in_every_theme(self):
         for theme in THEMES:
             with self.subTest(theme=theme):
                 self.assertEqual(theme.CITY.MAX_CITIZENS, MOST_CITIZENS)
-                self.assertEqual(theme.CITY.GROWTH_TURNS, GROWTH_TURNS)
+                self.assertGreater(theme.CITY.STORE_FOOD, 0)
 
     def test_the_bank_of_classic_adds_20_percent_to_the_income_of_its_city(self):
         self.assertIn(classic_buildings.Bank, Classic.BUILDINGS)
@@ -360,14 +359,6 @@ class TestCaveman(unittest.TestCase):
         self.assertEqual(LEAST_COST, THE_LEAST_COST)
         self.assertIs(Caveman.PRIMARY_RESOURCE, caveman_resources.Currency)
         self.assertEqual(underpriced(Caveman), [])
-
-    def test_every_caveman_unit_is_supported_with_currency_and_food_and_every_building_with_currency(self):
-        for unit in Caveman.UNITS:
-            with self.subTest(unit=unit):
-                self.assertEqual(set(unit.SUPPORT), {caveman_resources.Currency, caveman_resources.Food})
-        for building in Caveman.BUILDINGS:
-            with self.subTest(building=building):
-                self.assertEqual(set(building.SUPPORT), {caveman_resources.Currency})
 
     def test_a_unit_or_building_that_costs_less_than_10_currency_is_found(self):
         self.assertEqual(underpriced(CheapCaveman), [Bargain, FoodOnly])
@@ -419,15 +410,6 @@ class TestCaveman(unittest.TestCase):
     def test_a_technology_allows_the_clubber(self):
         self.assertEqual(caveman_units.Clubber.REQUIRES, (caveman_technologies.Clubs,))
         self.assertIn(caveman_technologies.Clubs, Caveman.TECHNOLOGIES)
-
-    def test_the_granary_requires_sewing_feeds_the_city_from_grassland_and_grows_it_sooner(self):
-        granary = caveman_buildings.Granary
-        self.assertIn(granary, Caveman.BUILDINGS)
-        self.assertIn(caveman_technologies.Sewing, Caveman.TECHNOLOGIES)
-        self.assertEqual(granary.REQUIRES, (caveman_technologies.Sewing,))
-        self.assertEqual(granary.WORKED_TILE_BONUS, {caveman_terrains.Grassland: {caveman_resources.Food: GRANARY_FOOD}})
-        self.assertEqual(granary.GROWS_SOONER, GRANARY_TURNS_SOONER)
-        self.assertFalse(issubclass(granary, Wonder))
 
     def test_stone_comes_from_mountains(self):
         giving_stone = [terrain for terrain in Caveman.TERRAINS if caveman_resources.Stone in terrain.GIVES]

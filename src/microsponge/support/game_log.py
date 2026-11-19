@@ -160,8 +160,9 @@ class Series:
     SCORE = 'score'
     HIT_POINTS = 'military_hit_points'
     STRENGTH = 'strength'
+    FOOD_STORED = 'food_stored'
 
-    OWN = (HIT_POINTS, STRENGTH, POLICY, POLICY_TAKEN, COMMAND, COMMAND_TAKEN, INSIDE, LEVEL, BUILDINGS, MILITARY_SCORE, SCIENCE_SCORE, POPULATION_SCORE, DEVELOPMENT_SCORE, SCORE)
+    OWN = (HIT_POINTS, STRENGTH, FOOD_STORED, POLICY, POLICY_TAKEN, COMMAND, COMMAND_TAKEN, INSIDE, LEVEL, BUILDINGS, MILITARY_SCORE, SCIENCE_SCORE, POPULATION_SCORE, DEVELOPMENT_SCORE, SCORE)
 
 
 # What the chronicle counts, by the name the log gives each.
@@ -208,8 +209,8 @@ def counted_improvements(theme):
 
 
 def collected_resources(theme):
-    """Return the resources of a theme that a civilization collects and holds in its bank, which are every resource but the strategic ones."""
-    return [resource for resource in theme.RESOURCES if not issubclass(resource, StrategicResource)]
+    """Return the resources of a theme that a civilization collects and holds in its bank, which are every resource but the strategic ones and food, which each city stores for itself."""
+    return [resource for resource in theme.RESOURCES if not issubclass(resource, StrategicResource) and resource is not theme.FOOD]
 
 
 def empty_counts(*, civilizations, names):
@@ -407,6 +408,7 @@ class GameLog:
         series[Series.HIT_POINTS].append(now[HIT_POINTS])
         series[Series.STRENGTH].append(sum(now.values()))
         series[Series.BUILDINGS].append(now[BUILDINGS])
+        series[Series.FOOD_STORED].append(sum(city.get_food() for city in cities))
         series[Series.POLICY].append(TurnControl.control_points(game=game, civilization=civilization, points=Policy))
         series[Series.POLICY_TAKEN].append(OrderControl.taken(game=game, civilization=civilization, points=Policy))
         series[Series.COMMAND].append(TurnControl.control_points(game=game, civilization=civilization, points=Command))

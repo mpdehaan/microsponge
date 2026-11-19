@@ -91,7 +91,7 @@ CIVILIZATIONS ?= 3
 map:
 	$(PYTHON) tools/map_preview.py $(THEME) $(SEED) $(CIVILIZATIONS)
 
-TURNS ?= 100
+TURNS ?= 200
 
 game:
 	$(PYTHON) tools/scripted_game.py $(THEME) $(SEED) $(CIVILIZATIONS) $(TURNS)

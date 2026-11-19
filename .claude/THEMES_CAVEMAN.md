@@ -76,6 +76,16 @@ file, so it's in force in every session. `.claude/TESTING.md` says what caveman 
   - Claude's stone tools and pottery were not taken.
 - The upkeep of a unit in currency goes up, to maybe 5, and the cost of every unit goes up by
   5 currency.
+- A game of caveman is tuned so that one civilization usually remains by about turn 200, and
+  the highest score wins when more than one remains at the last turn.
+- Ivory is not banked: like flint and poppies, a civilization has ivory or does not, and has
+  it while elephants are within its borders and it knows sewing. Stone and wood are still
+  collected and banked.
+- To stop currency piling up: a working citizen earns 1 currency instead of 2, research past
+  the end of the tech tree no longer turns into currency, and every building costs 2 currency
+  of upkeep instead of 1.
+- That left caveman too poor to fight, so a unit's upkeep is 2 currency instead of 5. Units
+  eat no food: each city stores its own food and grows a citizen when the store is full.
 - The user wants to know which buildings and world wonders give no benefit, with suggestions
   of what each should do.
 - Caveman has a resource called poppies, and a unit called the wild clubber, which can be
@@ -93,16 +103,17 @@ confirm or change after seeing a game:
   20 wood and 30 stone, 6 turns, 1 currency to support, armor class 1 better, and walls.
 - Church of the cave bear requires fire and leadership, and allows the cave bear shrine: 30
   currency and 10 stone, 5 turns, 1 currency to support, 2 research points.
-- Barter requires sewing and leadership, and allows the trading post: 30 currency and 10
-  ivory, 5 turns, 1 currency to support, 10 percent more currency in its city, which is less
+- Barter requires sewing and leadership, and allows the trading post: 30 currency, and ivory
+  within the borders, 5 turns, 2 currency to support, 10 percent more currency in its city, which is less
   than the 20 percent Claude first suggested, because of the user's worry about income.
-- Sewing makes every city of the civilization grow a citizen 1 turn sooner, and elephants give
-  1 ivory once the civilization of the city working the tile knows sewing.
+- Sewing makes every city of the civilization grow a citizen 1 turn sooner, and elephants
+  provide ivory within the borders once the civilization knows sewing.
 - Leadership requires fire, and discipline requires leadership.
 - Astrology allows the arrangement of rocks.
 - Research points: clubs 15, fire 15, agriculture 20, sewing 50, carpentry 50, leadership 50,
   discipline 90, church of the cave bear 90, barter 100, astrology 200.
-- Unit upkeep is 5 currency and 1 food. Unit costs: settler 15 currency, clubber 15,
+- Unit upkeep is 2 currency, and no food. A village stores 10 food for each citizen; the
+  granary and sewing each take 2 off each citizen's share. Unit costs: settler 15 currency, clubber 15,
   worker 15, slingshot caveman 20, angry bird 15, raft 15 and 10 wood, wild clubber 30,
   captain caveman 40.
 - Poppies are a strategic resource on grassland, and the wild clubber requires poppies within
@@ -110,7 +121,7 @@ confirm or change after seeing a game:
   turns. Captain caveman is now 6d4, armor class 8, 30 hit points, worth 6.
 
 Each line is the attack dice, the armor class, the hit points and the experience worth, then the
-cost and the turns to build. Every unit costs 1 currency and 1 food to support each turn and has
+cost and the turns to build. Every unit costs 2 currency to support each turn and has
 2 action points. A level adds 2 percent of the kind's hit points, rounded down over the levels
 gained, so a level 20 warrior has 13 hit points and a level 20 captain caveman 27.
 

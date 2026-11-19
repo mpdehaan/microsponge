@@ -31,13 +31,14 @@ from microsponge.support.game_story import SENTENCES
 from microsponge.support.tables import BLANK_LINE, shown_flag, shown_number, table_lines
 from microsponge.ui_strings import (
     MSG_LOG_BUILDINGS_HEADING, MSG_LOG_BUILDINGS_TITLE, MSG_LOG_BUILT_HEADING, MSG_LOG_BUILT_TITLE, MSG_LOG_MADE_HEADING, MSG_LOG_MADE_TITLE, MSG_LOG_ORDERS_HEADING, MSG_LOG_ORDERS_TITLE, MSG_NONE_MARK, MSG_LOG_CITIES_HEADING, MSG_LOG_CITIES_TITLE, MSG_LOG_FORCES_HEADING, MSG_LOG_FORCES_TITLE, MSG_LOG_POINTS_HEADING, MSG_LOG_POINTS_TITLE, MSG_LOG_SCORES_HEADING,
-    MSG_LOG_SCORES_TITLE, MSG_LOG_TIMELINE_ENDED, MSG_LOG_TIMELINE_LOST_CITY, MSG_LOG_TIMELINE_STRONGEST, MSG_LOG_TIMELINE_TITLE, MSG_LOG_TIMELINE_WAR_DECLARED_ON, MSG_LOG_TITLE,
+    MSG_LOG_SCORES_TITLE, MSG_LOG_TIMELINE_ENDED, MSG_LOG_TIMELINE_LOST_CITY, MSG_LOG_TIMELINE_STRONGEST, MSG_LOG_TIMELINE_TITLE, MSG_LOG_TIMELINE_WAR_DECLARED_ON, MSG_LOG_NO_WINNER, MSG_LOG_TITLE, MSG_LOG_WON_BY_CONQUEST, MSG_LOG_WON_ON_SCORE,
     MSG_LOG_UNITS_HEADING, MSG_LOG_UNITS_TITLE, MSG_STORY_NOBODY,
 )
 
 WHOLE = 100
 ONE_PLACE = 1
 FIRST_PLACE = 1
+ONE_WINNER = 1
 # The events a timeline leaves out, because each civilization has many and they are in the charts.
 LEFT_OUT_OF_TIMELINES = (What.LEARNT,)
 SCORE_PARTS = (Series.MILITARY_SCORE, Series.SCIENCE_SCORE, Series.POPULATION_SCORE, Series.DEVELOPMENT_SCORE)
@@ -274,6 +275,23 @@ def high_points(*, data, civilization):
     return points
 
 
+def still_playing(data):
+    """Return the ids of the civilizations of a log that had not lost when the game ended."""
+    return [entry[Key.ID] for entry in data[Key.CIVILIZATIONS] if not entry[Key.LOST]]
+
+
+def winner_line(data):
+    """Return the sentence that says who won: the only civilization remaining, or, when more than one remains at the game's last turn, the one with the highest score among them."""
+    remaining = still_playing(data)
+    if not remaining:
+        return MSG_LOG_NO_WINNER
+    if len(remaining) == ONE_WINNER:
+        return MSG_LOG_WON_BY_CONQUEST.format(turn=data[Key.TURNS], name=name_of(data=data, civilization=remaining[0]))
+    best = max(remaining, key=lambda civilization: last_of(data=data, civilization=civilization, series=Series.SCORE))
+    score = last_of(data=data, civilization=best, series=Series.SCORE)
+    return MSG_LOG_WON_ON_SCORE.format(turn=data[Key.TURNS], count=len(remaining), name=name_of(data=data, civilization=best), score=score)
+
+
 def timeline_of(*, data, civilization):
     """Return the timeline of a civilization: its high points in the order they happened, and how the civilization ended the game."""
     name = name_of(data=data, civilization=civilization)
@@ -293,7 +311,7 @@ def title_of(data):
 
 def report_lines(*, data, markdown=False):
     """Return the whole report of a log as lines: the title, the timeline of each civilization and every table."""
-    lines = [title_of(data)]
+    lines = [title_of(data), winner_line(data)]
     for timeline in timelines(data):
         lines += [BLANK_LINE, timeline.title, *timeline.lines]
     for table in tables(data):

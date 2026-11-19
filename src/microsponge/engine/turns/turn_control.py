@@ -35,10 +35,11 @@ WHOLE = 100
 NO_PENALTY = 0
 NOT_BANKRUPT = 0
 NO_CURRENCY = 0
-NOT_GROWING = 0
 NOTHING_OWED = 0
 # However much sooner its buildings make a city grow, growing takes at least this many turns.
-LEAST_GROWTH_TURNS = 1
+# Each citizen's share of a full food store is never less than this.
+LEAST_STORE_FOOD = 1
+NO_FOOD_LEFT = 0
 
 
 class TurnControl:
@@ -115,18 +116,26 @@ class TurnControl:
         catalog = game.get_catalog()
         technologies = known_technologies(game=game, civilization=civilization)
         kept = WHOLE - (game.get_theme().BANKRUPTCY_HARVEST_PENALTY if holder.is_bankrupt() else NO_PENALTY)
+        food = game.get_theme().FOOD
         for city in game.get_cities_of(civilization):
             for resource, amount in Harvest.of_city(game=game, city=city).items():
                 faster = amount * harvest_percent(technologies=technologies, resource=resource) // WHOLE
-                holder.add(resource=catalog.get_id(category=Category.RESOURCES, kind=resource), amount=faster * kept // WHOLE)
+                if resource is food:
+                    target = game.get_city(city)
+                    target.set_food(target.get_food() + faster * kept // WHOLE)
+                else:
+                    holder.add(resource=catalog.get_id(category=Category.RESOURCES, kind=resource), amount=faster * kept // WHOLE)
 
     @staticmethod
     def feed(*, game, civilization):
-        """Take the food the citizens of a civilization's cities eat this turn from what the civilization holds, as far as the food goes."""
-        theme = game.get_theme()
-        citizens = sum(game.get_city(city).get_citizens() for city in game.get_cities_of(civilization))
-        food = game.get_catalog().get_id(category=Category.RESOURCES, kind=theme.FOOD)
-        game.get_civilization(civilization).pay(resource=food, amount=citizens * theme.CITY.CITIZEN_FOOD)
+        """Take the food the citizens of each city of a civilization eat this turn from the city's store. A city whose store cannot feed its citizens loses a citizen, never its last, and its store is empty."""
+        spec = game.get_theme().CITY
+        for city in game.get_cities_of(civilization):
+            target = game.get_city(city)
+            left = target.get_food() - target.get_citizens() * spec.CITIZEN_FOOD
+            if left < NO_FOOD_LEFT and target.get_citizens() > spec.STARTING_CITIZENS:
+                target.set_citizens(target.get_citizens() - 1)
+            target.set_food(max(left, NO_FOOD_LEFT))
 
     @staticmethod
     def support_cost(*, game, civilization):
@@ -191,26 +200,27 @@ class TurnControl:
             holder.lose()
 
     @staticmethod
-    def growth_turns(*, game, city):
-        """Return how many turns in a row with enough food a city needs to grow, at the size it is. Its buildings and its civilization's technologies can make that sooner."""
-        turns = game.get_theme().CITY.GROWTH_TURNS
-        plain = turns[min(game.get_city(city).get_citizens(), len(turns)) - 1]
+    def store_size(*, game, city):
+        """Return the food a city's store holds when full, which is what the city takes to grow a citizen: the theme's food for each citizen times the city's citizens. Its buildings and its civilization's technologies can take food off each citizen's share, never below the least."""
         sooner = sum(building.GROWS_SOONER for building in CityControl.buildings_of(game=game, city=city))
         sooner += sum(technology.GROWS_SOONER for technology in known_technologies(game=game, civilization=game.get_city(city).get_owner()))
-        return max(plain - sooner, LEAST_GROWTH_TURNS)
+        each = max(game.get_theme().CITY.STORE_FOOD - sooner, LEAST_STORE_FOOD)
+        return each * game.get_city(city).get_citizens()
 
     @staticmethod
     def grow(*, game, civilization):
-        """Count this turn toward the growth of each city of a civilization when there is enough food, and grow the cities whose count is reached."""
+        """Grow a citizen in each city of a civilization whose food store is full, and empty its store. A city of the most citizens keeps a full store and grows no more."""
         spec = game.get_theme().CITY
-        food = game.get_civilization(civilization).get_amount(game.get_catalog().get_id(category=Category.RESOURCES, kind=game.get_theme().FOOD))
         for city in game.get_cities_of(civilization):
             target = game.get_city(city)
-            can_grow = target.get_citizens() < spec.MAX_CITIZENS and food >= spec.GROWTH_FOOD * target.get_citizens()
-            target.set_growth(target.get_growth() + 1 if can_grow else NOT_GROWING)
-            if can_grow and target.get_growth() >= TurnControl.growth_turns(game=game, city=city):
+            size = TurnControl.store_size(game=game, city=city)
+            if target.get_food() < size:
+                continue
+            if target.get_citizens() < spec.MAX_CITIZENS:
                 target.set_citizens(target.get_citizens() + 1)
-                target.set_growth(NOT_GROWING)
+                target.set_food(NO_FOOD_LEFT)
+            else:
+                target.set_food(size)
 
     @staticmethod
     def heal(*, game, civilization):

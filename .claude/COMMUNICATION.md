@@ -45,8 +45,9 @@ The key terms the user and Claude share, like the model, the helper AI and Polic
 
 ## Building and committing
 
-- Commit directly to main when asked, as you go, with the full suite passing through the
-  pre-commit hook, and never push unless asked in that conversation.
+- Claude commits directly to main whenever Claude judges a piece of work ready, without
+  asking, with the full suite passing through the pre-commit hook, and never pushes unless
+  the user asks in that conversation. The user gave this standing approval to commit.
 - A message that asks the user a question ends the turn: no building until they answer and agree.
 - When the user asks Claude a question, Claude answers the question and stops there, doing
   no other work in that reply, because the user may wish to elaborate. The user asked for

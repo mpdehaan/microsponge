@@ -87,10 +87,16 @@ says where things are and how the parts fit, and is kept true with every change 
 - `TurnControl.pay_support(before=)` lifts a civilization with a city to at least the theme's
   `LEAST_INCOME` more currency than it held before collecting, or does nothing when the theme
   sets None, so a civilization with a city is never bankrupt.
-- A technology's `GROWS_SOONER`, a terrain bonus's `GIVES_WITH` (more with a technology the
-  working city's civilization knows, through `TerrainBonusControl.gives_with()`), and a
+- A technology's `GROWS_SOONER`, a terrain bonus's `PROVIDES` (strategic resources within the
+  borders of a civilization that knows a technology, through `Strategic.provided_at()`), and a
   building's `UNIT_SUPPORT_DISCOUNT` (off each unit's upkeep) are effects caveman uses for
   sewing, elephants and the arrangement of rocks.
+- Food. A city keeps its own food store (`City.get_food()`), and the civilization never holds
+  food: `TurnControl.collect()` puts a city's food in its store, `feed()` takes what its
+  citizens eat and takes a citizen away when the store cannot feed them, and `grow()` adds a
+  citizen and empties the store when the store reaches `store_size()`, the city spec's
+  `STORE_FOOD` times the citizens, less the `GROWS_SOONER` of the city's buildings and the
+  civilization's technologies for each citizen.
 - `TurnControl.end_turn()` does, for the civilization playing and in this order: building units
   go on building, the cities collect, the citizens eat, the units and buildings are paid for,
   the cities go on with what they build, the cities grow, the units heal, research goes on, and

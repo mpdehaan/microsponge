@@ -21,12 +21,12 @@ from microsponge.engine.kinds.domain import Domain
 from microsponge.engine.kinds.unit_kinds import AirUnit, LandUnit, SeaUnit, SettlerUnit, UnitKind
 from microsponge.themes.caveman.buildings import Barracks, Harbor
 from microsponge.themes.caveman.improvements import Clearing, Farm
-from microsponge.themes.caveman.resources import Currency, Food, Poppies, Wood
+from microsponge.themes.caveman.resources import Currency, Poppies, Wood
 from microsponge.themes.caveman.technologies import Agriculture, ChurchOfTheCaveBear, Clubs
 
 
 class CavemanUnit(UnitKind):
-    SUPPORT = {Currency: 5, Food: 1}
+    SUPPORT = {Currency: 2}
     ACTION_POINTS = 2
     HEAL = 1
     CITY_HEAL = 3
