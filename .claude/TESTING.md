@@ -142,7 +142,8 @@ beside them:
   losing, and experience and levels), `test/test_terrain_bonuses.py` (special tiles that give
   more), `test/test_sight.py` (the fog of war: what a civilization sees, what it remembers,
   and the view a player reads), `test/test_traits.py` (the traits of a computer-played
-  civilization), `test/test_computer_player.py` (two computer players playing a whole game of
+  civilization), `test/test_helper_ai.py` (the helper AI passing every order for a unit or a city to
+  the game, and no player giving such an order directly), `test/test_computer_player.py` (two computer players playing a whole game of
   caveman, and the traits tipping their decisions), `test/test_generator.py` (the map
   generator, where civilizations start, and the map preview tool), `test/test_saving.py` (the saved game, also loaded into later
   versions of a theme) and `test/test_themes.py` (what each theme holds). More join them as the model objects

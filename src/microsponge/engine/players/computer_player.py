@@ -20,8 +20,9 @@ The player is a list of rules tried in order each turn, with no search ahead
 (`AI_STRATEGIES_CAVEMAN.md`, "How Claude would try to win"): pick research, settle, garrison the
 cities and march on the enemy, tell the cities what to build, end the turn. The player reads the
 map only through the civilization's `View`, so it never sees through the fog of war, and gives
-every order through `Orders`, as a person would, trying each move and letting a refused order
-change nothing. Each trait tips one decision in one place, through `Traits.favors()`. The
+every order for a unit or a city through the helper AI (`helper_ai.py`), as a person would,
+trying each move and letting a refused order change nothing. This player is the main AI of
+the model: what it decides for the civilization as a whole goes to `Orders`. Each trait tips one decision in one place, through `Traits.favors()`. The
 players of each theme are subclasses that say which kinds are the theme's: `CavemanPlayer` in
 the caveman theme is the first.
 """
@@ -34,6 +35,7 @@ from microsponge.engine.kinds.catalog import NOTHING
 from microsponge.engine.kinds.category import Category
 from microsponge.engine.kinds.dice import NO_DICE
 from microsponge.engine.kinds.unit_kinds import SettlerUnit
+from microsponge.engine.players.helper_ai import HelperAI
 from microsponge.engine.players.traits import AGGRESSIVE_HYPERFOCUS, BOLDNESS, CONQUEST, ECONOMICS, EXPANSION, PEACE, SCIENCE
 from microsponge.engine.turns.orders import Orders
 from microsponge.engine.units.unit_column import UnitColumn
@@ -184,7 +186,7 @@ class ComputerPlayer:
             there = distance(world=land, from_x=next_x, from_y=next_y, to_x=to_x, to_y=to_y)
             if (there < here) != closer and there != here:
                 break
-            if cls.try_order(lambda: Orders.move(game=game, unit=unit, x=next_x, y=next_y)):
+            if cls.try_order(lambda: HelperAI.move(game=game, unit=unit, x=next_x, y=next_y)):
                 return True
         return False
 
@@ -194,7 +196,7 @@ class ComputerPlayer:
         city = cls.city_of(game=game, unit=unit)
         kind = UnitControl.kind_of(game=game, unit=unit)
         for x, y in CityControl.free_ring_tiles(game=game, city=city, kind=kind):
-            if cls.try_order(lambda: Orders.leave_city(game=game, unit=unit, x=x, y=y)):
+            if cls.try_order(lambda: HelperAI.leave_city(game=game, unit=unit, x=x, y=y)):
                 return True
         return False
 
@@ -223,7 +225,7 @@ class ComputerPlayer:
                 cls.leave_city(game=game, unit=unit)
                 continue
             if CityControl.problem_founding(game=game, settler=unit) is None:
-                cls.try_order(lambda: Orders.found_city(game=game, settler=unit, name=cls.next_city_name(game=game, civilization=civilization)))
+                cls.try_order(lambda: HelperAI.found_city(game=game, settler=unit, name=cls.next_city_name(game=game, civilization=civilization)))
                 continue
             site = cls.nearest_site(game=game, unit=unit, civilization=civilization)
             if site is None:
@@ -338,7 +340,7 @@ class ComputerPlayer:
         """Put a fighter into an own city next to it that has no unit inside, and return whether it went in."""
         for city in game.get_cities_of(civilization):
             if not game.get_city(city).get_units() and cls.is_next_to_center(game=game, unit=unit, city=city):
-                return cls.try_order(lambda: Orders.enter_city(game=game, unit=unit, city=city))
+                return cls.try_order(lambda: HelperAI.enter_city(game=game, unit=unit, city=city))
         return False
 
     @classmethod
@@ -364,12 +366,12 @@ class ComputerPlayer:
             city = land.get_value(layer=Layer.CITY_CENTER, x=next_x, y=next_y)
             if city != NOTHING and game.get_city(city).get_owner() in enemies:
                 if game.get_city(city).get_units():
-                    return cls.try_order(lambda: Orders.attack(game=game, unit=unit, x=next_x, y=next_y))
-                return cls.try_order(lambda: Orders.enter_city(game=game, unit=unit, city=city))
+                    return cls.try_order(lambda: HelperAI.attack(game=game, unit=unit, x=next_x, y=next_y))
+                return cls.try_order(lambda: HelperAI.enter_city(game=game, unit=unit, city=city))
             other = view.unit_on(world=world, x=next_x, y=next_y)
             if other != NOTHING and game.get_units().get_value(column=UnitColumn.OWNER, unit=other) in enemies and not hyperfocused:
                 if cls.worth_attacking(game=game, unit=unit, other=other, civilization=civilization):
-                    return cls.try_order(lambda: Orders.attack(game=game, unit=unit, x=next_x, y=next_y))
+                    return cls.try_order(lambda: HelperAI.attack(game=game, unit=unit, x=next_x, y=next_y))
         return False
 
     @classmethod
@@ -434,12 +436,12 @@ class ComputerPlayer:
         for city in Production.waiting_cities(game=game, civilization=civilization):
             kind = cls.choose_build(game=game, city=city, civilization=civilization)
             if kind is not None:
-                cls.try_order(lambda: Orders.build(game=game, city=city, kind=kind))
+                cls.try_order(lambda: HelperAI.build(game=game, city=city, kind=kind))
         for city in Production.blocked_cities(game=game, civilization=civilization):
             blocked = Production.kind_of(game=game, item=game.get_city(city).get_queue()[0])
             kind = cls.choose_build(game=game, city=city, civilization=civilization, except_for=blocked)
             if kind is not None:
-                cls.try_order(lambda: Orders.build_instead(game=game, city=city, kind=kind))
+                cls.try_order(lambda: HelperAI.build_instead(game=game, city=city, kind=kind))
 
     @classmethod
     def choose_build(cls, *, game, city, civilization, except_for=None):

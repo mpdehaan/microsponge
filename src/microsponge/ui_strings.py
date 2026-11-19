@@ -22,6 +22,17 @@ module that uses them, in the order of the modules' names.
 """
 
 
+# charts.py
+MSG_CHART_AXIS_CORNER = ' +'
+MSG_CHART_AXIS_LINE = '-'
+MSG_CHART_BLANK = ' '
+MSG_CHART_LEGEND_ITEM = '{mark} {name}'
+MSG_CHART_LEGEND_SEPARATOR = '   '
+MSG_CHART_ROW = '{label} |{cells}'
+MSG_CHART_SHARED = '*'
+MSG_CHART_SHARED_LEGEND = '{mark} more than one'
+MSG_CHART_TURNS = '{indent}  0{last}'
+
 # city_spec.py
 MSG_CITIES = 'cities'
 MSG_CITY = 'city'
@@ -35,7 +46,7 @@ MSG_GUIDE_STALE = '{path} is out of date: run make guides'
 MSG_GUIDE_MISSING = '{path} is missing, and the appendix of a guide is only refreshed in a guide that exists'
 
 # kind_reports.py
-MSG_BUILDING_PROPERTIES = ('requires', 'cost', 'turns', 'support', 'produces', 'income bonus %', 'research points', 'action points', 'grows sooner', 'worked tile bonus', 'armor bonus', 'level bonus', 'walls', 'beside water')
+MSG_BUILDING_PROPERTIES = ('requires', 'cost', 'turns', 'support', 'produces', 'income bonus %', 'research points', 'Oversight', 'grows sooner', 'worked tile bonus', 'armor bonus', 'level bonus', 'walls', 'beside water')
 MSG_BUILDINGS_HEADING = ('building', 'world wonder', *MSG_BUILDING_PROPERTIES)
 MSG_BUILDINGS_TITLE = 'The buildings of {theme}:'
 MSG_KIND_BUILDING = 'building'

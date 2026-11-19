@@ -17,7 +17,7 @@
 """The computer player of caveman: which of caveman's kinds the player researches, defends with, attacks with and builds for the economy."""
 
 from microsponge.engine.players.computer_player import ComputerPlayer
-from microsponge.themes.caveman.buildings import ArrangementOfRocks, Barracks, Granary, GreatCavePainting
+from microsponge.themes.caveman.buildings import ArrangementOfRocks, Barracks, ChieftainsHut, Granary, GreatCavePainting
 from microsponge.themes.caveman.technologies import Agriculture, Clubs, Discipline, Fire
 from microsponge.themes.caveman.units import CaptainCaveman, Warrior
 
@@ -28,4 +28,4 @@ class CavemanPlayer(ComputerPlayer):
     MILITARY_RESEARCH = (Clubs, Discipline, Fire, Agriculture)
     DEFENDERS = (CaptainCaveman, Warrior)
     ATTACKERS = (CaptainCaveman, Warrior)
-    ECONOMY = (Granary, GreatCavePainting, Barracks, ArrangementOfRocks)
+    ECONOMY = (Granary, ChieftainsHut, GreatCavePainting, Barracks, ArrangementOfRocks)

@@ -197,16 +197,16 @@ class TurnControl:
             units.set_value(column=UnitColumn.HIT_POINTS, unit=unit, value=hit_points)
 
     @staticmethod
-    def action_points(*, game, civilization):
-        """Return the action points a civilization has each turn: the theme's, and what each of its cities and buildings adds."""
+    def oversight_points(*, game, civilization):
+        """Return the oversight points a civilization has each turn: the theme's, and what each of its cities and buildings adds."""
         theme = game.get_theme()
-        from_cities = theme.CITY.ACTION_POINTS * len(game.get_cities_of(civilization))
-        return theme.ACTION_POINTS + from_cities + sum(building.ACTION_POINTS for building in buildings_held(game=game, civilization=civilization))
+        from_cities = theme.CITY.OVERSIGHT_POINTS * len(game.get_cities_of(civilization))
+        return theme.OVERSIGHT_POINTS + from_cities + sum(building.OVERSIGHT_POINTS for building in buildings_held(game=game, civilization=civilization))
 
     @staticmethod
     def refill(*, game, civilization):
-        """Give a civilization and each of its units all their action points again."""
+        """Give a civilization all its oversight points again, and each of its units all its action points."""
         units = game.get_units()
-        game.get_civilization(civilization).set_action_points(TurnControl.action_points(game=game, civilization=civilization))
+        game.get_civilization(civilization).set_oversight_points(TurnControl.oversight_points(game=game, civilization=civilization))
         for unit in UnitControl.units_of(game=game, civilization=civilization):
             units.set_value(column=UnitColumn.ACTION_POINTS, unit=unit, value=UnitControl.kind_of(game=game, unit=unit).ACTION_POINTS)

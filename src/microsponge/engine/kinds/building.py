@@ -28,8 +28,8 @@ class Building(Kind):
     BUILD_TURNS = 1
     # What it costs to support each turn: each resource with its amount. Every building of a theme defines it.
     SUPPORT = {}
-    # The action points it adds to its civilization's pool each turn.
-    ACTION_POINTS = 0
+    # The Oversight it adds to its civilization each turn.
+    OVERSIGHT_POINTS = 0
     # The research points it adds to its civilization's pool each turn.
     RESEARCH_POINTS = 0
     # What it produces each turn, whatever else happens: each resource with its amount.

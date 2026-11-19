@@ -36,8 +36,8 @@ class Theme:
     FOOD = None
     # What each civilization holds when a game starts: each resource with its amount.
     STARTS_WITH = {}
-    # The action points a civilization has each turn before its cities add theirs.
-    ACTION_POINTS = 0
+    # The Oversight a civilization has each turn before its cities and buildings add theirs.
+    OVERSIGHT_POINTS = 0
     # The action points it costs a unit to do something that is neither a move nor an attack, like building a city.
     ACTION_COST_BASE = 1
     # A civilization whose currency is at 0 is bankrupt: it collects this percent less of every resource,

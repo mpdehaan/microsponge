@@ -32,7 +32,7 @@ from microsponge.engine.units.unit_column import UnitColumn
 from microsponge.engine.units.unit_control import UnitControl
 from microsponge.engine.world.layer import Layer
 from microsponge.err_messages import (
-    ERR_CANNOT_BE_ON, ERR_CITY_TOO_CLOSE, ERR_GAME_NOT_STARTED, ERR_GAME_OVER, ERR_NO_ACTION_POINTS, ERR_NO_CIVILIZATION_ACTION_POINTS, ERR_NO_SUCH_CIVILIZATION,
+    ERR_CANNOT_BE_ON, ERR_CITY_TOO_CLOSE, ERR_GAME_NOT_STARTED, ERR_GAME_OVER, ERR_NO_ACTION_POINTS, ERR_NO_OVERSIGHT_POINTS, ERR_NO_SUCH_CIVILIZATION,
     ERR_NOT_AT_WAR, ERR_NOT_NEXT_TO_UNIT, ERR_NOT_YOUR_TURN, ERR_PRIORITY, ERR_PRIORITY_FOOD, ERR_ROW_OFF_THE_MAP, ERR_TILE_HAS_A_UNIT, ERR_TILE_IN_A_CITY_CENTER,
     ERR_UNIT_IN_A_CITY, ERR_WAR_ON_YOURSELF,
 )
@@ -117,8 +117,8 @@ class TestMoving(OrdersCase):
         self.assertEqual(self.unit_at(x=x + ONE_STEP, y=y), self.settler)
         self.assertEqual(self.unit_at(x=x, y=y), NOTHING)
         self.assertEqual(self.points_of(self.settler), Settler.ACTION_POINTS - STRAIGHT)
-        self.assertEqual(self.first.get_action_points(), Caveman.ACTION_POINTS - STRAIGHT)
-        self.assertEqual(self.second.get_action_points(), Caveman.ACTION_POINTS)
+        self.assertEqual(self.first.get_oversight_points(), Caveman.OVERSIGHT_POINTS - STRAIGHT)
+        self.assertEqual(self.second.get_oversight_points(), Caveman.OVERSIGHT_POINTS)
 
     def test_a_unit_moves_diagonally_for_the_diagonal_cost(self):
         x, y = SETTLER_TILES[0]
@@ -135,7 +135,7 @@ class TestMoving(OrdersCase):
         Orders.move(game=self.game, unit=climber, x=x, y=y)
         self.assertEqual(self.place_of(climber), (x, y))
         self.assertEqual(self.points_of(climber), Warrior.ACTION_POINTS - STRAIGHT * Mountains.MOVE_COST)
-        self.assertEqual(self.first.get_action_points(), Caveman.ACTION_POINTS - STRAIGHT * Mountains.MOVE_COST)
+        self.assertEqual(self.first.get_oversight_points(), Caveman.OVERSIGHT_POINTS - STRAIGHT * Mountains.MOVE_COST)
         Orders.move(game=self.game, unit=tired, x=x - ONE_STEP, y=y + ONE_STEP)
         message = self.refused_and_unchanged(lambda: Orders.move(game=self.game, unit=tired, x=x, y=y + ONE_STEP))
         self.assertEqual(message, ERR_NO_ACTION_POINTS.format(unit=tired, left=Warrior.ACTION_POINTS - STRAIGHT, cost=STRAIGHT * Mountains.MOVE_COST))
@@ -204,16 +204,16 @@ class TestMoving(OrdersCase):
         Orders.move(game=self.game, unit=self.settler, x=beyond, y=y)
         self.assertEqual(self.place_of(self.settler), (beyond, y))
 
-    def test_a_civilization_cannot_move_all_of_its_units_once_its_own_action_points_run_out(self):
-        movers = [self.warrior(civilization=FIRST_CIVILIZATION, x=OPEN_COLUMN + TWO_STEPS * place, y=OPEN_ROW) for place in range(Caveman.ACTION_POINTS + ONE_STEP)]
+    def test_a_civilization_cannot_move_all_of_its_units_once_its_oversight_points_run_out(self):
+        movers = [self.warrior(civilization=FIRST_CIVILIZATION, x=OPEN_COLUMN + TWO_STEPS * place, y=OPEN_ROW) for place in range(Caveman.OVERSIGHT_POINTS + ONE_STEP)]
         *moved, left_behind = movers
         for unit in moved:
             x, y = self.place_of(unit)
             Orders.move(game=self.game, unit=unit, x=x, y=y + ONE_STEP)
-        self.assertEqual(self.first.get_action_points(), NO_POINTS)
+        self.assertEqual(self.first.get_oversight_points(), NO_POINTS)
         x, y = self.place_of(left_behind)
         message = self.refused_and_unchanged(lambda: Orders.move(game=self.game, unit=left_behind, x=x, y=y + ONE_STEP))
-        self.assertEqual(message, ERR_NO_CIVILIZATION_ACTION_POINTS.format(name=FIRST_NAME, left=NO_POINTS, cost=STRAIGHT))
+        self.assertEqual(message, ERR_NO_OVERSIGHT_POINTS.format(name=FIRST_NAME, left=NO_POINTS, cost=STRAIGHT))
         self.assertEqual(self.points_of(left_behind), Warrior.ACTION_POINTS)
 
     def test_no_order_is_taken_after_the_game_ends(self):
@@ -240,7 +240,7 @@ class TestVillageOrders(OrdersCase):
         self.assertEqual(self.game.get_cities_of(FIRST_CIVILIZATION), [city])
         self.assertEqual(self.game.get_cities_of(SECOND_CIVILIZATION), [])
         self.assertFalse(self.units.exists(self.settler))
-        self.assertEqual(self.first.get_action_points(), Caveman.ACTION_POINTS - Caveman.ACTION_COST_BASE)
+        self.assertEqual(self.first.get_oversight_points(), Caveman.OVERSIGHT_POINTS - Caveman.ACTION_COST_BASE)
 
     def test_a_village_is_built_only_on_the_turn_of_the_settlers_civilization(self):
         message = self.refused_and_unchanged(lambda: Orders.found_city(game=self.game, settler=self.other_settler, name=ANOTHER_NAME))
@@ -264,16 +264,16 @@ class TestVillageOrders(OrdersCase):
         city = Orders.found_city(game=self.game, settler=self.settler, name=A_NAME)
         x, y = SETTLER_TILES[0]
         guard = self.warrior(civilization=FIRST_CIVILIZATION, x=x + JUST_PAST_CENTER, y=y)
-        pool = self.first.get_action_points()
+        pool = self.first.get_oversight_points()
         Orders.enter_city(game=self.game, unit=guard, city=city)
         self.assertEqual(self.game.get_city(city).get_units(), [guard])
-        self.assertEqual((self.points_of(guard), self.first.get_action_points()), (Warrior.ACTION_POINTS - STRAIGHT, pool - STRAIGHT))
+        self.assertEqual((self.points_of(guard), self.first.get_oversight_points()), (Warrior.ACTION_POINTS - STRAIGHT, pool - STRAIGHT))
         message = self.refused_and_unchanged(lambda: Orders.move(game=self.game, unit=guard, x=x + ONE_STEP, y=y))
         self.assertEqual(message, ERR_UNIT_IN_A_CITY.format(unit=guard, city=VILLAGE))
         Orders.leave_city(game=self.game, unit=guard, x=x + JUST_PAST_CENTER, y=y + ONE_STEP)
         self.assertEqual(self.game.get_city(city).get_units(), [])
         self.assertEqual(self.place_of(guard), (x + JUST_PAST_CENTER, y + ONE_STEP))
-        self.assertEqual((self.points_of(guard), self.first.get_action_points()), (Warrior.ACTION_POINTS - STRAIGHT - STRAIGHT, pool - STRAIGHT - STRAIGHT))
+        self.assertEqual((self.points_of(guard), self.first.get_oversight_points()), (Warrior.ACTION_POINTS - STRAIGHT - STRAIGHT, pool - STRAIGHT - STRAIGHT))
         message = self.refused_and_unchanged(lambda: Orders.enter_city(game=self.game, unit=guard, city=city))
         self.assertEqual(message, ERR_NO_ACTION_POINTS.format(unit=guard, left=NO_POINTS, cost=STRAIGHT))
 
@@ -286,11 +286,11 @@ class TestVillageOrders(OrdersCase):
 
     def test_a_village_is_told_how_many_citizens_look_for_a_resource_first_for_no_action_points(self):
         city = Orders.found_city(game=self.game, settler=self.settler, name=A_NAME)
-        pool = self.first.get_action_points()
+        pool = self.first.get_oversight_points()
         stone = resource_id(game=self.game, resource=Stone)
         Orders.prioritize(game=self.game, city=city, resource=Stone, citizens=A_FEW_CITIZENS)
         self.assertEqual(self.game.get_city(city).get_priorities(), {stone: A_FEW_CITIZENS})
-        self.assertEqual(self.first.get_action_points(), pool)
+        self.assertEqual(self.first.get_oversight_points(), pool)
         Orders.prioritize(game=self.game, city=city, resource=Stone, citizens=NO_CITIZENS)
         self.assertEqual(self.game.get_city(city).get_priorities(), {})
 
@@ -325,11 +325,11 @@ class TestWarAndTerritory(OrdersCase):
 
     def test_declaring_war_puts_both_civilizations_at_war_and_lets_units_cross_the_border(self):
         x, y = self.border
-        pool = self.second.get_action_points()
+        pool = self.second.get_oversight_points()
         Orders.declare_war(game=self.game, civilization=SECOND_CIVILIZATION, on=FIRST_CIVILIZATION)
         self.assertTrue(self.second.is_at_war_with(FIRST_CIVILIZATION))
         self.assertTrue(self.first.is_at_war_with(SECOND_CIVILIZATION))
-        self.assertEqual(self.second.get_action_points(), pool)
+        self.assertEqual(self.second.get_oversight_points(), pool)
         Orders.move(game=self.game, unit=self.raider, x=x, y=y)
         self.assertEqual(self.place_of(self.raider), (x, y))
 
@@ -359,8 +359,8 @@ class TestEndingTheTurn(OrdersCase):
         end_turn_by_order(game=self.game, civilization=SECOND_CIVILIZATION)
         self.assertEqual((self.game.get_playing(), self.game.get_turn()), (FIRST_CIVILIZATION, FIRST_TURN + ONE_ROUND))
 
-    def test_a_village_built_this_turn_adds_its_action_points_from_the_next_turn(self):
+    def test_a_village_built_this_turn_adds_its_oversight_points_from_the_next_turn(self):
         Orders.found_city(game=self.game, settler=self.settler, name=A_NAME)
-        self.assertEqual(self.first.get_action_points(), Caveman.ACTION_POINTS - Caveman.ACTION_COST_BASE)
+        self.assertEqual(self.first.get_oversight_points(), Caveman.OVERSIGHT_POINTS - Caveman.ACTION_COST_BASE)
         end_rounds(game=self.game, rounds=ONE_ROUND)
-        self.assertEqual(self.first.get_action_points(), Caveman.ACTION_POINTS + Village.ACTION_POINTS)
+        self.assertEqual(self.first.get_oversight_points(), Caveman.OVERSIGHT_POINTS + Village.OVERSIGHT_POINTS)

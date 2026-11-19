@@ -91,13 +91,18 @@ theme is in its guide.
 
 ## Action points
 
-Everything a unit does costs action points, written AP, from two pools at once: the unit's own,
-which is small, and the civilization's, which the theme sets and each city adds to. Both refill
-every turn. Moving one tile costs 1, or more onto hard terrain like mountains or forest;
+Everything a unit does costs the unit action points, written AP. A unit has only a few, and they
+refill every turn. Moving one tile costs 1, or more onto hard terrain like mountains or forest;
 attacking costs 1; building a city, starting an improvement, and going into or out of a city each
-cost 1. Choosing what to build, choosing what to research, setting a city's priority, declaring
-war and ending the turn are free. Because the civilization's pool is small, a civilization cannot
-move every unit every turn, and has to choose.
+cost 1.
+
+## Oversight
+
+A civilization has Oversight, which the theme sets, and which each city and some buildings add
+to. Oversight refills every turn. An order for a unit costs as much Oversight as the order
+costs the unit in action points. Choosing what to build, choosing what to research, setting a
+city's priority, declaring war and ending the turn are free. Because Oversight is small, a
+civilization cannot direct every unit every turn, and has to choose.
 
 ## Units
 

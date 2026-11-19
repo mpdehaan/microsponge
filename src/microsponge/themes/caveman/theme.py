@@ -18,7 +18,7 @@
 
 from microsponge.engine.kinds.theme import Theme
 from microsponge.themes.caveman.city import Village
-from microsponge.themes.caveman.buildings import ArrangementOfRocks, Barracks, Granary, GreatCavePainting, Harbor, Watchtower
+from microsponge.themes.caveman.buildings import ArrangementOfRocks, Barracks, ChieftainsHut, Granary, GreatCavePainting, Harbor, Watchtower
 from microsponge.themes.caveman.improvements import Clearing, Farm
 from microsponge.themes.caveman.resources import Currency, Flint, Food, Stone, Wood
 from microsponge.themes.caveman.technologies import Agriculture, Clubs, Discipline, Fire
@@ -33,7 +33,7 @@ class Caveman(Theme):
     PRIMARY_RESOURCE = Currency
     FOOD = Food
     STARTS_WITH = {Currency: 50}
-    ACTION_POINTS = 4
+    OVERSIGHT_POINTS = 4
     LEVEL_HIT_POINTS_PERCENT = 2
     LAND_STARTS_EXPLORED = False
     PLAYER = CavemanPlayer
@@ -43,6 +43,6 @@ class Caveman(Theme):
     RESOURCES = (Currency, Food, Stone, Wood, Flint)
     TECHNOLOGIES = (Clubs, Agriculture, Discipline, Fire)
     UNITS = (Settler, Warrior, Worker, CaptainCaveman, SlingshotCaveman, Raft, AngryBird)
-    BUILDINGS = (Granary, GreatCavePainting, ArrangementOfRocks, Barracks, Harbor, Watchtower)
+    BUILDINGS = (Granary, GreatCavePainting, ArrangementOfRocks, Barracks, Harbor, Watchtower, ChieftainsHut)
     IMPROVEMENTS = (Farm, Clearing)
     TERRAIN_BONUSES = (Bison, Elephants)

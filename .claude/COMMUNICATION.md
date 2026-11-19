@@ -6,34 +6,8 @@ apart from the rules for the code (`.claude/STYLE.md`) so that they can be revie
 
 ## The user's words
 
-- The model is the document `GAME_RULES.md`: what the game is and how it's played, thought of as
-  the rule book of a strategy game that was a board game. "Add this to the model" means write it
-  into `GAME_RULES.md`.
-- Model objects, or models, are code: the classes derived from the model.
-- Rules, as in "your rules", are Claude's rules: `CLAUDE.md` and the files in `.claude/`. The
-  word is kept for those, which is why what the game does is called the model and not the rules.
-- AI, about the game, is the computer players: algorithms that the user and Claude choose and
-  write by hand in this project. It never means machine learning, a language model or Claude.
-- A worker is a unit on the map that builds improvements, like roads. A citizen is one of the
-  people of a city, and citizens are who collect resources. Claude never writes "worker" for a
-  citizen.
-- Currency is the primary resource, which the user first called gold. Claude doesn't write "the
-  stock" for what a civilization holds of its resources: the user doesn't know the word. The
-  user's own word for what a civilization holds is the bank of the civilization.
-- A strategic resource is a resource like iron that is not collected and not consumed: a
-  civilization with the resource within its borders can build the units that require the
-  resource. Claude first called these controlled resources, and the user's word is strategic.
-- AP is short for action points. The user may write AP, and the screens may write AP too.
-- A city is always called a city when Claude talks to the user, even where a test plays a theme
-  that has another word for a city. For caveman, Claude may write City("village") where the
-  theme's word matters.
-- Classic is the theme of historic earth in the style of a civilization game, the first one
-  being developed. The user says "in classic" or, for another theme, something like "in scifi",
-  to say which theme they're working on, and is talking about classic unless they say otherwise.
-  What the user decides about one theme is kept in that theme's file, `.claude/THEMES_CLASSIC.md`
-  for classic, `.claude/THEMES_SCIFI.md` for SciFi, the theme inspired by Stargate, which was
-  first called SPACE, `.claude/THEMES_FANTASY.md` for fantasy, `.claude/THEMES_PLANETWARS.md` for PlanetWars and
-  `.claude/THEMES_CAVEMAN.md` for caveman, and what holds for every theme is kept in the model.
+The key terms the user and Claude share, like the model, the helper AI and Oversight, are in
+`.claude/GLOSSARY.md`, which Claude keeps as the user settles on words.
 
 ## Who decides what
 
@@ -91,11 +65,13 @@ apart from the rules for the code (`.claude/STYLE.md`) so that they can be revie
   `THEMES_CLASSIC.md` when it's about one theme, and into `CLAUDE.md` only when it's about the
   project as a whole. `CLAUDE.md` stays short and orderly, and each other file stays on
   its topic.
-- Claude asks the user before changing or creating any file in `.claude/`. The exceptions,
-  which the user has approved Claude maintaining as features are discussed, are this file and
-  `.claude/THEMES_CAVEMAN.md`.
-- Claude's queue of upcoming work is never tracked in git. Claude may keep the queue in
-  `QUEUE.md` at the top of the repository, which `.gitignore` lists.
+- Claude asks the user before creating a file in `.claude/`, and before changing one the user
+  has not approved. The user has approved Claude maintaining these as features are discussed
+  and built: this file, `.claude/GLOSSARY.md`, `.claude/THEMES_CAVEMAN.md`, `.claude/ENGINE.md`
+  and `.claude/TESTING.md`.
+- Claude's queue of upcoming work, which is what the user tells Claude about and what Claude
+  plans to do next, is never tracked in git. Keeping the queue on disk is fine: Claude may
+  keep the queue in `QUEUE.md` at the top of the repository, which `.gitignore` lists.
 
 ## Discussing a feature
 

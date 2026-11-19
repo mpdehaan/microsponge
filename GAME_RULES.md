@@ -527,12 +527,17 @@ otherwise. What classic itself chooses, like its list of resources, is kept in
 
 ## Action points
 
-- There are two pools of action points: each unit has a pool, and each civilization has a pool.
-  A city has none.
-- All action points refill every turn.
+- Each unit has a pool of action points. A civilization has Oversight, which is what was
+  first called the civilization's pool of action points and then oversight points ("Priorities
+  and the helper AI"). A city has neither.
+- All action points and all Oversight refill every turn.
 - A unit has a very small number of action points.
-- Whatever a unit does costs the same number of action points from both pools: from the unit's
-  pool and from the pool of the unit's civilization.
+- A unit still needs action points: a move consumes some, and an attack consumes some. For
+  now, whatever a unit is ordered to do tile by tile costs the unit action points and costs
+  the unit's civilization the same number of Oversight.
+- A kind of unit can also have a limit on how many times a unit attacks in a turn, set for
+  each class of unit attacked: an anti-air unit might attack air units 3 times a turn and
+  ground units 0 times. The limit is not built yet.
 - Moving a unit one tile always costs 1 action point, except onto mountains, which cost 2 action
   points.
 - Attacking costs 1 action point.
@@ -552,10 +557,11 @@ otherwise. What classic itself chooses, like its list of resources, is kept in
   as it does the cost of a move.
 - A unit attacks a unit on a tile next to its own, for now. That is true of every kind of unit,
   so a land unit can hit a sea unit only when the two are next to each other.
-- The idea of the civilization's pool is that a civilization cannot move all of its units in a
-  turn, only so many, so that a player has to make good choices.
-- A theme configures where the action points of a civilization come from. Each city that is
-  built could come with a number of action points, and buildings could give action points too.
+- The idea of Oversight is that a civilization cannot direct all of its units in a turn, only
+  so many, so that a player has to make good choices.
+- A theme configures where the Oversight of a civilization comes from. Each city that is
+  built could come with some Oversight, and buildings could give Oversight too, like
+  caveman's chieftain's hut.
 
 ## Combat
 
@@ -704,7 +710,13 @@ single units, and are rewritten as the details are decided.
 - The settings form a tree: the civilization, its cities, the kinds of unit, and under each
   kind the single units. Everything in the tree can be given behaviors and preferences, a
   setting may carry a condition, and a setting may be for a kind of unit or a kind of unit
-  under a condition. Whether an army is a thing of its own in the tree is not decided.
+  under a condition.
+- A player can define groups of units, called armies, and smaller groups, called divisions
+  for now. A group takes settings of its own. For instance, many fighter planes could be
+  ordered to station themselves in different cities, and may change behavior when the
+  civilization goes to war. Army and division are the engine's words: a theme has words of
+  its own for both, the way a theme has a word of its own for a city, because army and
+  division are not appropriate for caveman.
 - A helper AI carries the settings out: the helper AI is what moves the units and does the
   rest of the detailed work of a turn.
 - The game is turn based in the player's eyes. A player may change any setting each turn.
@@ -715,6 +727,45 @@ single units, and are rewritten as the details are decided.
   make the game tricky for people. So the AI must know about units that are doing something
   other than what the settings would have them do. Orders could include things like "attack
   units I can reliably defeat within a range", which is explored in greater depth later.
+- A player cannot touch the units and the cities. The helper AI can, and a player can ask the
+  helper AI to do anything. The computer players use the helper AI to move units, in the
+  tests too.
+- For now the helper AI has basically no intelligence, and is mostly a pass through: the
+  helper AI takes the bare minimum set of orders, in a layer that does allow moves tile by
+  tile. That layer is annoying to play through, and anyone is allowed access to the layer.
+- An army is always made of divisions, and there are no free units: every unit must be in an
+  army, in exactly one of the army's divisions.
+- Units cannot stack on the map, so an army is not a thing on a tile. An army is a control
+  system for the helper AI. An army may show statistics and help to tell a story, even after
+  the army is disbanded and its units are reassigned.
+- An order costs Oversight every turn while the order is in the table. The moves and attacks
+  that the helper AI makes to carry an order out cost only the action points of the units. A
+  direct order for one unit, tile by tile, counts as an order in the table for that turn.
+  Sending a single unit across the map is likely a very small Oversight tax, like 1.
+- No cost of an order is hard coded: every cost is in the common settings of the engine or in
+  the theme, which are Python, like everything else a theme defines.
+- When several levels of the tree give an order, the most specific level wins: an order on a
+  single unit, then the unit's division, then the army, then the kind of unit, then the
+  civilization.
+- The first orders the helper AI learns are what the computer player did tile by tile before
+  the helper AI existed: settle at a site, explore, stay inside a city, attack an enemy next
+  to the unit when the fight is worth it, and march on a city and take the city.
+- The game must be wary of what happens in a real time strategy game like Starcraft, where a
+  computer player that can micromanage every unit beats a person who cannot, because a person
+  is only in one place at a time. A computer player is not to micromanage: the main AI passes
+  orders for armies and divisions to the helper AI.
+- Oversight keeps any player from micromanaging. An order consumes Oversight every turn that
+  the order is kept in the table of orders, different orders take different amounts, and a
+  player can only use so much each turn. Oversight is the civilization's pool of action
+  points under its lasting name, and the screens say Oversight.
+- Mostly the same orders are available in every theme. What each order costs in Oversight is
+  written in one main document, which a theme overrides: a theme could even make the orders
+  for armies free, though probably none will. The document is Python: each order is a class
+  with its cost, and a theme overrides a cost on the theme's own class.
+- Tuning the strategy of the computer players matters, and the game is also balanced through
+  the costs of the tech tree, the costs of units, the resources, and Oversight.
+- The test games pit a computer player that uses armies and divisions against one that does
+  not, to see what the groups are worth.
 - No screen for the settings is built yet. A panel that shows the tree can be imagined.
 
 ## Computer players
@@ -761,6 +812,12 @@ single units, and are rewritten as the details are decided.
 - The computer player knows the rules of the game and can play any theme that the model can
   define. The player works out what to do from what a theme defines about itself, and no code
   of the player is about winning one theme, like caveman.
+- A computer player chooses by scoring, which is positional play: each thing the player could
+  do gets a score from principles and from the theme's numbers, and the player does not search
+  through what the opponents might reply. A computer player cannot really trust an enemy from
+  the enemy's past behavior, and has incomplete information about every opponent. Looking
+  ahead may be added later for small local sums, like whether a group of units can take a
+  city.
 - No computer player is allowed to cheat, and no computer player gets a bonus for being a
   computer player. Bonuses that belong to a civilization may exist later.
 - A perfect player is built first: a player whose strategy is always ideal, with no trait

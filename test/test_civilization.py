@@ -76,7 +76,7 @@ class TestCivilization(Refusals, unittest.TestCase):
         self.assertEqual(self.civilization.get_amount(CURRENCY), NONE)
         self.assertEqual(self.civilization.get_technologies(), [])
         self.assertEqual((self.civilization.get_researching(), self.civilization.get_research()), (NONE, NONE))
-        self.assertEqual(self.civilization.get_action_points(), NONE)
+        self.assertEqual(self.civilization.get_oversight_points(), NONE)
         self.assertEqual(self.civilization.get_wars(), [])
         self.assertFalse(self.civilization.is_bankrupt())
         self.assertFalse(self.civilization.has_lost())
@@ -108,18 +108,18 @@ class TestCivilization(Refusals, unittest.TestCase):
 
     def test_an_amount_that_is_negative_or_not_a_whole_number_is_refused_and_nothing_changes(self):
         self.civilization.add(resource=CURRENCY, amount=SOME)
-        self.civilization.set_action_points(A_FEW_POINTS)
+        self.civilization.set_oversight_points(A_FEW_POINTS)
         self.civilization.set_bankrupt_turns(A_FEW_TURNS)
         for amount in NOT_AMOUNTS:
             with self.subTest(amount=amount):
                 expected = ERR_AMOUNT.format(value=amount)
                 self.assertEqual(self.refused(lambda: self.civilization.add(resource=CURRENCY, amount=amount)), expected)
                 self.assertEqual(self.refused(lambda: self.civilization.pay(resource=CURRENCY, amount=amount)), expected)
-                self.assertEqual(self.refused(lambda: self.civilization.set_action_points(amount)), expected)
+                self.assertEqual(self.refused(lambda: self.civilization.set_oversight_points(amount)), expected)
                 self.assertEqual(self.refused(lambda: self.civilization.set_bankrupt_turns(amount)), expected)
                 self.assertEqual(self.refused(lambda: self.civilization.set_research(amount)), expected)
         self.assertEqual(self.civilization.get_amount(CURRENCY), SOME)
-        self.assertEqual(self.civilization.get_action_points(), A_FEW_POINTS)
+        self.assertEqual(self.civilization.get_oversight_points(), A_FEW_POINTS)
         self.assertEqual(self.civilization.get_bankrupt_turns(), A_FEW_TURNS)
 
     def test_a_civilization_is_bankrupt_while_it_counts_bankrupt_turns(self):
@@ -151,7 +151,7 @@ class TestCivilization(Refusals, unittest.TestCase):
     def every_fact(self, civilization):
         return (
             civilization.get_name(), civilization.get_holdings(), civilization.get_technologies(), civilization.get_researching(), civilization.get_research(),
-            civilization.get_action_points(),
+            civilization.get_oversight_points(),
             civilization.get_bankrupt_turns(), civilization.get_wars(), civilization.has_lost(),
         )
 
@@ -161,7 +161,7 @@ class TestCivilization(Refusals, unittest.TestCase):
         self.civilization.learn(CLUBS)
         self.civilization.set_researching(FARMING)
         self.civilization.set_research(MORE)
-        self.civilization.set_action_points(A_FEW_POINTS)
+        self.civilization.set_oversight_points(A_FEW_POINTS)
         self.civilization.set_bankrupt_turns(A_FEW_TURNS)
         self.civilization.declare_war(A_NEIGHBOR)
         self.civilization.lose()

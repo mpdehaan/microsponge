@@ -30,7 +30,7 @@ from microsponge.engine.units.unit_control import UnitControl
 from microsponge.engine.units.work_control import WorkControl
 from microsponge.engine.world.layer import Layer
 from microsponge.err_messages import (
-    ERR_NO_ACTION_POINTS, ERR_NO_CIVILIZATION_ACTION_POINTS, ERR_NOT_AT_WAR, ERR_NOT_NEXT_TO_UNIT, ERR_NOT_YOUR_TURN, ERR_PRIORITY_FOOD, ERR_UNIT_IN_A_CITY,
+    ERR_NO_ACTION_POINTS, ERR_NO_OVERSIGHT_POINTS, ERR_NOT_AT_WAR, ERR_NOT_NEXT_TO_UNIT, ERR_NOT_YOUR_TURN, ERR_PRIORITY_FOOD, ERR_UNIT_IN_A_CITY,
     ERR_WAR_ON_YOURSELF,
 )
 
@@ -43,7 +43,7 @@ class Orders:
     """What a civilization may do on its turn, as static methods over a game. It is never made into an object.
 
     A person's screen and a computer player give the same orders. An order by a unit costs
-    action points from the unit's pool and from the pool of the unit's civilization alike.
+    action points from the unit and the same number of Oversight from the unit's civilization.
     """
 
     __slots__ = ()
@@ -61,23 +61,23 @@ class Orders:
 
     @staticmethod
     def check_points(*, game, unit, cost):
-        """Check that it is the turn of a unit's civilization, and that the unit and its civilization both have the action points an order costs."""
+        """Check that it is the turn of a unit's civilization, and that the unit has the action points and its civilization the Oversight an order costs."""
         owner = Orders.owner_of(game=game, unit=unit)
         Orders.check_turn(game=game, civilization=owner)
         left = game.get_units().get_value(column=UnitColumn.ACTION_POINTS, unit=unit)
         if left < cost:
             raise ValueError(ERR_NO_ACTION_POINTS.format(unit=unit, left=left, cost=cost))
-        pool = game.get_civilization(owner).get_action_points()
+        pool = game.get_civilization(owner).get_oversight_points()
         if pool < cost:
-            raise ValueError(ERR_NO_CIVILIZATION_ACTION_POINTS.format(name=game.get_civilization(owner).get_name(), left=pool, cost=cost))
+            raise ValueError(ERR_NO_OVERSIGHT_POINTS.format(name=game.get_civilization(owner).get_name(), left=pool, cost=cost))
 
     @staticmethod
     def charge(*, game, unit, cost):
-        """Take the action points an order costs from a unit and from its civilization."""
+        """Take what an order costs: action points from a unit, and Oversight from its civilization."""
         units = game.get_units()
         owner = game.get_civilization(Orders.owner_of(game=game, unit=unit))
         units.set_value(column=UnitColumn.ACTION_POINTS, unit=unit, value=units.get_value(column=UnitColumn.ACTION_POINTS, unit=unit) - cost)
-        owner.set_action_points(owner.get_action_points() - cost)
+        owner.set_oversight_points(owner.get_oversight_points() - cost)
 
     @staticmethod
     def step(*, game, unit, x, y):
@@ -153,7 +153,7 @@ class Orders:
         owner = game.get_civilization(Orders.owner_of(game=game, unit=settler))
         city = CityControl.found(game=game, settler=settler, name=name)
         Sight.look_around_city(game=game, city=city)
-        owner.set_action_points(owner.get_action_points() - cost)
+        owner.set_oversight_points(owner.get_oversight_points() - cost)
         return city
 
     @staticmethod

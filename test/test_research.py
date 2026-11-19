@@ -109,11 +109,11 @@ class TestResearch(ResearchCase):
         self.assertEqual(self.available(), list(Caveman.TECHNOLOGIES))
         self.assertIsNone(self.researching())
         self.assertTrue(Research.must_choose(game=self.game, civilization=FIRST_CIVILIZATION))
-        pool = self.first.get_action_points()
+        pool = self.first.get_oversight_points()
         self.research(Clubs)
         self.assertIs(self.researching(), Clubs)
         self.assertFalse(Research.must_choose(game=self.game, civilization=FIRST_CIVILIZATION))
-        self.assertEqual(self.first.get_action_points(), pool)
+        self.assertEqual(self.first.get_oversight_points(), pool)
         self.assertTrue(Research.must_choose(game=self.game, civilization=SECOND_CIVILIZATION))
 
     def test_a_technology_is_known_once_the_points_put_toward_it_reach_what_the_technology_takes(self):

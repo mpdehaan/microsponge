@@ -28,7 +28,7 @@ from microsponge.support.text import is_a_name
 # What a saved game calls the parts of a civilization.
 NAME_KEY = 'name'
 HOLDINGS_KEY = 'holdings'
-ACTION_POINTS_KEY = 'action_points'
+OVERSIGHT_POINTS_KEY = 'oversight_points'
 BANKRUPT_TURNS_KEY = 'bankrupt_turns'
 WARS_KEY = 'wars'
 TECHNOLOGIES_KEY = 'technologies'
@@ -54,14 +54,14 @@ def check_amount(amount):
 
 
 class Civilization:
-    """A civilization: its name, what it holds of each resource, the technologies it knows, its action points, and who it is at war with.
+    """A civilization: its name, what it holds of each resource, the technologies it knows, its Oversight, and who it is at war with.
 
     There are few civilizations, so each is an ordinary object. Every city of a civilization
     adds to what the civilization holds and spends from it: no city holds resources of its
     own. Resources, technologies and other civilizations go by their ids.
     """
 
-    __slots__ = ('_name', '_holdings', '_technologies', '_researching', '_research', '_action_points', '_bankrupt_turns', '_wars', '_lost', '_cities_founded', '_memories', '_traits')
+    __slots__ = ('_name', '_holdings', '_technologies', '_researching', '_research', '_oversight_points', '_bankrupt_turns', '_wars', '_lost', '_cities_founded', '_memories', '_traits')
 
     def __init__(self, name):
         self._name = check_name(name)
@@ -69,7 +69,7 @@ class Civilization:
         self._technologies = set()
         self._researching = NOTHING
         self._research = 0
-        self._action_points = 0
+        self._oversight_points = 0
         self._bankrupt_turns = 0
         self._wars = set()
         self._lost = False
@@ -124,11 +124,11 @@ class Civilization:
     def set_research(self, points):
         self._research = check_amount(points)
 
-    def get_action_points(self):
-        return self._action_points
+    def get_oversight_points(self):
+        return self._oversight_points
 
-    def set_action_points(self, points):
-        self._action_points = check_amount(points)
+    def set_oversight_points(self, points):
+        self._oversight_points = check_amount(points)
 
     def get_bankrupt_turns(self):
         """Return how many turns in a row the civilization has been bankrupt."""
@@ -207,7 +207,7 @@ class Civilization:
             TECHNOLOGIES_KEY: self.get_technologies(),
             RESEARCHING_KEY: self._researching,
             RESEARCH_KEY: self._research,
-            ACTION_POINTS_KEY: self._action_points,
+            OVERSIGHT_POINTS_KEY: self._oversight_points,
             BANKRUPT_TURNS_KEY: self._bankrupt_turns,
             WARS_KEY: self.get_wars(),
             LOST_KEY: self._lost,
@@ -223,7 +223,7 @@ class Civilization:
         civilization._technologies = set(data[TECHNOLOGIES_KEY])
         civilization.set_researching(data[RESEARCHING_KEY])
         civilization.set_research(data[RESEARCH_KEY])
-        civilization.set_action_points(data[ACTION_POINTS_KEY])
+        civilization.set_oversight_points(data[OVERSIGHT_POINTS_KEY])
         civilization.set_bankrupt_turns(data[BANKRUPT_TURNS_KEY])
         civilization._wars = set(data[WARS_KEY])
         civilization._lost = data[LOST_KEY]

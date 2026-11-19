@@ -9,6 +9,7 @@ microsponge is a turn based strategy game of the kind called 4X, written in Pyth
 ## Where everything is
 
 - `.claude/COMMUNICATION.md`: how Claude works with the user: who decides what, committing, asking, numbering questions and explaining changes.
+- `.claude/GLOSSARY.md`: the key terms of the project and the game, as the user uses them.
 - `.claude/STYLE.md`: every rule for the code and the documents, with its reason and the test that enforces it.
 - `.claude/TESTING.md`: how the tests are run, what a change must come with, how tests are written and where each kind lives.
 - `.claude/UX.md`: the user's rules for how the text UI behaves. It holds only what the user has said so far, until the user walks Claude through the screens.
@@ -24,7 +25,7 @@ microsponge is a turn based strategy game of the kind called 4X, written in Pyth
 - `GUIDE.md`: the guide for people who play the game, how every theme is played, and `GUIDE_<THEME>.md`, one page for each theme with its story, tips and a generated appendix of its numbers ("Commands" below).
 - `ARCHITECTURE.md`, `PHILOSOPHY.md`, `README.md` and `INSTALL.md` are for people, and the user edits them by hand too.
 
-Everything in `.claude/` is for Claude: it holds what the user doesn't need to read, and the ten files above are imported at the end of this file, so they load in every session. A file of reference notes on the screens joins them when the screens exist. `test/test_doc_paths.py` checks that every source path these documents name exists.
+Everything in `.claude/` is for Claude: it holds what the user doesn't need to read, and the eleven files above are imported at the end of this file, so they load in every session. A file of reference notes on the screens joins them when the screens exist. `test/test_doc_paths.py` checks that every source path these documents name exists.
 
 ## License
 
@@ -60,6 +61,10 @@ Every report takes `--markdown` to print a Markdown table, and the reports live 
 ## Working with the user
 
 @.claude/COMMUNICATION.md
+
+## The key terms
+
+@.claude/GLOSSARY.md
 
 ## The rules
 

@@ -257,9 +257,9 @@ class TestBuildingUnits(ProductionCase):
         self.assertEqual(Production.waiting_cities(game=self.game, civilization=SECOND_CIVILIZATION), [])
 
     def test_a_warrior_is_paid_for_a_part_each_turn_and_stands_inside_the_city_when_the_last_part_is_paid(self):
-        pool = self.first.get_action_points()
+        pool = self.first.get_oversight_points()
         self.build(Warrior)
-        self.assertEqual(self.first.get_action_points(), pool)
+        self.assertEqual(self.first.get_oversight_points(), pool)
         self.assertIs(Production.building(game=self.game, city=self.city_id), Warrior)
         self.assertEqual(Production.turns_left(game=self.game, city=self.city_id), Warrior.BUILD_TURNS)
         self.rounds(ONE_ROUND)

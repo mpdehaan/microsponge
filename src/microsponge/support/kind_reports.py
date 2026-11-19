@@ -67,7 +67,7 @@ def building_properties(building):
     return [
         shown_kinds(building.REQUIRES), shown_amounts(building.COST), str(building.BUILD_TURNS), shown_amounts(building.SUPPORT),
         shown_amounts(building.PRODUCES), shown_number(building.INCOME_BONUS), shown_number(building.RESEARCH_POINTS),
-        shown_number(building.ACTION_POINTS), shown_number(building.GROWS_SOONER), shown_amounts_by_kind(building.WORKED_TILE_BONUS),
+        shown_number(building.OVERSIGHT_POINTS), shown_number(building.GROWS_SOONER), shown_amounts_by_kind(building.WORKED_TILE_BONUS),
         shown_number(building.ARMOR_BONUS), shown_number(building.LEVEL_BONUS), shown_flag(building.WALLS), shown_flag(building.BESIDE_WATER),
     ]
 

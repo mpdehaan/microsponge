@@ -54,6 +54,14 @@ class Watchtower(Building):
     ARMOR_BONUS = 1
 
 
+class ChieftainsHut(Building):
+    NAME = "chieftain's hut"
+    COST = {Currency: 20}
+    BUILD_TURNS = 4
+    SUPPORT = {Currency: 1}
+    OVERSIGHT_POINTS = 2
+
+
 class GreatCavePainting(Wonder):
     COST = {Currency: 40}
     BUILD_TURNS = 8
@@ -66,4 +74,4 @@ class ArrangementOfRocks(Wonder):
     BUILD_TURNS = 10
     SUPPORT = {Currency: 1}
     PRODUCES = {Currency: 2}
-    ACTION_POINTS = 1
+    OVERSIGHT_POINTS = 1
