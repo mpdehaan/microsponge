@@ -82,7 +82,7 @@ The buildings of caveman:
 | barracks             | -            | discipline  | 30 currency           |     5 | 1 currency | -          |               - |         - |            - | -                 |           - |           1 | -            |
 | harbor               | -            | -           | 30 currency           |     5 | 1 currency | -          |               - |         - |            - | -                 |           - |           - | yes          |
 | watchtower           | -            | fire, flint | 20 currency           |     5 | 1 currency | -          |               - |         - |            - | -                 |           1 |           - | -            |
-| chieftain's hut      | -            | -           | 20 currency           |     4 | 1 currency | -          |               - |         2 |            - | -                 |           - |           - | -            |
+| chieftain's hut      | -            | leadership  | 20 currency           |     4 | 1 currency | -          |               - |         2 |            - | -                 |           - |           - | -            |
 
 no building of caveman sets these, so their columns are left out: income bonus %, walls
 
@@ -101,6 +101,7 @@ The tech tree of caveman:
 | ----------- | --------------: | -------------------------- | --------------- | -------------------: |
 | clubs       |              10 | warrior, slingshot caveman | -               |                   10 |
 | agriculture |              30 | worker, granary, farm      | 10 food         |                    - |
+| leadership  |              25 | chieftain's hut            | -               |                    - |
 | discipline  |              40 | barracks                   | -               |                    - |
 | fire        |              20 | watchtower                 | -               |                    - |
 

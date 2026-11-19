@@ -36,3 +36,7 @@ class Discipline(Technology):
 
 class Fire(Technology):
     RESEARCH = 20
+
+
+class Leadership(Technology):
+    RESEARCH = 25

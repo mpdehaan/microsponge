@@ -21,7 +21,7 @@ from microsponge.themes.caveman.city import Village
 from microsponge.themes.caveman.buildings import ArrangementOfRocks, Barracks, ChieftainsHut, Granary, GreatCavePainting, Harbor, Watchtower
 from microsponge.themes.caveman.improvements import Clearing, Farm
 from microsponge.themes.caveman.resources import Currency, Flint, Food, Stone, Wood
-from microsponge.themes.caveman.technologies import Agriculture, Clubs, Discipline, Fire
+from microsponge.themes.caveman.technologies import Agriculture, Clubs, Discipline, Fire, Leadership
 from microsponge.themes.caveman.terrain_bonuses import Bison, Elephants
 from microsponge.themes.caveman.terrains import Forest, Grassland, Mountains, Tarpit, Water
 from microsponge.themes.caveman.map import CavemanMap
@@ -41,7 +41,7 @@ class Caveman(Theme):
     MAP = CavemanMap
     TERRAINS = (Grassland, Mountains, Water, Forest, Tarpit)
     RESOURCES = (Currency, Food, Stone, Wood, Flint)
-    TECHNOLOGIES = (Clubs, Agriculture, Discipline, Fire)
+    TECHNOLOGIES = (Clubs, Agriculture, Leadership, Discipline, Fire)
     UNITS = (Settler, Warrior, Worker, CaptainCaveman, SlingshotCaveman, Raft, AngryBird)
     BUILDINGS = (Granary, GreatCavePainting, ArrangementOfRocks, Barracks, Harbor, Watchtower, ChieftainsHut)
     IMPROVEMENTS = (Farm, Clearing)

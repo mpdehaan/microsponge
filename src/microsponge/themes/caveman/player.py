@@ -18,14 +18,14 @@
 
 from microsponge.engine.players.computer_player import ComputerPlayer
 from microsponge.themes.caveman.buildings import ArrangementOfRocks, Barracks, ChieftainsHut, Granary, GreatCavePainting
-from microsponge.themes.caveman.technologies import Agriculture, Clubs, Discipline, Fire
+from microsponge.themes.caveman.technologies import Agriculture, Clubs, Discipline, Fire, Leadership
 from microsponge.themes.caveman.units import CaptainCaveman, Warrior
 
 
 class CavemanPlayer(ComputerPlayer):
     __slots__ = ()
-    SCIENCE_RESEARCH = (Agriculture, Clubs, Discipline, Fire)
-    MILITARY_RESEARCH = (Clubs, Discipline, Fire, Agriculture)
+    SCIENCE_RESEARCH = (Agriculture, Clubs, Leadership, Discipline, Fire)
+    MILITARY_RESEARCH = (Clubs, Discipline, Fire, Leadership, Agriculture)
     DEFENDERS = (CaptainCaveman, Warrior)
     ATTACKERS = (CaptainCaveman, Warrior)
     ECONOMY = (Granary, ChieftainsHut, GreatCavePainting, Barracks, ArrangementOfRocks)

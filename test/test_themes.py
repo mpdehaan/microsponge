@@ -266,6 +266,8 @@ class TestCaveman(unittest.TestCase):
     def test_the_chieftains_hut_is_a_building_that_gives_a_small_amount_of_oversight(self):
         hut = caveman_buildings.ChieftainsHut
         self.assertIn(hut, Caveman.BUILDINGS)
+        self.assertEqual(hut.REQUIRES, (caveman_technologies.Leadership,))
+        self.assertIn(caveman_technologies.Leadership, Caveman.TECHNOLOGIES)
         self.assertFalse(issubclass(hut, Wonder))
         self.assertEqual(shown_name(hut), CHIEFTAINS_HUT)
         self.assertGreater(hut.OVERSIGHT_POINTS, 0)
@@ -444,7 +446,7 @@ class TestCaveman(unittest.TestCase):
 
     def test_caveman_has_clubs_agriculture_discipline_and_fire_and_none_requires_anything(self):
         technologies = caveman_technologies
-        self.assertEqual(Caveman.TECHNOLOGIES, (technologies.Clubs, technologies.Agriculture, technologies.Discipline, technologies.Fire))
+        self.assertEqual(Caveman.TECHNOLOGIES, (technologies.Clubs, technologies.Agriculture, technologies.Leadership, technologies.Discipline, technologies.Fire))
         for technology in Caveman.TECHNOLOGIES:
             self.assertEqual(technology.REQUIRES, ())
 

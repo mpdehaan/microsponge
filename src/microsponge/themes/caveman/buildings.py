@@ -18,7 +18,7 @@
 
 from microsponge.engine.kinds.building import Building, Wonder
 from microsponge.themes.caveman.resources import Currency, Flint, Food, Stone
-from microsponge.themes.caveman.technologies import Agriculture, Discipline, Fire
+from microsponge.themes.caveman.technologies import Agriculture, Discipline, Fire, Leadership
 from microsponge.themes.caveman.terrains import Grassland
 
 
@@ -56,6 +56,7 @@ class Watchtower(Building):
 
 class ChieftainsHut(Building):
     NAME = "chieftain's hut"
+    REQUIRES = (Leadership,)
     COST = {Currency: 20}
     BUILD_TURNS = 4
     SUPPORT = {Currency: 1}

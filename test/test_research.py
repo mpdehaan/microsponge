@@ -31,7 +31,7 @@ from microsponge.err_messages import ERR_ALREADY_KNOWN, ERR_ALREADY_RESEARCHING,
 from microsponge.themes.caveman.buildings import GreatCavePainting
 from microsponge.themes.caveman.city import Village
 from microsponge.themes.caveman.resources import Currency
-from microsponge.themes.caveman.technologies import Agriculture, Clubs, Discipline, Fire
+from microsponge.themes.caveman.technologies import Agriculture, Clubs, Discipline, Fire, Leadership
 from microsponge.themes.caveman.theme import Caveman
 from microsponge.themes.caveman.units import Warrior
 
@@ -131,7 +131,7 @@ class TestResearch(ResearchCase):
         self.rounds(CLUBS_ROUNDS)
         self.assertIsNone(self.researching())
         self.assertTrue(Research.must_choose(game=self.game, civilization=FIRST_CIVILIZATION))
-        self.assertEqual(self.available(), [Agriculture, Discipline, Fire])
+        self.assertEqual(self.available(), [Agriculture, Leadership, Discipline, Fire])
 
     def test_the_points_past_what_a_technology_takes_are_lost(self):
         give_building(game=self.game, city=self.city, building=GreatCavePainting)
@@ -194,7 +194,7 @@ class TestResearch(ResearchCase):
 
     def test_a_technology_the_civilization_knows_cannot_be_researched_again(self):
         learn(game=self.game, civilization=FIRST_CIVILIZATION, technology=Clubs)
-        self.assertEqual(self.available(), [Agriculture, Discipline, Fire])
+        self.assertEqual(self.available(), [Agriculture, Leadership, Discipline, Fire])
         message = self.refused_and_unchanged(lambda: self.research(Clubs))
         self.assertEqual(message, ERR_ALREADY_KNOWN.format(name=FIRST_NAME, technology=shown_name(Clubs)))
 
@@ -232,6 +232,6 @@ class TestATechnologyThatRequiresAnother(ResearchCase):
         self.assertEqual(Research.problem_choosing(game=self.game, civilization=FIRST_CIVILIZATION, technology=Pottery), expected)
         self.assertEqual(self.refused_and_unchanged(lambda: self.research(Pottery)), expected)
         learn(game=self.game, civilization=FIRST_CIVILIZATION, technology=Agriculture)
-        self.assertEqual(self.available(), [Clubs, Discipline, Fire, Pottery])
+        self.assertEqual(self.available(), [Clubs, Leadership, Discipline, Fire, Pottery])
         self.research(Pottery)
         self.assertIs(self.researching(), Pottery)

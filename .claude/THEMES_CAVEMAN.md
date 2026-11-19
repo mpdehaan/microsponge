@@ -63,7 +63,10 @@ gained, so a level 20 warrior has 13 hit points and a level 20 captain caveman 2
   research points. The barracks starts the units built in its city at level 2, which the user
   decided for caveman as for classic.
 - harbor: 30 currency, 5 turns, 1 currency to support. Requires no technology.
-- chieftain's hut: 20 currency, 4 turns, 1 currency to support. Requires no technology. The
+- leadership: a technology the user asked for, which the chieftain's hut requires. It takes 25
+  research points, which Claude chose, between fire at 20 and agriculture at 30. Caveman now
+  has five technologies: clubs, agriculture, leadership, discipline and fire.
+- chieftain's hut: 20 currency, 4 turns, 1 currency to support. Requires leadership. The
   chieftain's hut gives its civilization 2 more Oversight each turn. The user asked for the
   building, for one to a city, as with every building, and for a reasonably small amount,
   and Claude chose 2: caveman gives a civilization 4 Oversight, each village 2 more, and the

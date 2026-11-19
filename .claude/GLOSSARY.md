@@ -33,6 +33,10 @@ term is added here when the user settles on the word.
 - The helper AI is the layer that carries out orders: the helper AI is what touches the units
   and the cities, for a person and for a computer player alike. For now the helper AI is
   mostly a pass through.
+- The Hand is the internal name for a helper AI, after the Hand of the King in Game of
+  Thrones: the player's Hand, the computer's Hand, the computer AI's Hand, or the Hand AI,
+  which all mean the same thing. The Hand is an internal detail, used in discussion and in
+  code, and is never shown to a player on any screen.
 - The main AI is the part of a computer player that adjusts the strategy, the way a person
   would, and asks the helper AI to carry the strategy out. The main AI cannot touch the units
   and the cities.
@@ -40,6 +44,9 @@ term is added here when the user settles on the word.
   marks an order invalid when the order can no longer work.
 - An order is what a player asks the helper AI to do with a unit, a group, a kind of unit, a
   city or the civilization. The orders in force are kept in a table.
+- The giver of an order is the thing in the game the order comes from, and the receiver is
+  the thing ordered to do something. An order is never from the player. A destination or a
+  target is part of what the order says, and is not the receiver.
 - Oversight is what a civilization spends on orders, and is what was called the
   civilization's action points and then oversight points. The screens and Claude say
   Oversight. When the user says oversight points, the user means Oversight.
@@ -66,6 +73,11 @@ term is added here when the user settles on the word.
   order holds. Class names like BuildTarget are fine to talk in for now, and the names a
   screen shows are worked out later. Claude does not describe the model in words that assume
   a particular screen, like "row".
+- A MilitaryTarget is what a military order aims at, like taking a city, and a
+  ResourcesTarget is what the citizens are told to look for, like food first. Both are the
+  user's names, beside BuildTarget.
+- A BuildOrder is the order attached to a city that lists the buildings to build, in order
+  of priority. Claude first called this a BuildingsOrder.
 - A base is a city that a division lists as a place that can build units for the division.
 - Currency is the primary resource, which the user first called gold. Claude doesn't write "the
   stock" for what a civilization holds of its resources: the user doesn't know the word. The

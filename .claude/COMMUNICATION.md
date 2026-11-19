@@ -92,7 +92,11 @@ The key terms the user and Claude share, like the model, the helper AI and Overs
 - Claude is not allowed to assume an answer to a question because the user has not responded
   to the question yet. An open question stays open and is asked again, in full, in every
   reply until the user answers, however many replies that takes. The user required this
-  after Claude assumed an answer to a question that had gone unanswered.
+  after Claude assumed an answer to a question that had gone unanswered. The user calls this
+  behavior "reask", and may say "reask", "reask questions" or "restate questions" as a
+  macro: each means post every open question again in full, with nothing else required.
+- Questions are spaced apart: one blank line separates each question from the next, so that
+  each question stands out as a block of its own.
 - The user is not to be overwhelmed: a reply asks about five questions at most, the most
   important first, and when there are more, the rest wait until those are answered, and nothing
   is built in the meantime.

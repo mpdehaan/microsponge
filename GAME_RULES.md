@@ -843,6 +843,41 @@ single units, and are rewritten as the details are decided.
 - An order that holds build targets could have a property for how the targets are met: round
   robin, where the city works toward every target in turn, or top first, where the city
   meets the target at the top of the list before the next.
+- The definition of an order is kept separate from an order given in a game. The definitions
+  can be subclassed, the way a theme has buildings of its own: a theme may leave a type of
+  order out, and may change what an order costs.
+- An order given in a game has a giver, which is the thing the order comes from; a receiver,
+  which is the thing ordered to do something, like a city, a unit, a division or an army;
+  and a what, which is the parameters of that type of order. An order is never from the
+  player: the giver is always a thing in the game. An order to raise units has the division
+  that wants the units as its giver and the city that will build the units as its receiver,
+  and knows what to raise. An order for a division to march has the division as both its
+  giver and its receiver, and the destination is inside the what: the destination is not the
+  receiver, because the destination is not the thing being ordered to do something.
+- The Hand has a realized tree of orders of its own, which is how the Hand interprets the
+  orders a civilization has given. The realized tree costs no Oversight. A person who plays
+  does not see the realized tree, though a test may need to, and a main AI cannot see the
+  realized tree either, as part of what the main AI knows when deciding.
+- The Hand does nothing that Oversight has not asked for. What no order leads does its
+  default natural thing, for a computer player's civilization and a person's alike, which
+  is mostly absolutely nothing: units defend themselves if attacked, and the civilization
+  researches its current targets, or a random technology when no target is set.
+- An order for a planet can be a high level objective, like increase settlements here,
+  conquer the cities in this area, or eliminate the units in this area. Such objectives can
+  be given at lower levels too. Very high level objectives more or less make a player as
+  smart as the helper AI, so they are controlled in a special way: an order costs more
+  Oversight the higher up the chain the order is applied. This goes against the wariness of
+  micromanagement in an acceptable way: a player who works at it and makes good orders at
+  the middle levels can beat a player who relies on the helper AI through high level orders,
+  or who wastes Oversight on low level orders. The same is true of computer players against
+  computer players.
+- What an order says is made of targets. Taking a city is a form of military target, and
+  food first is a resources target, beside the build targets.
+- A resolution order can be set a fourth way, balanced, which alternates one build for the
+  divisions and one build for the city.
+- A city with no order builds nothing, and a unit with no order stands still and only
+  strikes back. So every city needs a build order attached: the buildings to build, in
+  order of priority. A long build order costs no more Oversight than a short one.
 - A completed order is set disabled. A disabled order costs no Oversight and does nothing, and
   stays in the table as a convenience, so that a person can remove the order or modify the
   order. A computer player will probably just remove a disabled order.
