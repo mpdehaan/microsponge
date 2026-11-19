@@ -33,7 +33,7 @@ The project is licensed under GPLv3, with the full text in `LICENSE`. Every Pyth
 
 ## Commands
 
-`Makefile` at the root wraps everything below, and `make` lists its targets: `setup`, `run`, `test`, `test-one NAME=...`, `pyflakes`, `pep8` (a look, not a rule), `loose-strings`, `balance THEME=...`, `unit-report THEME=...`, `building-report THEME=...`, `wonder-report THEME=...`, `tech-report THEME=...` (add `FORMAT=--markdown` to any report for Markdown), `guides`, `map THEME=... SEED=... CIVILIZATIONS=...`, `hooks` and `clean`. A new everyday command gets a target there too. Set up the virtual environment once. This also installs the `microsponge` command, which `setup.py` points at `microsponge.cli:main`, and `-e` makes it use the code here rather than a copy:
+`Makefile` at the root wraps everything below, and `make` lists its targets: `setup`, `run`, `test`, `test-one NAME=...`, `pyflakes`, `pep8` (a look, not a rule), `loose-strings`, `balance THEME=...`, `unit-report THEME=...`, `building-report THEME=...`, `wonder-report THEME=...`, `tech-report THEME=...` (add `FORMAT=--markdown` to any report for Markdown), `guides`, `map THEME=... SEED=... CIVILIZATIONS=...`, `game THEME=... SEED=... CIVILIZATIONS=... TURNS=...`, `hooks` and `clean`. A new everyday command gets a target there too. Set up the virtual environment once. This also installs the `microsponge` command, which `setup.py` points at `microsponge.cli:main`, and `-e` makes it use the code here rather than a copy:
 
 ```
 python3 -m venv .venv
@@ -50,6 +50,7 @@ python3 -m venv .venv
 .venv/bin/python tools/unit_report.py caveman    # every unit of a theme with its properties; likewise building_report.py, wonder_report.py and tech_report.py
 .venv/bin/python tools/theme_guides.py           # refresh the generated appendix of every GUIDE_<THEME>.md; --check only says which are stale
 .venv/bin/python tools/map_preview.py caveman 7  # a world the map generator makes from a seed, as a grid of letters with a legend
+.venv/bin/python tools/scripted_game.py caveman 7 3 300  # the computer players play a game: its story, tables and charts
 ```
 
 Every report takes `--markdown` to print a Markdown table, and the reports live in `src/microsponge/support/` (`balance_report.py`, `kind_reports.py`, `tables.py`, `theme_tools.py`) so that the guides use the same code. `GUIDE.md` is the guide for people who play the game, with the rules of every theme, and `GUIDE_<THEME>.md` is each theme's page, written by hand with a generated appendix of the reports between two marker comments, which `test/test_theme_guides.py` checks is current: after a change to a theme's numbers, run `make guides`. Two more tools arrive with the code they need: a tool that redraws the diagrams in `ARCHITECTURE.md` from the packages, once there are packages worth drawing, and a tool that takes screenshots of the real screens for the documents, once there is a screen. Each gets a `make` target and a test that its output is current.

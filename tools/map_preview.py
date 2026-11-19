@@ -27,7 +27,7 @@ The same seed always makes the same world (`src/microsponge/support/map_preview.
 import sys
 
 from microsponge.support.map_preview import CIVILIZATIONS, preview_lines, previewed_game
-from microsponge.support.theme_tools import FAILED, SUCCEEDED, theme_called, theme_names
+from microsponge.support.theme_tools import FAILED, SUCCEEDED, number_at, theme_called, theme_names
 from microsponge.ui_strings import MSG_MAP_USAGE
 
 DEFAULT_SEED = 1
@@ -35,13 +35,6 @@ DEFAULT_SEED = 1
 THEME_ARGUMENT = 0
 SEED_ARGUMENT = 1
 CIVILIZATIONS_ARGUMENT = 2
-
-
-def number_at(*, arguments, place, default):
-    """Return the whole number at a place of the arguments, the default when there is none, or None when it is not a whole number."""
-    if len(arguments) <= place:
-        return default
-    return int(arguments[place]) if arguments[place].isdigit() else None
 
 
 def main(arguments):

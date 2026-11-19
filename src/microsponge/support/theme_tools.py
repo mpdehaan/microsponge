@@ -38,6 +38,13 @@ def theme_names():
     return MSG_LIST_SEPARATOR.join(shown_name(theme) for theme in THEMES)
 
 
+def number_at(*, arguments, place, default):
+    """Return the whole number at a place of a command line's arguments, the default when there is none, or None when it is not a whole number."""
+    if len(arguments) <= place:
+        return default
+    return int(arguments[place]) if arguments[place].isdigit() else None
+
+
 def parse(arguments):
     """Return (the theme named, whether Markdown was asked for) from the command line's arguments, with None for no theme or one that does not exist."""
     markdown = MARKDOWN_FLAG in arguments

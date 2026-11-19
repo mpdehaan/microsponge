@@ -744,6 +744,29 @@ single units, and are rewritten as the details are decided.
   Sending a single unit across the map is likely a very small Oversight tax, like 1.
 - No cost of an order is hard coded: every cost is in the common settings of the engine or in
   the theme, which are Python, like everything else a theme defines.
+- The orders are heavily object oriented. An order is a class, with subclasses for the thing
+  the order is given to: a unit order, a city order, an army order, a division order and so
+  forth. There are probably no orders for the civilization as a whole at this time, and the
+  design allows for them. There is a planet order as well: a city has a planet, and orders
+  for a planet are needed later.
+- For orders to work across a whole game, the engine has to model planes: space is a plane,
+  and the astral plane of fantasy is a plane too ("Space").
+- An army order could be an order to raise the army, which directs certain cities to build
+  units for that army.
+- Every order has a priority from 0 to 100, because several orders can point at the same
+  thing: several priorities may go into one city. When several orders point at one thing, the
+  highest priority wins.
+- A unit and a city are each a thing that takes orders. A thing that takes orders can look at
+  every order that points at the thing, and can have orders of its own that help the thing to
+  decide what to do. An order on a city could be to prioritize military builds, and such an
+  order might even cost no Oversight.
+- A completed order is set disabled. A disabled order costs no Oversight and does nothing, and
+  stays in the table as a convenience, so that a person can remove the order or modify the
+  order. A computer player will probably just remove a disabled order.
+- The referee AI, which is a kind of global part of the engine and belongs to no player,
+  marks an order invalid when the order can no longer work, like an order whose target city
+  was destroyed. An invalid order costs no Oversight and does nothing until the order is
+  changed. Disabled and invalid are nearly the same thing, and may be modelled as one.
 - When several levels of the tree give an order, the most specific level wins: an order on a
   single unit, then the unit's division, then the army, then the kind of unit, then the
   civilization.

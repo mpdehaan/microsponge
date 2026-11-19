@@ -21,7 +21,7 @@
 PYTHON = .venv/bin/python
 NAME ?=
 
-.PHONY: help setup run test test-one pyflakes pep8 loose-strings balance unit-report building-report wonder-report tech-report guides map hooks clean
+.PHONY: help setup run test test-one pyflakes pep8 loose-strings balance unit-report building-report wonder-report tech-report guides map game hooks clean
 
 help:
 	@echo "make setup          make .venv and install microsponge into it"
@@ -37,6 +37,7 @@ help:
 	@echo "make wonder-report  every world wonder of a theme with its properties: THEME=caveman"
 	@echo "make tech-report    the tech tree of a theme with its properties: THEME=caveman"
 	@echo "make guides         refresh the generated appendix of every theme guide, GUIDE_<THEME>.md"
+	@echo "make game           have the computer players play a game and print its story: THEME=caveman SEED=1 CIVILIZATIONS=3 TURNS=100"
 	@echo "make map            preview a world the map generator makes: THEME=caveman SEED=1 CIVILIZATIONS=3"
 	@echo "make hooks          install the git pre-commit hook, which runs every test before a commit goes in"
 	@echo "make clean          remove Python caches"
@@ -86,6 +87,11 @@ CIVILIZATIONS ?= 3
 
 map:
 	$(PYTHON) tools/map_preview.py $(THEME) $(SEED) $(CIVILIZATIONS)
+
+TURNS ?= 100
+
+game:
+	$(PYTHON) tools/scripted_game.py $(THEME) $(SEED) $(CIVILIZATIONS) $(TURNS)
 
 hooks:
 	ln -sf ../../tools/pre_commit.sh .git/hooks/pre-commit

@@ -36,6 +36,8 @@ term is added here when the user settles on the word.
 - The main AI is the part of a computer player that adjusts the strategy, the way a person
   would, and asks the helper AI to carry the strategy out. The main AI cannot touch the units
   and the cities.
+- The referee AI is a global part of the engine that belongs to no player. The referee AI
+  marks an order invalid when the order can no longer work.
 - An order is what a player asks the helper AI to do with a unit, a group, a kind of unit, a
   city or the civilization. The orders in force are kept in a table.
 - Oversight is what a civilization spends on orders, and is what was called the

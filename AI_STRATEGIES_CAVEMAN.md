@@ -193,8 +193,10 @@ The user wants variance programmed in, so that no two computer players are the s
 ## What is built first, in order
 
 The damage roll with dice and caveman's new numbers, the fog of war and the view a player reads,
-the players with their traits and the simple map generator are built. Next come the scripted
-game and its report.
+the players with their traits, the map generator with good starting sites, the helper AI as a
+pass through, and the scripted game with its report, a story, tables and charts, are built
+(`make game THEME=caveman SEED=1 CIVILIZATIONS=3 TURNS=300`). Next come the orders the helper
+AI carries out, with armies and divisions.
 
 ## Not decided yet
 

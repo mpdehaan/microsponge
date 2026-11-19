@@ -82,6 +82,9 @@ ERR_TURN = 'a turn must be a whole number that is not negative, got {value!r}'
 ERR_NO_MAP = 'the theme {theme} cannot have its maps made yet: its map spec has no base terrain'
 ERR_NO_ROOM_TO_START = 'the world has room for {room} starting places a city radius apart, and {count} civilizations need one each'
 
+# scripted_game.py
+ERR_NO_PLAYER = 'the theme {theme} has no computer player yet, so its games cannot be played by the computer'
+
 # orders.py
 ERR_NO_ACTION_POINTS = 'the unit {unit} has {left} action points left, and this costs {cost}'
 ERR_NO_OVERSIGHT_POINTS = '{name} has {left} Oversight left, and this costs {cost}'

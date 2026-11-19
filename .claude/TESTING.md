@@ -144,7 +144,9 @@ beside them:
   and the view a player reads), `test/test_traits.py` (the traits of a computer-played
   civilization), `test/test_helper_ai.py` (the helper AI passing every order for a unit or a city to
   the game, and no player giving such an order directly), `test/test_computer_player.py` (two computer players playing a whole game of
-  caveman, and the traits tipping their decisions), `test/test_generator.py` (the map
+  caveman, and the traits tipping their decisions), `test/test_scripted_game.py` (the chronicle kept of a game, the scripted game the
+  computer players play, the report with its story, and the tool), `test/test_charts.py`
+  (charts drawn in plain characters), `test/test_generator.py` (the map
   generator, where civilizations start, and the map preview tool), `test/test_saving.py` (the saved game, also loaded into later
   versions of a theme) and `test/test_themes.py` (what each theme holds). More join them as the model objects
   are derived from the model, `GAME_RULES.md`.

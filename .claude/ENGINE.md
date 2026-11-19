@@ -270,6 +270,20 @@ says where things are and how the parts fit, and is kept true with every change 
   no kind of the theme sets. A technology's "allows" column is every kind whose `REQUIRES` lists
   the technology. `support/balance_report.py` is the balance report, moved out of
   `tools/balance.py`, which is now a few lines like the other tools.
+- The scripted game. `support/scripted_game.py` has `started_game(theme=, seed=,
+  civilizations=)`, a game on a generated world with traits dealt to every civilization, and
+  `play(game=, turns=, stall_turns=)`, which has the theme's `PLAYER` play until the game is
+  over, reaches a turn, or has had nothing built for `STALL_TURNS`, and returns the
+  `Chronicle`. `support/chronicle.py` is `Chronicle`, which watches a game only through its
+  getters: `note()` after each civilization's turn turns what changed into `Event`s (a
+  `What`: founded, took, learnt, knew everything, declared war, finished a world wonder,
+  defeated, went bankrupt) and counts units made and lost, and `count()` at the end of each
+  turn records each `Measure` (cities, citizens, wealth, units, technologies) of each
+  civilization still playing. It is not the history record of the model. `support/charts.py`
+  draws `chart_lines()` in plain characters, and `support/game_story.py` writes
+  `report_lines()`: the story, the curve of the game, and tables of traits, technologies and
+  units. `tools/scripted_game.py` is `make game THEME= SEED= CIVILIZATIONS= TURNS=`.
+  `number_at()` in `support/theme_tools.py` reads a number from a tool's command line.
 - `support/guides.py` knows where each theme's guide is (`GUIDE_<THEME>.md`, from the saved
   name) and generates its appendix, the five reports as Markdown between `START_MARKER` and
   `END_MARKER`. `tools/theme_guides.py` refreshes every guide, or with `--check` says which

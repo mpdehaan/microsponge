@@ -45,6 +45,8 @@ class What:
     DECLARED_WAR = 5
     FINISHED_WONDER = 6
     DEFEATED = 7
+    # Defeated by staying bankrupt too long, with no enemy needed.
+    WENT_BANKRUPT = 8
 
 
 class Measure:
@@ -154,7 +156,7 @@ class Chronicle:
                     self._events.append(Event(turn=turn, what=What.DECLARED_WAR, civilization=civilization, other=enemy))
             if holder.has_lost() and civilization not in self._defeated:
                 self._defeated.add(civilization)
-                self._events.append(Event(turn=turn, what=What.DEFEATED, civilization=civilization))
+                self._events.append(Event(turn=turn, what=What.WENT_BANKRUPT if holder.is_bankrupt() else What.DEFEATED, civilization=civilization))
 
     def _note_units(self, *, game, turn, founded):
         """Count the units made and the units lost. A settler that is gone when its civilization founded a city built the city, and is not lost."""
@@ -189,8 +191,9 @@ class Chronicle:
         """Return the events, in the order they happened."""
         return list(self._events)
 
-    def events_of(self, what):
-        return [event for event in self._events if event.what == what]
+    def events_of(self, *whats):
+        """Return the events of any of some kinds, in the order they happened."""
+        return [event for event in self._events if event.what in whats]
 
     def get_counts(self, *, civilization, measure):
         """Return what a civilization counted of a Measure at the end of each turn the civilization was still playing."""
