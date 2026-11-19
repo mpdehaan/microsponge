@@ -57,6 +57,7 @@ MSG_PAGE_CHART_STRENGTH = 'Strength each turn: the rise and fall of each civiliz
 MSG_PAGE_CHART_TECHNOLOGIES = 'Technologies known'
 MSG_PAGE_CHART_UNITS = 'Units in all'
 MSG_PAGE_CHART_UNITS_OF_KIND = 'Units of the kind {kind}'
+MSG_PAGE_CHART_WARS = 'How many other civilizations each civilization is at war with'
 MSG_PAGE_NO_CHARTS = 'The charts could not be drawn, because the chart library could not be loaded from the internet. The tabs Timelines and Tables hold the same game.'
 MSG_PAGE_NO_IMPROVEMENTS = 'No improvement was built on a tile of any {city} radius in this game.'
 MSG_PAGE_TAB_BUILDINGS = 'Buildings'
@@ -78,6 +79,8 @@ MSG_LOG_BUILT_HEADING = ['civilization', 'building', 'built', 'first on turn', '
 MSG_LOG_BUILT_TITLE = 'The buildings each civilization built, with the turns it finished the first and the last of each:'
 MSG_LOG_CITIES_HEADING = ['civilization', 'founded', 'took', 'lost', 'held at the end', 'citizens at the end', 'buildings at the end']
 MSG_LOG_CITIES_TITLE = 'The cities of each civilization:'
+MSG_LOG_FIGHTING_HEADING = ['civilization', 'unit', 'made', 'attacks made', 'tiles moved', 'units killed', 'units lost']
+MSG_LOG_FIGHTING_TITLE = 'What the units of each kind of each civilization did, added up over every unit of the kind:'
 MSG_LOG_FORCES_HEADING = [
     'civilization', 'divisions made', 'first', 'last', 'armies made', 'first', 'last', 'units retired', 'first', 'last', 'divisions retired', 'first', 'last', 'armies retired', 'first', 'last',
 ]

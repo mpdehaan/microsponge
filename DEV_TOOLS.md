@@ -84,6 +84,9 @@ hold every move, which would be a huge file. The log holds:
 - `orders`: for each civilization and each kind of order, the turns an order of the kind was
   given, and the first and the last turn an order of the kind was in use. The orders the
   helper AI makes for itself are not counted.
+- `tallies`, in each civilization: the attacks its units made and the units they killed, for
+  each kind of unit. A kill counts for the attacker that killed a defender, or for the unit
+  whose strike back killed the attacker.
 - `forces`: for each civilization, the turns it made each division and army, and the turns it
   retired units, divisions and armies. A unit that was retired ends as `retired` in `units`.
 - `civilizations`: each civilization's name, its traits and whether the civilization lost.
@@ -113,13 +116,15 @@ and its chart shows what may decide a winner. These are rough first numbers, to 
 
 The page has a row of tabs under its title, and clicking a tab shows what is in it:
 
-- Score: the chart of strength each turn, which is the rise and fall of each civilization,
+- Score: the chart of how many other civilizations each civilization is at war with, from none
+  to every other civilization of the game, the chart of strength each turn, which is the rise and fall of each civilization,
   and the chart of the score, which may decide a winner, both drawn large, then the four parts
   of the score.
 - Cities: cities, citizens and technologies known, and the bank of every resource a
   civilization collects, food among them, each in a chart of its own.
 - Units: a table of the units each civilization made of each kind, with the turns of the first
-  and the last, and a table of the divisions and armies each civilization made and the units,
+  and the last, a table of what the units of each kind of each civilization did, the attacks
+  they made, the tiles they moved, the units they killed and how many were lost, and a table of the divisions and armies each civilization made and the units,
   divisions and armies it retired, with the first and the last turn of each; then units in
   all, one chart for each kind of unit, of the units of that kind each civilization had, then
   hit points of military units, military units inside a city and the average level of military

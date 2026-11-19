@@ -42,6 +42,7 @@ from microsponge.engine.orders.order_control import OrderControl
 from microsponge.engine.players.knowledge import distance
 from microsponge.engine.players.traits import TRAITS
 from microsponge.engine.turns.turn_control import TurnControl
+from microsponge.engine.units.combat import Tally
 from microsponge.engine.units.unit_column import UnitColumn
 from microsponge.engine.units.unit_control import UnitControl
 from microsponge.engine.world.layer import Layer
@@ -52,6 +53,8 @@ NOT_GONE = -1
 # A kind of order that was never in use has no turn on which it was first or last in use.
 NEVER = -1
 FILE_ENCODING = 'utf-8'
+# The tallies of fights each civilization keeps for each kind of its units.
+TALLIES = (Tally.ATTACKS, Tally.KILLS)
 WRITE_MODE = 'w'
 READ_MODE = 'r'
 
@@ -75,6 +78,7 @@ class Key:
     ORDERS = 'orders'
     BUILDING = 'building'
     FORCES = 'forces'
+    TALLIES = 'tallies'
     GROUP = 'group'
     MADE_TURNS = 'made_turns'
     RETIRED_TURNS = 'retired_turns'
@@ -161,8 +165,9 @@ class Series:
     HIT_POINTS = 'military_hit_points'
     STRENGTH = 'strength'
     FOOD_STORED = 'food_stored'
+    WARS = 'wars'
 
-    OWN = (HIT_POINTS, STRENGTH, FOOD_STORED, POLICY, POLICY_TAKEN, COMMAND, COMMAND_TAKEN, INSIDE, LEVEL, BUILDINGS, MILITARY_SCORE, SCIENCE_SCORE, POPULATION_SCORE, DEVELOPMENT_SCORE, SCORE)
+    OWN = (HIT_POINTS, STRENGTH, FOOD_STORED, WARS, POLICY, POLICY_TAKEN, COMMAND, COMMAND_TAKEN, INSIDE, LEVEL, BUILDINGS, MILITARY_SCORE, SCIENCE_SCORE, POPULATION_SCORE, DEVELOPMENT_SCORE, SCORE)
 
 
 # What the chronicle counts, by the name the log gives each.
@@ -409,6 +414,7 @@ class GameLog:
         series[Series.STRENGTH].append(sum(now.values()))
         series[Series.BUILDINGS].append(now[BUILDINGS])
         series[Series.FOOD_STORED].append(sum(city.get_food() for city in cities))
+        series[Series.WARS].append(len(game.get_civilization(civilization).get_wars()))
         series[Series.POLICY].append(TurnControl.control_points(game=game, civilization=civilization, points=Policy))
         series[Series.POLICY_TAKEN].append(OrderControl.taken(game=game, civilization=civilization, points=Policy))
         series[Series.COMMAND].append(TurnControl.control_points(game=game, civilization=civilization, points=Command))
@@ -472,7 +478,9 @@ class GameLog:
     def _civilization_data(*, game, civilization):
         holder = game.get_civilization(civilization)
         traits = {trait: holder.get_traits().get(trait) for trait in TRAITS} if holder.is_computer_played() else {}
-        return {Key.ID: civilization, Key.NAME: holder.get_name(), Key.LOST: holder.has_lost(), Key.TRAITS: traits}
+        catalog = game.get_catalog()
+        tallies = {tally: {shown_name(catalog.get_kind(category=Category.UNITS, kind_id=kind)): count for kind, count in holder.get_tally(tally).items()} for tally in TALLIES}
+        return {Key.ID: civilization, Key.NAME: holder.get_name(), Key.LOST: holder.has_lost(), Key.TRAITS: traits, Key.TALLIES: tallies}
 
     @staticmethod
     def _event_data(event):

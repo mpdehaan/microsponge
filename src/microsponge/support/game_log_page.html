@@ -93,7 +93,7 @@ function draw(chart, parent) {
       },
       scales: {
         x: {ticks: {color: token('--muted'), maxTicksLimit: 9}, grid: {display: false}, border: {color: token('--rule')}},
-        y: {beginAtZero: true, ticks: {color: token('--muted'), maxTicksLimit: 6, precision: chart.bars ? 0 : undefined}, grid: {color: token('--rule')}, border: {display: false}},
+        y: {beginAtZero: true, max: chart.most, ticks: {color: token('--muted'), maxTicksLimit: 6, precision: chart.bars || chart.most !== undefined ? 0 : undefined}, grid: {color: token('--rule')}, border: {display: false}},
       },
     },
   });

@@ -52,6 +52,14 @@ class AttackOutcome:
     striker: int | None = None
 
 
+
+class Tally:
+    """The names of what a civilization counts for each kind of its units in fights."""
+
+    ATTACKS = 'attacks'
+    KILLS = 'kills'
+
+
 class Combat:
     """The rules for fighting, as static methods over a game. It is never made into an object.
 
@@ -130,6 +138,8 @@ class Combat:
             defender = Combat.defender_of_city(game=game, city=city)
             striker = Combat.striker_of_city(game=game, city=city, attacker=unit)
             bonus = CityControl.armor_bonus(game=game, city=city, against=UnitControl.kind_of(game=game, unit=unit))
+        attacker_kind = Combat.owner_and_kind(game=game, unit=unit)
+        striker_kind = None if striker is None else Combat.owner_and_kind(game=game, unit=striker)
         roll = UnitControl.roll_against(game=game, unit=unit, target=defender)
         damage = UnitControl.mitigated(roll=roll, armor_class=UnitControl.armor_class_of(game=game, unit=defender, bonus=bonus))
         prizes = {defender: Combat.kill_experience(game=game, unit=defender), unit: Combat.kill_experience(game=game, unit=unit)}
@@ -140,8 +150,26 @@ class Combat:
             strike_back = Combat.strike_back(game=game, attacker=unit, striker=striker)
             attacker_killed = Combat.hurt(game=game, unit=unit, damage=strike_back)
         Combat.reward(game=game, attacker=unit, defender=defender, striker=striker, prizes=prizes, defender_killed=defender_killed, attacker_killed=attacker_killed)
+        Combat.tally(game=game, attacker=attacker_kind, striker=striker_kind, defender_killed=defender_killed, attacker_killed=attacker_killed)
         Combat.settle_losses(game)
         return AttackOutcome(defender=defender, damage=damage, strike_back=strike_back, defender_killed=defender_killed, attacker_killed=attacker_killed, striker=striker if strike_back else None)
+
+    @staticmethod
+    def owner_and_kind(*, game, unit):
+        """Return (the owner, the kind's id) of a unit, kept before a fight in which the unit may die."""
+        units = game.get_units()
+        return (units.get_value(column=UnitColumn.OWNER, unit=unit), units.get_value(column=UnitColumn.KIND, unit=unit))
+
+    @staticmethod
+    def tally(*, game, attacker, striker, defender_killed, attacker_killed):
+        """Count an attack for the attacking civilization's kind of unit, and a kill for the kind that killed: the attacker that killed the defender, or the striker that killed the attacker."""
+        owner, kind = attacker
+        game.get_civilization(owner).add_to_tally(tally=Tally.ATTACKS, kind=kind)
+        if defender_killed:
+            game.get_civilization(owner).add_to_tally(tally=Tally.KILLS, kind=kind)
+        if attacker_killed and striker is not None:
+            striker_owner, striker_kind = striker
+            game.get_civilization(striker_owner).add_to_tally(tally=Tally.KILLS, kind=striker_kind)
 
     @staticmethod
     def strike_back(*, game, attacker, striker):

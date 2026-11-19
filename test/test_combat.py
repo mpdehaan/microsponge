@@ -28,7 +28,7 @@ from microsponge.engine.kinds.catalog import NOTHING
 from microsponge.engine.kinds.category import Category
 from microsponge.engine.kinds.kind import shown_name
 from microsponge.engine.turns.orders import Orders
-from microsponge.engine.units.combat import ATTACK_EXPERIENCE, SURVIVAL_EXPERIENCE, Combat
+from microsponge.engine.units.combat import Tally, ATTACK_EXPERIENCE, SURVIVAL_EXPERIENCE, Combat
 from microsponge.engine.units.unit_column import UnitColumn
 from microsponge.engine.kinds.unit_kinds import attack_dice
 from microsponge.engine.units.levels import FIRST_LEVEL, LAST_LEVEL, NO_EXPERIENCE, Levels
@@ -575,3 +575,34 @@ class TestLosing(CityCombatCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class TestTallies(CombatCase):
+
+    def tally_of(self, *, civilization, tally):
+        """Return a civilization's tally, with kinds by their class."""
+        catalog = self.game.get_catalog()
+        return {catalog.get_kind(category=Category.UNITS, kind_id=kind): count for kind, count in self.game.get_civilization(civilization).get_tally(tally).items()}
+
+    def test_an_attack_counts_for_the_attacking_kind_and_a_kill_for_the_kind_that_killed(self):
+        attacker, target = self.two_clubbers()
+        self.sturdy(target)
+        self.attack(unit=attacker, x=OPEN_COLUMN + ONE_STEP, y=OPEN_ROW)
+        self.assertEqual(self.tally_of(civilization=FIRST_CIVILIZATION, tally=Tally.ATTACKS), {Clubber: 1})
+        self.assertEqual(self.tally_of(civilization=FIRST_CIVILIZATION, tally=Tally.KILLS), {})
+        self.assertEqual(self.tally_of(civilization=SECOND_CIVILIZATION, tally=Tally.ATTACKS), {})
+
+    def test_a_defender_killed_counts_a_kill_for_the_attacker(self):
+        attacker, target = self.two_clubbers()
+        self.units.set_value(column=UnitColumn.HIT_POINTS, unit=target, value=CHIP_DAMAGE)
+        self.attack(unit=attacker, x=OPEN_COLUMN + ONE_STEP, y=OPEN_ROW)
+        self.assertEqual(self.tally_of(civilization=FIRST_CIVILIZATION, tally=Tally.KILLS), {Clubber: 1})
+        self.assertEqual(self.tally_of(civilization=SECOND_CIVILIZATION, tally=Tally.KILLS), {})
+
+    def test_an_attacker_killed_by_the_strike_back_counts_a_kill_for_the_striker(self):
+        attacker, target = self.two_clubbers()
+        self.units.set_value(column=UnitColumn.HIT_POINTS, unit=attacker, value=CHIP_DAMAGE)
+        self.sturdy(target)
+        self.attack(unit=attacker, x=OPEN_COLUMN + ONE_STEP, y=OPEN_ROW)
+        self.assertEqual(self.tally_of(civilization=SECOND_CIVILIZATION, tally=Tally.KILLS), {Clubber: 1})
+        self.assertEqual(self.tally_of(civilization=FIRST_CIVILIZATION, tally=Tally.ATTACKS), {Clubber: 1})

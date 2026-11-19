@@ -33,6 +33,8 @@ from microsponge.engine.orders.order import RetireOrder
 from microsponge.engine.orders.thing import city_thing, division_thing
 from microsponge.engine.players.appraisal import Appraisal
 from microsponge.engine.players.hand import Hand
+from microsponge.engine.units.combat import Tally
+from microsponge.support.tables import shown_number
 from microsponge.engine.orders.what import NoDetails
 from microsponge.engine.turns.orders import Orders
 from microsponge.engine.units.unit_control import UnitControl
@@ -43,7 +45,7 @@ from microsponge.support.game_log_page import (
     ALL_UNITS_CHARTS, BUILDING_CHARTS, CITY_CHARTS, CONTROL_POINT_CHARTS, MAIN_CHARTS, MILITARY_CHARTS, ORDER_SPAN_TURNS, PLACEHOLDER, SCORE_PART_CHARTS, Content, PageKey, Tab, given_in_spans,
     page_data, page_path, page_text, spans_of, write_page,
 )
-from microsponge.support.game_log_report import SCORE_PARTS, built_table, scores_table, forces_table, last_of, name_of, winner_line, made_table, orders_table, ranked, report_lines, series_of, strongest_turn, tables, timelines, title_of
+from microsponge.support.game_log_report import SCORE_PARTS, built_table, scores_table, fighting_table, forces_table, last_of, name_of, winner_line, made_table, orders_table, ranked, report_lines, series_of, strongest_turn, tables, timelines, title_of
 from microsponge.support.scripted_game import play, started_game
 from microsponge.support.theme_tools import FAILED, SUCCEEDED
 from microsponge.themes.caveman.buildings import Granary
@@ -53,7 +55,7 @@ from microsponge.themes.caveman.theme import Caveman
 from microsponge.themes.caveman.units import Settler, Clubber, Worker
 from microsponge.ui_strings import (
     MSG_LOG_NO_WINNER, MSG_LOG_WON_BY_CONQUEST, MSG_LOG_WON_ON_SCORE, MSG_LOG_TIMELINE_ENDED, MSG_LOG_TIMELINE_STRONGEST, MSG_LOG_UNITS_HEADING, MSG_LOG_WRITTEN, MSG_PAGE_CHART_IMPROVEMENTS_OF_KIND, MSG_PAGE_CHART_UNITS_OF_KIND, MSG_PAGE_NO_IMPROVEMENTS,
-    MSG_PAGE_CHART_BANK_OF, MSG_PAGE_CHART_ORDERS_OF_KIND, MSG_PAGE_TAB_BUILDINGS, MSG_PAGE_TAB_ORDERS,
+    MSG_PAGE_CHART_BANK_OF, MSG_PAGE_CHART_WARS, MSG_PAGE_CHART_ORDERS_OF_KIND, MSG_PAGE_TAB_BUILDINGS, MSG_PAGE_TAB_ORDERS,
     MSG_PAGE_TAB_CITIES, MSG_PAGE_TAB_CONTROL_POINTS, MSG_PAGE_TAB_IMPROVEMENTS, MSG_PAGE_TAB_SCORE, MSG_PAGE_TAB_TABLES, MSG_PAGE_TAB_TIMELINES, MSG_PAGE_TAB_UNITS, MSG_STORY_FOUNDED,
 )
 
@@ -80,6 +82,7 @@ A_TILE = (9, 12)
 A_FAR_TILE = (12, 12)
 TILES_APART = 3
 MADE_COLUMN = 2
+KIND_COLUMN = 1
 FIRST_LINE = 0
 ONE_UNIT = 1
 TWO_UNITS = 2
@@ -238,6 +241,12 @@ class TestGameLog(unittest.TestCase):
         self.assertEqual(self.counts_of(key=Key.IMPROVEMENTS, kind=Farm, civilization=FIRST), [NONE_AT_ALL, ONE_UNIT])
         self.assertEqual(self.counts_of(key=Key.IMPROVEMENTS, kind=Farm, civilization=SECOND), [NONE_AT_ALL, NONE_AT_ALL])
 
+    def test_the_civilizations_each_civilization_is_at_war_with_are_counted_each_turn(self):
+        self.log.count(self.game)
+        Orders.declare_war(game=self.game, civilization=FIRST, on=FIRST + 1)
+        self.log.count(self.game)
+        self.assertEqual(series_of(data=self.data(), civilization=FIRST, series=Series.WARS), [0, 1])
+
     def test_policy_and_command_are_counted_each_turn_and_a_log_is_read_back_as_it_was_written(self):
         end_rounds(game=self.game, rounds=ONE_ROUND)
         self.log.count(self.game)
@@ -339,11 +348,13 @@ class TestGameLogReport(unittest.TestCase):
             for chart in tab[PageKey.CHARTS]:
                 self.assertEqual(len(chart[PageKey.SERIES]), THREE)
         self.assertEqual(len(page[PageKey.TABLES]), len(tables(self.data)))
-        expected = {Tab.UNITS: (made_table(self.data), forces_table(self.data)), Tab.BUILDINGS: (built_table(self.data),), Tab.ORDERS: (orders_table(self.data),)}
+        expected = {Tab.UNITS: (made_table(self.data), fighting_table(self.data), forces_table(self.data)), Tab.BUILDINGS: (built_table(self.data),), Tab.ORDERS: (orders_table(self.data),)}
         for tab, shown_tables in expected.items():
             self.assertEqual([shown[PageKey.TITLE] for shown in tab_called(page=page, tab=tab)[PageKey.TABLES]], [table.title for table in shown_tables])
         made = made_table(self.data)
         self.assertEqual(sum(int(row[MADE_COLUMN]) for row in made.rows), len(self.data[Key.UNITS]))
+        wars, = [chart for chart in tab_called(page=page, tab=Tab.SCORE)[PageKey.CHARTS] if chart[PageKey.TITLE] == MSG_PAGE_CHART_WARS]
+        self.assertEqual(wars[PageKey.MOST], THREE - 1)
 
     def test_a_kind_no_civilization_ever_had_has_no_chart_and_with_no_improvement_the_tab_says_so(self):
         data = copy.deepcopy(self.data)
@@ -445,6 +456,22 @@ class TestWhatTheLogCountsOfForces(unittest.TestCase):
         self.assertEqual(logged[Key.ENDING], Ending.RETIRED)
         row = forces_table(data).rows[FIRST - 1]
         self.assertEqual(len(row), len(forces_table(data).heading))
+
+
+class TestTheFightingTable(unittest.TestCase):
+
+    def test_each_kind_of_each_civilization_has_its_attacks_kills_tiles_moved_and_losses(self):
+        data = played()
+        table = fighting_table(data)
+        for entry in data[Key.CIVILIZATIONS]:
+            rows = [row for row in table.rows if row[FIRST_LINE] == entry[Key.NAME]]
+            own = [unit for unit in data[Key.UNITS] if unit[Key.CIVILIZATION] == entry[Key.ID]]
+            self.assertEqual([row[KIND_COLUMN] for row in rows], list(dict.fromkeys(unit[Key.KIND] for unit in own)))
+            for row in rows:
+                with self.subTest(kind=row[KIND_COLUMN]):
+                    units = [unit for unit in own if unit[Key.KIND] == row[KIND_COLUMN]]
+                    expected = [str(len(units)), shown_number(entry[Key.TALLIES][Tally.ATTACKS].get(row[KIND_COLUMN], 0)), shown_number(sum(unit[Key.MOVED] for unit in units))]
+                    self.assertEqual(row[MADE_COLUMN:MADE_COLUMN + len(expected)], expected)
 
 
 class TestGameLogTools(unittest.TestCase):

@@ -40,6 +40,7 @@ LOST_KEY = 'lost'
 CITIES_FOUNDED_KEY = 'cities_founded'
 MEMORIES_KEY = 'memories'
 TRAITS_KEY = 'traits'
+TALLIES_KEY = 'tallies'
 NOTHING_HELD = 0
 
 
@@ -63,10 +64,12 @@ class Civilization:
     own. Resources, technologies and other civilizations go by their ids.
     """
 
-    __slots__ = ('_name', '_holdings', '_technologies', '_researching', '_research', '_policy_points', '_bankrupt_turns', '_wars', '_lost', '_cities_founded', '_memories', '_traits', '_orders', '_forces')
+    __slots__ = ('_name', '_holdings', '_technologies', '_researching', '_research', '_policy_points', '_bankrupt_turns', '_wars', '_lost', '_cities_founded', '_memories', '_traits', '_orders', '_forces', '_tallies')
 
     def __init__(self, name):
         self._name = check_name(name)
+        # For each tally, like the attacks the civilization's units made, the count for each kind of unit's id.
+        self._tallies = {}
         self._holdings = {}
         self._technologies = set()
         self._researching = NOTHING
@@ -199,10 +202,21 @@ class Civilization:
     def get_memories(self):
         return list(self._memories)
 
+    def add_to_tally(self, *, tally, kind):
+        """Count one more in a tally, like the attacks the civilization's units made, for a kind of unit's id."""
+        counts = self._tallies.setdefault(tally, {})
+        counts[kind] = counts.get(kind, NOTHING_HELD) + 1
+
+    def get_tally(self, tally):
+        """Return a tally of the civilization: each kind of unit's id with its count."""
+        return dict(self._tallies.get(tally, {}))
+
     def renumber(self, *, category, numbers):
         """Replace the ids of a category of kinds that the civilization holds, after loading a game saved with other ids."""
         if category == Category.RESOURCES:
             self._holdings = renumbered_keys(numbered=self._holdings, numbers=numbers)
+        if category == Category.UNITS:
+            self._tallies = {tally: renumbered_keys(numbered=counts, numbers=numbers) for tally, counts in self._tallies.items()}
         if category == Category.TECHNOLOGIES:
             self._technologies = set(renumbered(values=self.get_technologies(), numbers=numbers))
             self._researching = renumbered(values=[self._researching], numbers=numbers)[0]
@@ -226,6 +240,7 @@ class Civilization:
             CITIES_FOUNDED_KEY: self._cities_founded,
             MEMORIES_KEY: [memory.to_data() for memory in self._memories],
             TRAITS_KEY: None if self._traits is None else self._traits.to_data(),
+            TALLIES_KEY: {tally: text_keys(counts) for tally, counts in self._tallies.items()},
         }
 
     @classmethod
@@ -242,4 +257,5 @@ class Civilization:
         civilization._cities_founded = check_amount(data[CITIES_FOUNDED_KEY])
         civilization._memories = [Memory.from_data(memory) for memory in data[MEMORIES_KEY]]
         civilization._traits = None if data[TRAITS_KEY] is None else Traits.from_data(data[TRAITS_KEY])
+        civilization._tallies = {tally: number_keys(counts) for tally, counts in data.get(TALLIES_KEY, {}).items()}
         return civilization
