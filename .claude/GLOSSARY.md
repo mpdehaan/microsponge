@@ -56,9 +56,17 @@ term is added here when the user settles on the word.
 - An army is a group of units that a player defines, and a division is a smaller group inside
   an army. "Divisions" is the user's working name. Army and division are the engine's words,
   and a theme has words of its own for both.
-- A worker is a unit on the map that builds improvements, like roads. A citizen is one of the
-  people of a city, and citizens are who collect resources. Claude never writes "worker" for a
-  citizen.
+- An engineer is a unit on the map that improves terrain, by building improvements like roads
+  and farms. Engineer is a role, not a kind of unit: caveman's kind of unit with that role is
+  called the worker. A citizen is one of the people of a city, and citizens are who collect
+  resources. Claude never writes "worker" for a citizen.
+- A purpose is what a building or a unit is for, like defense or science. A kind can serve
+  many purposes.
+- A BuildTarget is one thing an order aims to have built, and BuildTargets are the list an
+  order holds. Class names like BuildTarget are fine to talk in for now, and the names a
+  screen shows are worked out later. Claude does not describe the model in words that assume
+  a particular screen, like "row".
+- A base is a city that a division lists as a place that can build units for the division.
 - Currency is the primary resource, which the user first called gold. Claude doesn't write "the
   stock" for what a civilization holds of its resources: the user doesn't know the word. The
   user's own word for what a civilization holds is the bank of the civilization.

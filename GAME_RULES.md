@@ -760,13 +760,100 @@ single units, and are rewritten as the details are decided.
   every order that points at the thing, and can have orders of its own that help the thing to
   decide what to do. An order on a city could be to prioritize military builds, and such an
   order might even cost no Oversight.
+- A city can be given build priorities. Without them a city builds mostly random things, and
+  stalls when the city has nothing to do. Build priorities rest on the types of things a city
+  builds, which the user has sketched and which are still being discussed: types of building
+  like science, command and military; types of unit like engineer, settler and military; the
+  class of a unit, like air, combined with the type; and for military units defense, offense
+  and mixed, with gauges like powerful offensive units against weak air offensive units. A
+  city may have basic orders that mix units and buildings, like increasing defense or
+  improving offensive potential.
+- An order can set what the citizens of a city look for first, like 20 percent more toward
+  food, on one city or, as a planet order, on every city of a planet. Such orders cost very
+  little Oversight, some orders for a city may be free, and orders for armies cost more.
+- A division can take most of the orders an army can, and an army most of the orders a
+  division can: divisions make control easier. The Oversight an order for an army or a
+  division costs may depend on the number of units, which is probably the easiest first rule.
+- There is an order to expand, which may take an area, to be defined. The order can be given
+  for a planet, and also to a city, because a city has to produce settlers to expand toward
+  somewhere.
+- There is an order to explore. A city could be ordered to explore, with scouts, and so could
+  military units: a division, or a single unit.
+- Units cannot overlap on tiles, which is why cities are big. Units can overlap inside a
+  city, and only there: inside a city there is just the one city, with all its units.
+- A city is not told to build mixed units. A city, or whatever takes the order, is told what
+  mix of units to aim for: the order takes a table, so the order is really something like a
+  garrison order. The same goes for buildings: a buildings order takes a list of buildings
+  in order, and the list can be managed.
+- A civilization can set research goals with a research order.
+- What a kind is for is its purposes: a building or a unit can serve many purposes at once.
+- Orders are not named for the thing they are given to, like a city order or a planet order.
+  Rather, the list of possible orders varies by the type of thing. In general an order at a
+  lower level overrides an order at a higher level. An order for a planet sets a default
+  policy for everything on the planet, which for now is just the cities.
+- Engineer is the role of a unit that improves terrain. Engineer is a role and not a kind of
+  unit: caveman's worker is an engineer.
+- Settlers, engineers and scouts are not in an army. They belong to a city. Every unit
+  belongs to something: a division of an army, or a city. A unit that belongs to a city can
+  be given a new home in another city, which moves any upkeep the unit has, like its food,
+  to the new city.
+- Oversight is meant to have a lot of points, to make the costs easy to set. An order for an
+  army might cost something like 10 points plus 1 for each unit in the army. A city offers
+  some Oversight for free, and a building like the chieftain's hut offers more; how much is
+  not decided.
+- What an order aims to have built is its build targets: each is a build target. The class
+  names are used in discussion for now, and the names a screen shows come later.
+- The whole game could technically be played without a text UI, through different interface
+  layers, and that may be tried. Nothing in the model assumes a particular screen.
+- A lower level order wins over a higher level order, for now. One problem is not solved and
+  may change that: a division that wants to raise units has a list of cities, called bases,
+  that can build for the division. The army then has demands on a city, and the city has
+  goals of its own and wants to balance them. How a player controls that balance in a way
+  that is possible and intuitive is being discussed.
+- Each city can have a resolution order, which is free: a policy that sets how the city
+  balances conflicting priorities. The city can decide that military goals are the more
+  important builds, that the city's own rules win, or that the city tries to balance the
+  two, the details of which are not worked out.
+- The priority from 0 to 100 may be removed. In its place, a resolution order would be just a
+  configurable list of the things whose orders compete, whose precedence can be totally
+  customized. A resolution order has no precedence list by default. When a list is set and
+  something is not on the list, that goes into a view of what is resolved and what is
+  problematic with the orders of each civilization, which a player reads and which a
+  computer player may want to understand too. What decides with no precedence list is being
+  discussed. When a city balances, the city alternates strictly, for now.
+- A resolution order is set in one of three ways. Two are ready made and need no objects to
+  be set up: the divisions before the city itself, or the city itself before the divisions.
+  The third is a custom order, which names the things whose orders may come in, and can name
+  general things like any army as well as specific armies and specific divisions.
+- A request from something that is not on a city's precedence list is served after everything
+  on the list.
+- With no precedence list, which of the competing orders wins is chosen at random, and the
+  conflict is flagged in the view of problematic orders.
+- The view of problematic orders is not a log of history. The view says, right now, which
+  conflicts would benefit from a resolution order, which orders are invalid, and which orders
+  may never be valid because their targets do not exist. That last kind is tricky because of
+  the fog of war: when a target city has been destroyed where the civilization cannot see,
+  the player is not told that the order is invalid, because the player does not know. Such an
+  order stays active in the civilization's view and keeps costing Oversight, until one of the
+  civilization's units or cities sees that the target is gone. The referee AI knows the
+  truth, and each civilization's view shows only what that civilization has seen.
+- A build target may name an exact kind of unit, or a general category for now: a purpose,
+  and also a type of unit, like offensive air units, defensive air units or anti-air units.
+  The user had not planned for general categories and accepts them for now.
+- An order that holds build targets could have a property for how the targets are met: round
+  robin, where the city works toward every target in turn, or top first, where the city
+  meets the target at the top of the list before the next.
 - A completed order is set disabled. A disabled order costs no Oversight and does nothing, and
   stays in the table as a convenience, so that a person can remove the order or modify the
   order. A computer player will probably just remove a disabled order.
 - The referee AI, which is a kind of global part of the engine and belongs to no player,
   marks an order invalid when the order can no longer work, like an order whose target city
   was destroyed. An invalid order costs no Oversight and does nothing until the order is
-  changed. Disabled and invalid are nearly the same thing, and may be modelled as one.
+  changed. Disabled and invalid are nearly the same thing, and are modelled as one for now:
+  an order is active or inactive, and an inactive order records why.
+- An order holds references to the things the order is about, like a target city. When one
+  of those things is no longer valid, the order is invalid in a way that cannot be switched
+  back on.
 - When several levels of the tree give an order, the most specific level wins: an order on a
   single unit, then the unit's division, then the army, then the kind of unit, then the
   civilization.

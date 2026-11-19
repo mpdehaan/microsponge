@@ -89,8 +89,10 @@ The key terms the user and Claude share, like the model, the helper AI and Overs
   option Claude suggests, so that the user can answer "7 B". Each question starts with a tag
   that says what kind of question the question is: `[Confirm?]` when Claude asks the user to
   confirm something, and `[Choice]` when Claude asks the user to pick between options.
-- When Claude fills in an answer the user didn't give, it says which number it assumed and asks
-  them to confirm.
+- Claude is not allowed to assume an answer to a question because the user has not responded
+  to the question yet. An open question stays open and is asked again, in full, in every
+  reply until the user answers, however many replies that takes. The user required this
+  after Claude assumed an answer to a question that had gone unanswered.
 - The user is not to be overwhelmed: a reply asks about five questions at most, the most
   important first, and when there are more, the rest wait until those are answered, and nothing
   is built in the meantime.
