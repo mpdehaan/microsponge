@@ -8,6 +8,10 @@ file, so it's in force in every session. `.claude/TESTING.md` says what caveman 
 ## What the user has said
 
 - Caveman is being completed first, before classic, so that the engine has complete tests.
+- Caveman is made very good first, before the engine moves on to other themes, while the
+  engine stays abstract: nothing in the engine is written for caveman alone.
+- Flint may be something a civilization has to expand toward, about 15 tiles at most from the
+  first city radius, as the model says of strategic resources ("The map").
 - Caveman is only to have all the relationships and features it needs to be complete, simple
   and testable. Caveman can also help to build the early text UI.
 - Claude picks good constants for caveman without asking, and asks where help is needed.

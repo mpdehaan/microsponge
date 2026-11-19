@@ -91,6 +91,11 @@ apart from the rules for the code (`.claude/STYLE.md`) so that they can be revie
   `THEMES_CLASSIC.md` when it's about one theme, and into `CLAUDE.md` only when it's about the
   project as a whole. `CLAUDE.md` stays short and orderly, and each other file stays on
   its topic.
+- Claude asks the user before changing or creating any file in `.claude/`. The exceptions,
+  which the user has approved Claude maintaining as features are discussed, are this file and
+  `.claude/THEMES_CAVEMAN.md`.
+- Claude's queue of upcoming work is never tracked in git. Claude may keep the queue in
+  `QUEUE.md` at the top of the repository, which `.gitignore` lists.
 
 ## Discussing a feature
 
@@ -104,6 +109,10 @@ apart from the rules for the code (`.claude/STYLE.md`) so that they can be revie
   proposals, concerns, findings and questions put to the user all take numbers from the same
   running sequence, so that "1" means one thing. A reply that numbers its proposals 1 to 3 and
   its open questions 1 and 2 gets the answer "1 and 2", which can't be told apart.
+- A question that offers options gives each option a letter, A, B, C and so on, and says which
+  option Claude suggests, so that the user can answer "7 B". Each question starts with a tag
+  that says what kind of question the question is: `[Confirm?]` when Claude asks the user to
+  confirm something, and `[Choice]` when Claude asks the user to pick between options.
 - When Claude fills in an answer the user didn't give, it says which number it assumed and asks
   them to confirm.
 - The user is not to be overwhelmed: a reply asks about five questions at most, the most

@@ -300,9 +300,20 @@ otherwise. What classic itself chooses, like its list of resources, is kept in
   them. Each civilization starts with its settler on a tile where a city can be built at once,
   the civilizations as far apart as the map allows and at least a city radius apart. Styles
   of map come later, once the maps made have been looked at.
-- A mostly good starting site matters for every civilization. The map generator may revise
-  the map around a starting site to make the site better. What makes a starting site good is
-  not decided yet.
+- A mostly good starting site matters for every civilization. The map generator looks for the
+  best sites to start the civilizations on, not too close to each other, preferring sites that
+  are already good, and may then revise the map around a chosen site to make the site better.
+- A good starting site has room: at least 60 percent of the tiles within 25 steps of the
+  settler in every direction can be reached, for now. The generator scatters resources evenly
+  enough to be trusted to be reasonably fair, so a starting site is not judged by counting
+  every resource.
+- A strategic resource may be something a civilization has to expand toward, but not too far:
+  about 15 tiles at most from the first city radius, for now.
+- These numbers are tuning, and how the generator optimizes a map is worked out later: maps
+  built in different ways are played, and the way that makes the best games is kept and then
+  generalized to the other themes. The generator is never written for one theme. The
+  generator knows which theme and which kind of world the generator is making a map for,
+  and optimizes for that, from what the theme says about itself.
 - Ordinarily the person setting up a game is asked what kind of world to create. The first
   tests play on mostly flat land with small lakes.
 

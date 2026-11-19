@@ -8,3 +8,5 @@ dist/
 *.egg-info/
 # Editors' swap files, which are never part of the project.
 *.swp
+# Claude's queue of upcoming work, which is never part of the project.
+QUEUE.md
