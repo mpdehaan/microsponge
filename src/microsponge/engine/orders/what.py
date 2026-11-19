@@ -42,6 +42,14 @@ class Units:
 
 
 @dataclass(slots=True, kw_only=True, frozen=True)
+class Priority:
+    """What a ResourcesPolicyOrder says: the resource a city's citizens look for first, and how many citizens do."""
+
+    resource: type
+    citizens: int
+
+
+@dataclass(slots=True, kw_only=True, frozen=True)
 class Technologies:
     """What a ResearchOrder says: the technologies to research, in order."""
 

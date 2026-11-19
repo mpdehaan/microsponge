@@ -88,6 +88,12 @@ class WorkOrder(CivilOrder):
     """An engineer builds improvements on the tiles of a city."""
 
 
+class ResourcesPolicyOrder(PolicyOrder):
+    """What a city's citizens look for first, like stone first, and how many of them do."""
+
+    RECEIVERS = (ThingType.CITY,)
+
+
 class ResearchOrder(PolicyOrder):
     """The technologies a civilization aims for, in order."""
 
@@ -115,4 +121,4 @@ class RetireOrder(PolicyOrder):
 
 
 # The orders every theme has unless the theme lists its own.
-ORDERS = (BuildOrder, RaiseOrder, ExpandOrder, ImproveOrder, SettlerOrder, WorkOrder, ResearchOrder, GarrisonOrder, MarchOrder, RetireOrder)
+ORDERS = (BuildOrder, RaiseOrder, ExpandOrder, ImproveOrder, SettlerOrder, WorkOrder, ResourcesPolicyOrder, ResearchOrder, GarrisonOrder, MarchOrder, RetireOrder)

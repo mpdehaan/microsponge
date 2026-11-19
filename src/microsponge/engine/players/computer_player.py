@@ -35,11 +35,13 @@ from microsponge.engine.kinds.control_points import CONTROL_POINTS, Command
 from microsponge.engine.orders.given_order import Reason
 from microsponge.engine.cities.production import Production
 from microsponge.engine.civilizations.sight import Sight
-from microsponge.engine.orders.order import BuildOrder, ExpandOrder, GarrisonOrder, ImproveOrder, MarchOrder, RaiseOrder, ResearchOrder, RetireOrder, SettlerOrder
+from microsponge.engine.orders.order import BuildOrder, ExpandOrder, GarrisonOrder, ImproveOrder, MarchOrder, RaiseOrder, ResearchOrder, ResourcesPolicyOrder, RetireOrder, SettlerOrder
 from microsponge.engine.orders.order_control import OrderControl
 from microsponge.engine.orders.thing import city_thing, civilization_thing, division_thing, unit_thing
-from microsponge.engine.orders.what import BuildTarget, Buildings, CityTarget, Garrison, March, NoDetails, Technologies, Units
-from microsponge.engine.players.appraisal import Appraisal, hits_air
+from microsponge.engine.orders.what import BuildTarget, Buildings, CityTarget, Garrison, March, NoDetails, Priority, Technologies, Units
+from microsponge.engine.cities.city_control import CityControl
+from microsponge.engine.kinds.unit_kinds import can_hit
+from microsponge.engine.players.appraisal import Appraisal
 from microsponge.engine.players.hand import Hand
 from microsponge.engine.players.knowledge import Knowledge, distance
 from microsponge.engine.players.traits import AGGRESSIVE_HYPERFOCUS, BOLDNESS, CONQUEST, ECONOMICS, EXPANSION, PEACE, SCIENCE
@@ -49,8 +51,10 @@ from microsponge.engine.units.unit_control import UnitControl
 
 # Each city keeps this many units of the division inside.
 GARRISON = 1
-# A division asks for this many air units when the enemy units seen cannot hit air units.
-AIR_UNITS = 1
+# A division asks for this many units of each kind of use, beyond its fighters.
+ONE_EACH = 1
+# The best fighters, which most of a division is, by which a division judges what it can hit.
+MAIN_BODY = 1
 NONE_WANTED = 0
 
 
@@ -99,6 +103,8 @@ class ComputerPlayer:
     MILITARY_WEIGHTS = MilitaryWeights
     # A city with at least this many citizens is ordered to improve its tiles, as the first city always is.
     IMPROVING_CITIZENS = 3
+    # How many citizens of a city a resources policy order sets looking for a resource first.
+    PRIORITY_CITIZENS = 1
     # How many fighters beyond the garrisons gather before the army marches, when the Command allows that many.
     GROUP_SIZE = 3
     # The currency a civilization keeps before it raises another fighter, so that it does not go bankrupt.
@@ -121,6 +127,7 @@ class ComputerPlayer:
         cls.plan_first_settlers(game=game, civilization=civilization)
         cls.plan_cities(game=game, civilization=civilization)
         cls.plan_division(game=game, civilization=civilization)
+        cls.plan_priorities(game=game, civilization=civilization)
         cls.plan_retirement(game=game, civilization=civilization)
         cls.consider_war(game=game, civilization=civilization)
         cls.plan_march(game=game, civilization=civilization)
@@ -321,22 +328,78 @@ class ComputerPlayer:
 
     @classmethod
     def division_wanted(cls, *, game, civilization):
-        """Return what the division is raised to: a unit that can hit air units for each enemy air unit seen, an air unit when the enemy units seen cannot hit air units, and fighters that can take cities for the rest."""
+        """Return what the division is raised to, every kind chosen by what it can do and never by its class.
+
+        From the top: for each enemy kind seen that the division's best fighter cannot hit, units
+        that can hit it; units the enemy kinds seen cannot hit, to harass them; units that move
+        on water and take cities, when an enemy city known is beside water; units that fight on
+        water, when a city of the civilization is beside water; and fighters that move on land
+        and take cities for the rest.
+        """
         theme = game.get_theme()
         size = cls.wanted_size(game=game, civilization=civilization)
-        seen = [UnitControl.kind_of(game=game, unit=unit) for unit in Sight.view(game=game, civilization=civilization).units_seen()]
-        flyers = Appraisal.flyers(theme)
-        anti_air = Appraisal.anti_air(theme)
-        enemy_air = len([kind for kind in seen if kind in flyers])
-        anti_count = min(enemy_air, size // 2) if anti_air else NONE_WANTED
-        air_count = AIR_UNITS if flyers and any(not hits_air(kind) for kind in seen) else NONE_WANTED
+        fighters = Appraisal.fighters(theme)
+        enemies = cls.enemy_kinds_seen(game=game, civilization=civilization)
         targets = []
-        if anti_count:
-            targets.append(BuildTarget(kinds=tuple(anti_air), count=anti_count))
-        if air_count:
-            targets.append(BuildTarget(kinds=tuple(flyers), count=air_count))
-        targets.append(BuildTarget(kinds=tuple(Appraisal.fighters(theme)), count=max(size - anti_count - air_count, GARRISON)))
+        unanswered = [enemy for enemy in enemies if not any(can_hit(kind=kind, target=enemy) for kind in fighters[:MAIN_BODY])]
+        for enemy in unanswered[:size // 2]:
+            targets.append(BuildTarget(kinds=tuple(Appraisal.counters_to(theme=theme, enemy=enemy)), count=ONE_EACH))
+        harassers = Appraisal.unhittable_by(theme=theme, enemies=enemies)
+        if harassers:
+            targets.append(BuildTarget(kinds=tuple(harassers), count=ONE_EACH))
+        water = Appraisal.water_fighters(theme)
+        invaders = [kind for kind in water if kind.TAKES_CITIES]
+        if invaders and cls.enemy_city_beside_water(game=game, civilization=civilization):
+            targets.append(BuildTarget(kinds=tuple(invaders), count=ONE_EACH))
+        if water and any(CityControl.is_beside_water(game=game, city=city) for city in game.get_cities_of(civilization)):
+            targets.append(BuildTarget(kinds=tuple(water), count=ONE_EACH))
+        targets = [target for target in targets if target.kinds][:max(size - GARRISON, NONE_WANTED)]
+        targets.append(BuildTarget(kinds=tuple(fighters), count=max(size - len(targets), GARRISON)))
         return Units(targets=tuple(targets))
+
+    @classmethod
+    def enemy_kinds_seen(cls, *, game, civilization):
+        """Return the kinds of the other civilizations' units the civilization sees, each once."""
+        seen = [UnitControl.kind_of(game=game, unit=unit) for unit in Sight.view(game=game, civilization=civilization).units_seen()]
+        return list(dict.fromkeys(seen))
+
+    @classmethod
+    def enemy_city_beside_water(cls, *, game, civilization):
+        """Return whether the civilization knows a city of an enemy beside water."""
+        enemies = Knowledge.enemies_of(game=game, civilization=civilization)
+        known = Knowledge.known_cities_of(game=game, civilization=civilization, others=enemies)
+        return any(CityControl.is_beside_water(game=game, city=city) for city in known)
+
+    # What citizens look for
+
+    @classmethod
+    def plan_priorities(cls, *, game, civilization):
+        """Order a city's citizens to look first for a resource the city's next building costs and the bank lacks, and take back the orders no longer needed."""
+        for city in game.get_cities_of(civilization):
+            here = city_thing(city)
+            lacking = cls.lacking_resource(game=game, civilization=civilization, city=city)
+            for order in cls.given(game=game, civilization=civilization, kind=ResourcesPolicyOrder, receiver=here):
+                if lacking is None or order.get_what().resource is not lacking:
+                    cls.table_of(game=game, civilization=civilization).remove(order)
+            if lacking is not None and not cls.given(game=game, civilization=civilization, kind=ResourcesPolicyOrder, receiver=here):
+                cls.give(game=game, civilization=civilization, kind=ResourcesPolicyOrder, giver=here, receiver=here, what=Priority(resource=lacking, citizens=cls.PRIORITY_CITIZENS))
+
+    @classmethod
+    def lacking_resource(cls, *, game, civilization, city):
+        """Return a resource other than the primary one and food that the first building the city's build order wants costs more of than the bank holds, or None."""
+        theme = game.get_theme()
+        orders = cls.given(game=game, civilization=civilization, kind=BuildOrder, receiver=city_thing(city))
+        if not orders:
+            return None
+        holder = game.get_civilization(civilization)
+        for building in orders[0].get_what().kinds:
+            if Production.problem_queueing(game=game, city=city, kind=building) is not None:
+                continue
+            for resource, amount in building.COST.items():
+                if resource not in (theme.PRIMARY_RESOURCE, theme.FOOD) and holder.get_amount(game.get_catalog().get_id(category=Category.RESOURCES, kind=resource)) < amount:
+                    return resource
+            return None
+        return None
 
     @classmethod
     def given_garrison(cls, *, game, civilization, city):

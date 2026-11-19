@@ -262,7 +262,15 @@ says where things are and how the parts fit, and is kept true with every change 
   city build an engineer while the civilization has fewer than cities ordered to improve, and
   `muster()` gives each new engineer a realized `WorkOrder`; `direct_engineers()` walks it to
   the nearest tile of the city it can improve and builds the lasting improvement that adds
-  most. Nothing happens for a city or a unit with no order.
+  most. A `ResourcesPolicyOrder` says what a city's citizens look for first (`Priority`), and
+  `direct_priorities()` sets each city's priorities to its active orders. The main AI gives
+  one when the first building a city's build order wants costs a resource the bank lacks,
+  and asks its division for units by what they can do (`division_wanted()`): counters to
+  enemy kinds its best fighter cannot hit, harassers no enemy kind seen can hit, invaders
+  that move on water and take cities when an enemy city is beside water, units that fight on
+  water when a city of its own is, and fighters for the rest. A raise order's city builds
+  from the first unmet target it can build. Nothing happens for a city or a unit with no
+  order.
 - The computer players. A civilization with `Traits` is computer-played (`is_computer_played()`),
   and one without is a person's; the traits are in the saved game. `Traits.dealt(random)` deals
   40 to 60 percent of the 800 points there could be, `Traits.tending_to(tendency=, random=)`

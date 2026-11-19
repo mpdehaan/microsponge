@@ -19,16 +19,19 @@
 import time
 import unittest
 
-from caveman_game import FIRST_CIVILIZATION, THE_WORLD, computer_played_caveman_game, found_village, play_turns, started_caveman_game
+from caveman_game import FIRST_CIVILIZATION, THE_WORLD, computer_played_caveman_game, found_village, learn, play_turns, started_caveman_game
 from microsponge.engine.kinds.control_points import CONTROL_POINTS, Policy
 from microsponge.engine.orders.thing import city_thing
-from microsponge.engine.orders.what import NoDetails
+from microsponge.engine.orders.what import Buildings, NoDetails, Priority
+from microsponge.engine.civilizations.sight import Sight
+from microsponge.engine.players.hand import Hand
 from microsponge.engine.turns.orders import Orders
 from microsponge.engine.kinds.category import Category
-from microsponge.engine.orders.order import BuildOrder, ExpandOrder, GarrisonOrder, MarchOrder, RaiseOrder, ResearchOrder, RetireOrder, SettlerOrder
+from microsponge.engine.orders.order import BuildOrder, ExpandOrder, GarrisonOrder, MarchOrder, RaiseOrder, ResearchOrder, ResourcesPolicyOrder, RetireOrder, SettlerOrder
 from microsponge.engine.orders.order_control import OrderControl
 from microsponge.engine.kinds.dice import NO_DICE
 from microsponge.engine.kinds.domain import Domain
+from microsponge.engine.kinds.unit_kinds import can_hit
 from microsponge.engine.players.appraisal import Appraisal
 from microsponge.engine.players.computer_player import ComputerPlayer, Weights
 from microsponge.engine.players.knowledge import Knowledge
@@ -81,8 +84,13 @@ class TestComputerPlayer(unittest.TestCase):
             self.assertTrue(kind.TAKES_CITIES and kind.DOMAIN == Domain.LAND and kind.ATTACK is not NO_DICE)
         fighters = Appraisal.fighters(theme)
         self.assertEqual(fighters, sorted(fighters, key=Appraisal.unit_worth, reverse=True))
-        for kind in Appraisal.flyers(theme):
-            self.assertEqual(kind.DOMAIN, Domain.AIR)
+        for kind in Appraisal.water_fighters(theme):
+            self.assertTrue(kind.ON_WATER and kind.ATTACK is not NO_DICE)
+        for enemy in theme.UNITS:
+            for kind in Appraisal.counters_to(theme=theme, enemy=enemy):
+                self.assertTrue(can_hit(kind=kind, target=enemy))
+            for kind in Appraisal.unhittable_by(theme=theme, enemies=[enemy]):
+                self.assertTrue(enemy.ATTACK is not NO_DICE and not can_hit(kind=enemy, target=kind))
         for kind in Appraisal.engineers(theme):
             self.assertTrue(kind.BUILDS)
         self.assertEqual(set(Appraisal.ranked_buildings(theme=theme, weights=Weights)), set(theme.BUILDINGS))
@@ -212,3 +220,42 @@ class TestPointsAfterTheHandActs(unittest.TestCase):
         self.assertLess(OrderControl.left(game=game, civilization=FIRST, points=Policy), 0)
         ComputerPlayer.keep_within_points(game=game, civilization=FIRST)
         self.assertGreaterEqual(OrderControl.left(game=game, civilization=FIRST, points=Policy), 0)
+
+
+class TestWhatTheDivisionAndTheCitiesAreGiven(unittest.TestCase):
+
+    def setUp(self):
+        self.game = computer_played_caveman_game(seed=A_SEED)
+        self.city = found_village(game=self.game, civilization=FIRST, name=A_NAME)
+
+    def test_an_enemy_kind_the_fighters_cannot_hit_makes_the_division_ask_for_a_unit_that_can(self):
+        theme = self.game.get_theme()
+        fighters = Appraisal.fighters(theme)
+        unanswered = next(kind for kind in theme.UNITS if not can_hit(kind=fighters[0], target=kind))
+        x, y = SPARE_TILES[0]
+        UnitControl.place(game=self.game, kind=unanswered, owner=SECOND, world=THE_WORLD, x=x, y=y)
+        Sight.refresh(game=self.game, civilization=FIRST)
+        targets = ComputerPlayer.division_wanted(game=self.game, civilization=FIRST).targets
+        self.assertEqual(targets[0].kinds, tuple(Appraisal.counters_to(theme=theme, enemy=unanswered)))
+        self.assertEqual(targets[-1].kinds, tuple(fighters))
+
+    def test_a_city_whose_next_building_costs_a_resource_the_bank_lacks_has_its_citizens_look_for_it_first(self):
+        theme = self.game.get_theme()
+        technologies = set(theme.TECHNOLOGIES)
+        building = next(building for building in theme.BUILDINGS if set(building.REQUIRES) <= technologies and any(resource not in (theme.PRIMARY_RESOURCE, theme.FOOD) for resource in building.COST))
+        resource = next(resource for resource in building.COST if resource not in (theme.PRIMARY_RESOURCE, theme.FOOD))
+        for technology in theme.TECHNOLOGIES:
+            learn(game=self.game, civilization=FIRST, technology=technology)
+        here = city_thing(self.city)
+        OrderControl.give(game=self.game, civilization=FIRST, kind=BuildOrder, giver=here, receiver=here, what=Buildings(kinds=(building,)))
+        ComputerPlayer.plan_priorities(game=self.game, civilization=FIRST)
+        order, = given(game=self.game, civilization=FIRST, kind=ResourcesPolicyOrder)
+        self.assertEqual(order.get_what(), Priority(resource=resource, citizens=ComputerPlayer.PRIORITY_CITIZENS))
+        Hand.direct_priorities(game=self.game, civilization=FIRST)
+        resource_id = self.game.get_catalog().get_id(category=Category.RESOURCES, kind=resource)
+        self.assertEqual(self.game.get_city(self.city).get_priorities(), {resource_id: ComputerPlayer.PRIORITY_CITIZENS})
+        self.game.get_civilization(FIRST).add(resource=resource_id, amount=building.COST[resource])
+        ComputerPlayer.plan_priorities(game=self.game, civilization=FIRST)
+        self.assertEqual(given(game=self.game, civilization=FIRST, kind=ResourcesPolicyOrder), [])
+        Hand.direct_priorities(game=self.game, civilization=FIRST)
+        self.assertEqual(self.game.get_city(self.city).get_priorities(), {})

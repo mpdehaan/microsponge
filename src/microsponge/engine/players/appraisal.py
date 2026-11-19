@@ -24,8 +24,7 @@ are constants on `ComputerPlayer`, which a theme's player may change.
 
 from microsponge.engine.kinds.building import Wonder
 from microsponge.engine.kinds.dice import NO_DICE
-from microsponge.engine.kinds.domain import Domain
-from microsponge.engine.kinds.unit_kinds import SettlerUnit, attack_dice
+from microsponge.engine.kinds.unit_kinds import SettlerUnit, attack_dice, can_hit
 
 NOTHING_WORTH = 0
 # A kind that costs nothing is counted as costing this much, so that its worth can be divided by its cost.
@@ -39,11 +38,6 @@ def total_cost(kind):
 
 def can_fight(kind):
     return kind.ATTACK is not NO_DICE
-
-
-def hits_air(kind):
-    """Return whether a kind of unit can hit air units, or rolls extra dice against them."""
-    return can_fight(kind) and (kind.CAN_HIT_AIR or Domain.AIR in kind.EXTRA_DICE)
 
 
 class Appraisal:
@@ -68,24 +62,27 @@ class Appraisal:
 
     @staticmethod
     def fighters(theme):
-        """Return the kinds of unit that fight on land and can take a city, the most worth first: what a division is raised from."""
-        return Appraisal.ranked_units([kind for kind in theme.UNITS if can_fight(kind) and kind.TAKES_CITIES and kind.DOMAIN == Domain.LAND])
+        """Return the kinds of unit that fight, move on land and can take a city, the most worth first: what a division is mostly raised from."""
+        return Appraisal.ranked_units([kind for kind in theme.UNITS if can_fight(kind) and kind.TAKES_CITIES and kind.ON_LAND])
 
     @staticmethod
-    def flyers(theme):
-        """Return the kinds of air unit that fight, the most worth first."""
-        return Appraisal.ranked_units([kind for kind in theme.UNITS if can_fight(kind) and kind.DOMAIN == Domain.AIR])
+    def water_fighters(theme):
+        """Return the kinds of unit that fight and move on water, the most worth first, whatever else they are: they defend cities beside water, attack units next to it, and invade cities when they can take them."""
+        return Appraisal.ranked_units([kind for kind in theme.UNITS if can_fight(kind) and kind.ON_WATER])
 
     @staticmethod
-    def anti_air(theme):
-        """Return the kinds of unit that can hit air units, those that roll most against them first."""
-        kinds = [kind for kind in theme.UNITS if hits_air(kind) and kind.DOMAIN != Domain.AIR]
-        return sorted(kinds, key=lambda kind: attack_dice(kind=kind, target=Appraisal.an_air_unit(theme) or kind).average() / total_cost(kind), reverse=True)
+    def unhittable_by(*, theme, enemies):
+        """Return the kinds of unit that fight and that none of some enemy kinds can hit, the most worth first: they can harass those enemies without fear."""
+        attackers = [enemy for enemy in enemies if can_fight(enemy)]
+        if not attackers:
+            return []
+        return Appraisal.ranked_units([kind for kind in theme.UNITS if can_fight(kind) and not any(can_hit(kind=enemy, target=kind) for enemy in attackers)])
 
     @staticmethod
-    def an_air_unit(theme):
-        flyers = [kind for kind in theme.UNITS if kind.DOMAIN == Domain.AIR]
-        return flyers[0] if flyers else None
+    def counters_to(*, theme, enemy):
+        """Return the kinds of unit that can hit an enemy kind, those that roll most against it for their cost first."""
+        hitting = [kind for kind in theme.UNITS if can_fight(kind) and can_hit(kind=kind, target=enemy)]
+        return sorted(hitting, key=lambda kind: attack_dice(kind=kind, target=enemy).average() / total_cost(kind), reverse=True)
 
     @staticmethod
     def engineers(theme):

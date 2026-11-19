@@ -84,6 +84,8 @@ file, so it's in force in every session. `.claude/TESTING.md` says what caveman 
 - To stop currency piling up: a working citizen earns 1 currency instead of 2, research past
   the end of the tech tree no longer turns into currency, and every building costs 2 currency
   of upkeep instead of 1.
+- A working citizen earns 2 currency again, because caveman was still too poor with the
+  generic computer player.
 - That left caveman too poor to fight, so a unit's upkeep is 2 currency instead of 5. Units
   eat no food: each city stores its own food and grows a citizen when the store is full.
 - The user wants to know which buildings and world wonders give no benefit, with suggestions

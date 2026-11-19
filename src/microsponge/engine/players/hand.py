@@ -36,7 +36,7 @@ from microsponge.engine.civilizations.sight import Sight
 from microsponge.engine.kinds.catalog import NOTHING
 from microsponge.engine.kinds.category import Category
 from microsponge.engine.kinds.unit_kinds import SettlerUnit
-from microsponge.engine.orders.order import BuildOrder, BuildTargetOrder, ExpandOrder, GarrisonOrder, ImproveOrder, MarchOrder, RaiseOrder, ResearchOrder, RetireOrder, SettlerOrder, WorkOrder
+from microsponge.engine.orders.order import BuildOrder, BuildTargetOrder, ExpandOrder, GarrisonOrder, ImproveOrder, MarchOrder, RaiseOrder, ResearchOrder, ResourcesPolicyOrder, RetireOrder, SettlerOrder, WorkOrder
 from microsponge.engine.orders.order_control import OrderControl
 from microsponge.engine.orders.referee import Referee
 from microsponge.engine.orders.thing import ThingType, city_thing, unit_thing
@@ -59,6 +59,8 @@ FIRST_PART = 0
 # The most tiles the search for a route looks at before it gives up.
 ROUTE_TILES = 4000
 
+# A city with no priority for a resource has no citizen looking for it first.
+NO_PRIORITY = 0
 
 def try_order(order):
     """Give an order, and return whether the game took it: a refused order changes nothing, and the Hand tries something else."""
@@ -81,6 +83,7 @@ class Hand:
         cls.muster(game=game, civilization=civilization)
         cls.retire(game=game, civilization=civilization)
         cls.research(game=game, civilization=civilization)
+        cls.direct_priorities(game=game, civilization=civilization)
         cls.direct_cities(game=game, civilization=civilization)
         cls.direct_settlers(game=game, civilization=civilization)
         cls.direct_engineers(game=game, civilization=civilization)
@@ -178,13 +181,10 @@ class Hand:
         return len([unit for unit in division.get_units() if UnitControl.kind_of(game=game, unit=unit) in target.kinds])
 
     @classmethod
-    def unmet_target(cls, *, game, civilization, order):
-        """Return the first build target of a raise order that the giving division has not reached, counting units still being built, or None."""
+    def unmet_targets(cls, *, game, civilization, order):
+        """Return the build targets of a raise order that the giving division has not reached, counting units still being built, in the order's order."""
         division = cls.forces_of(game=game, civilization=civilization).get_division(order.get_giver().id)
-        for target in order.get_what().targets:
-            if cls.count_of(game=game, division=division, target=target) + cls.being_built(game=game, civilization=civilization, kinds=target.kinds) < target.count:
-                return target
-        return None
+        return [target for target in order.get_what().targets if cls.count_of(game=game, division=division, target=target) + cls.being_built(game=game, civilization=civilization, kinds=target.kinds) < target.count]
 
     @classmethod
     def enlist(cls, *, game, civilization, unit):
@@ -247,7 +247,8 @@ class Hand:
         """Return what a city should build for one order, leaving one kind out, or None when the order wants nothing the city can build now.
 
         A build order wants its first building the city lacks. A raise order wants the first
-        kind of its first unmet build target, and is completed when every target is met. An
+        kind the city can build of its unmet build targets, the first target first, and is
+        completed when every target is met. An
         improve order wants an engineer while the civilization has fewer engineers than cities
         ordered to improve. An expand order wants a settler while the civilization has none
         alive or being built.
@@ -256,11 +257,15 @@ class Hand:
         if order.is_a(BuildOrder):
             return cls.buildable(game=game, city=city, kinds=what.kinds, except_for=except_for)
         if order.is_a(RaiseOrder):
-            target = cls.unmet_target(game=game, civilization=civilization, order=order)
-            if target is None:
+            targets = cls.unmet_targets(game=game, civilization=civilization, order=order)
+            if not targets:
                 order.complete()
                 return None
-            return cls.buildable(game=game, city=city, kinds=target.kinds, except_for=except_for)
+            for target in targets:
+                kind = cls.buildable(game=game, city=city, kinds=target.kinds, except_for=except_for)
+                if kind is not None:
+                    return kind
+            return None
         if order.is_a(ImproveOrder):
             return cls.wanted_engineer(game=game, civilization=civilization, city=city, except_for=except_for)
         settlers = cls.settler_kinds(game=game)
@@ -428,6 +433,21 @@ class Hand:
     def next_city_name(cls, *, game, civilization):
         holder = game.get_civilization(civilization)
         return MSG_CITY_NUMBERED.format(civilization=holder.get_name(), number=holder.get_cities_founded() + FIRST_CITY_NUMBER)
+
+    # What citizens look for
+
+    @classmethod
+    def direct_priorities(cls, *, game, civilization):
+        """Set what the citizens of each city look for first to what the city's active resources policy orders say, and take away every other priority."""
+        orders = cls.table_of(game=game, civilization=civilization).active(ResourcesPolicyOrder)
+        catalog = game.get_catalog()
+        for city in game.get_cities_of(civilization):
+            wanted = {catalog.get_id(category=Category.RESOURCES, kind=order.get_what().resource): order.get_what().citizens for order in orders if order.get_receiver() == city_thing(city)}
+            current = game.get_city(city).get_priorities()
+            for resource in set(wanted) | set(current):
+                if wanted.get(resource, NO_PRIORITY) != current.get(resource, NO_PRIORITY):
+                    kind = catalog.get_kind(category=Category.RESOURCES, kind_id=resource)
+                    try_order(lambda: HelperAI.prioritize(game=game, city=city, resource=kind, citizens=wanted.get(resource, NO_PRIORITY)))
 
     # Engineers
 

@@ -158,6 +158,16 @@ class TestResearchAndBuilding(HandCase):
         self.assertEqual(order.get_reason(), Reason.COMPLETED)
         self.assertEqual(self.queue(), [])
 
+    def test_a_city_that_cannot_build_the_first_target_of_a_raise_order_builds_from_a_later_one(self):
+        learn(game=self.game, civilization=FIRST, technology=Clubs)
+        theme = self.game.get_theme()
+        out_of_reach = next(kind for kind in theme.UNITS if any(required in theme.BUILDINGS for required in kind.REQUIRES))
+        targets = (BuildTarget(kinds=(out_of_reach,), count=1), BuildTarget(kinds=FIGHTERS, count=1))
+        self.give(kind=RaiseOrder, giver=self.me, receiver=self.here, what=Units(targets=targets))
+        self.carry_out()
+        self.assertEqual(len(self.queue()), 1)
+        self.assertIn(self.queue()[0], FIGHTERS)
+
     def test_the_order_that_has_waited_longest_is_served_first(self):
         learn(game=self.game, civilization=FIRST, technology=Clubs)
         learn(game=self.game, civilization=FIRST, technology=Leadership)

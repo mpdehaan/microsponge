@@ -1018,6 +1018,8 @@ single units, and are rewritten as the details are decided.
   and making a new army 5 Command, each a number the theme sets. These are a type of order
   called an ImmediateReorganization: each is carried out once and paid once, out of the
   Command of the turn it is carried out, and is not given again each turn.
+- A computer player orders a city's citizens to look first for a resource, by a resources policy
+  order, when the next building the city wants costs that resource and the bank lacks it.
 - An ImproveOrder is a build target order for a city: the city builds an engineer, which the
   helper AI sends to build improvements on the tiles of the city, the way an expand order has
   a city build a settler that the helper AI sends to found a city.
@@ -1151,6 +1153,14 @@ single units, and are rewritten as the details are decided.
   games the computer players play. What is not allowed is an opaque model file whose knowledge
   is not code, like a language model or a model a machine learning library produces: why the
   computer player does what it does must always be readable in the code.
+- A computer player treats every unit by its own capabilities, never by its class: land, sea
+  and air units are all just units. Sea is different from land, and air too, but neither is
+  unusual, and the traits of a unit matter more than its class. A unit that can move on water
+  and attack may defend cities beside water and attack units next to the water; one that can
+  also take a city may harass cities and invade them. Each use exists only when the theme has
+  a unit with the capabilities for it.
+- There are several ways to use each kind of unit, and each computer player may choose its own
+  flavor of these ways, or all of them.
 
 ## Not decided yet
 
