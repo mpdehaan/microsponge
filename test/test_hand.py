@@ -22,6 +22,7 @@ from caveman_game import FIRST_CIVILIZATION, THE_WORLD, WATER_TILE, end_rounds, 
 from microsponge.engine.cities.production import Production
 from microsponge.engine.civilizations.research import Research
 from microsponge.engine.kinds.catalog import NOTHING
+from microsponge.engine.kinds.category import Category
 from microsponge.engine.orders.given_order import NEVER, Reason
 from microsponge.engine.orders.order import BuildOrder, ExpandOrder, GarrisonOrder, MarchOrder, RaiseOrder, ResearchOrder, RetireOrder, SettlerOrder
 from microsponge.engine.orders.order_control import OrderControl
@@ -47,6 +48,8 @@ ANOTHER_NAME = 'Gravel'
 A_SEED = 3
 ONE_ROUND = 1
 ENOUGH_CITIZENS = 3
+# Currency enough that a test is not about whether the theme's prices can be paid.
+PLENTY = 10000
 # Rounds enough for a unit to walk a few tiles, and for a settler to find a site and build a village.
 A_SHORT_WALK = 6
 A_LONG_WALK = 60
@@ -171,6 +174,7 @@ class TestResearchAndBuilding(HandCase):
     def test_the_order_that_has_waited_longest_is_served_first(self):
         learn(game=self.game, civilization=FIRST, technology=Clubs)
         learn(game=self.game, civilization=FIRST, technology=Leadership)
+        self.first.add(resource=self.game.get_catalog().get_id(category=Category.RESOURCES, kind=self.game.get_theme().PRIMARY_RESOURCE), amount=PLENTY)
         build = self.give(kind=BuildOrder, giver=self.here, receiver=self.here, what=Buildings(kinds=(ChieftainsHut,)))
         raising = self.raise_order(1)
         self.carry_out()

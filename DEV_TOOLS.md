@@ -169,3 +169,36 @@ again.
   with `THEME=caveman`, list a theme's kinds with their properties.
 - `make map THEME=caveman SEED=7 CIVILIZATIONS=3` prints a world the map generator makes.
 - `make guides` refreshes the generated appendix of every theme guide.
+
+## Planned tools
+
+Two tools the user has asked for, not built yet.
+
+### The effectiveness report
+
+A report that finds what in a theme does nothing or too little: units that are made but
+rarely attack or kill, or that lose more than they are worth; buildings that give nothing, or
+that are built and change nothing a game measures; technologies that allow nothing and give
+nothing; resources that nothing costs or requires. It reads both the theme's properties and
+the logs of games the computer players played.
+
+### The optimizer
+
+A tool that searches for better numbers for a theme, for caveman first and for classic and the
+other themes once they are playable. It searches a few numbers rather than every constant:
+later things, buildings and units alike, cost more than early ones by how deep they sit in the
+tech tree, as a base and a growth rate per level for each kind of cost, with upkeep, income,
+growth and unit strength beside them. Each set of numbers is judged by games the computer
+players play, against criteria of a good game that the user and Claude review from time to
+time: games that end with a winner in about 200 turns, civilizations exterminated now and
+then, the last technology near the end, everything used, short fights, no piles of currency,
+no early peak in a village's size, steady things to do, and fairness between places in the
+turn order and between traits. It runs for a set time, and searches by simulated annealing with
+restarts: it sometimes accepts worse numbers on purpose to escape a local best, and starts
+again from the best found now and then. Every candidate is played on the same seeds, with the
+games run side by side, and the best numbers are checked on seeds it did not search with. and reports: it never
+changes a theme. When the user asks Claude to run it, Claude suggests what to change from the
+report, and the user and Claude run it again, with other pairs of numbers or other ideas of
+what depth means, as many times as it takes. It is built after the computer player's expand
+orders, several divisions and the first steps of the utility AI, so that it tunes against a
+computer player worth tuning against.

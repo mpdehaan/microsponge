@@ -141,6 +141,12 @@ class Appraisal:
         return units + buildings + improvements + own
 
     @staticmethod
-    def ranked_technologies(*, theme, weights):
-        """Return a theme's technologies, the most worth for their research points first."""
-        return sorted(theme.TECHNOLOGIES, key=lambda technology: Appraisal.technology_worth(technology=technology, theme=theme, weights=weights), reverse=True)
+    def ranked_technologies(*, theme, weights, among=None):
+        """Return a theme's technologies, or some of them, the most worth for their research points first."""
+        technologies = theme.TECHNOLOGIES if among is None else among
+        return sorted(technologies, key=lambda technology: Appraisal.technology_worth(technology=technology, theme=theme, weights=weights), reverse=True)
+
+    @staticmethod
+    def researchable(*, theme, known):
+        """Return the technologies of a theme not known whose requirements are all known: the ones a civilization could research next, which is as far into the tech tree as a computer player plans."""
+        return [technology for technology in theme.TECHNOLOGIES if technology not in known and all(required in known for required in technology.REQUIRES)]

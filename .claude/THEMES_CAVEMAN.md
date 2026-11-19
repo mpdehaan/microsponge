@@ -86,6 +86,11 @@ file, so it's in force in every session. `.claude/TESTING.md` says what caveman 
   of upkeep instead of 1.
 - A working citizen earns 2 currency again, because caveman was still too poor with the
   generic computer player.
+- Civilizations still banked too much currency, so the currency cost of every unit, building
+  and world wonder is tripled, and villages grew to the most citizens by mid-game, so a full
+  store needs 20 food for each citizen instead of 10. The user may raise the most citizens a
+  village can have later, and wonders whether villages defend too well, since no civilization
+  is ever exterminated.
 - That left caveman too poor to fight, so a unit's upkeep is 2 currency instead of 5. Units
   eat no food: each city stores its own food and grows a citizen when the store is full.
 - The user wants to know which buildings and world wonders give no benefit, with suggestions

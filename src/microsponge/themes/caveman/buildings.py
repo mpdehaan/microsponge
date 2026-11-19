@@ -25,7 +25,7 @@ from microsponge.themes.caveman.terrains import Grassland
 
 class Granary(Building):
     REQUIRES = (Sewing,)
-    COST = {Currency: 30}
+    COST = {Currency: 90}
     BUILD_TURNS = 5
     SUPPORT = {Currency: 2}
     WORKED_TILE_BONUS = {Grassland: {Food: 1}}
@@ -34,14 +34,14 @@ class Granary(Building):
 
 class Barracks(Building):
     REQUIRES = (Discipline,)
-    COST = {Currency: 30}
+    COST = {Currency: 90}
     BUILD_TURNS = 5
     SUPPORT = {Currency: 2}
     LEVEL_BONUS = 1
 
 
 class Harbor(Building):
-    COST = {Currency: 30}
+    COST = {Currency: 90}
     BUILD_TURNS = 5
     SUPPORT = {Currency: 2}
     BESIDE_WATER = True
@@ -49,7 +49,7 @@ class Harbor(Building):
 
 class Watchtower(Building):
     REQUIRES = (Fire, Flint)
-    COST = {Currency: 20}
+    COST = {Currency: 60}
     BUILD_TURNS = 5
     SUPPORT = {Currency: 2}
     ARMOR_BONUS = 2
@@ -59,7 +59,7 @@ class Watchtower(Building):
 class ChieftainsHut(Building):
     NAME = "chieftain's hut"
     REQUIRES = (Leadership,)
-    COST = {Currency: 20}
+    COST = {Currency: 60}
     BUILD_TURNS = 4
     SUPPORT = {Currency: 2}
     CONTROL_POINTS = {Policy: 2}
@@ -67,7 +67,7 @@ class ChieftainsHut(Building):
 
 class CityWalls(Building):
     REQUIRES = (Carpentry,)
-    COST = {Currency: 20, Wood: 20, Stone: 30}
+    COST = {Currency: 60, Wood: 20, Stone: 30}
     BUILD_TURNS = 6
     SUPPORT = {Currency: 2}
     ARMOR_BONUS = 1
@@ -76,7 +76,7 @@ class CityWalls(Building):
 
 class CaveBearShrine(Building):
     REQUIRES = (ChurchOfTheCaveBear,)
-    COST = {Currency: 30, Stone: 10}
+    COST = {Currency: 90, Stone: 10}
     BUILD_TURNS = 5
     SUPPORT = {Currency: 2}
     RESEARCH_POINTS = 2
@@ -84,14 +84,14 @@ class CaveBearShrine(Building):
 
 class TradingPost(Building):
     REQUIRES = (Barter, Ivory)
-    COST = {Currency: 30}
+    COST = {Currency: 90}
     BUILD_TURNS = 5
     SUPPORT = {Currency: 2}
     INCOME_BONUS = 10
 
 
 class GreatCavePainting(Wonder):
-    COST = {Currency: 120}
+    COST = {Currency: 360}
     BUILD_TURNS = 16
     SUPPORT = {Currency: 2}
     RESEARCH_POINTS = 4
@@ -101,7 +101,7 @@ class GreatCavePainting(Wonder):
 
 class ArrangementOfRocks(Wonder):
     REQUIRES = (Astrology,)
-    COST = {Currency: 60, Stone: 30}
+    COST = {Currency: 180, Stone: 30}
     BUILD_TURNS = 16
     SUPPORT = {Currency: 2}
     PRODUCES = {Currency: 2}

@@ -34,6 +34,7 @@ from microsponge.engine.kinds.catalog import NOTHING
 from microsponge.engine.kinds.control_points import CONTROL_POINTS, Command
 from microsponge.engine.orders.given_order import Reason
 from microsponge.engine.cities.production import Production
+from microsponge.engine.civilizations.requirements import known_technologies
 from microsponge.engine.civilizations.sight import Sight
 from microsponge.engine.orders.order import BuildOrder, ExpandOrder, GarrisonOrder, ImproveOrder, MarchOrder, RaiseOrder, ResearchOrder, ResourcesPolicyOrder, RetireOrder, SettlerOrder
 from microsponge.engine.orders.order_control import OrderControl
@@ -190,12 +191,19 @@ class ComputerPlayer:
 
     @classmethod
     def plan_research(cls, *, game, civilization):
-        """Give the research order once: the theme's technologies ranked by what they are worth, with the science weights or the military weights as the science trait decides."""
-        if cls.given(game=game, civilization=civilization, kind=ResearchOrder):
+        """Give a new research order whenever the technologies the civilization could research next have changed: only those, ranked by what they are worth, with the science weights or the military weights as the science trait decides. The planner sees no further into the tech tree than that, but for the share of what each leads to."""
+        known = set(known_technologies(game=game, civilization=civilization))
+        researchable = Appraisal.researchable(theme=game.get_theme(), known=known)
+        orders = cls.given(game=game, civilization=civilization, kind=ResearchOrder)
+        if orders and set(orders[0].get_what().kinds) == set(researchable):
+            return
+        for order in orders:
+            cls.table_of(game=game, civilization=civilization).remove(order)
+        if not researchable:
             return
         science_first = cls.favors(game=game, civilization=civilization, trait=SCIENCE)
         weights = cls.SCIENCE_WEIGHTS if science_first else cls.MILITARY_WEIGHTS
-        order = tuple(Appraisal.ranked_technologies(theme=game.get_theme(), weights=weights))
+        order = tuple(Appraisal.ranked_technologies(theme=game.get_theme(), weights=weights, among=researchable))
         me = civilization_thing(civilization)
         cls.give(game=game, civilization=civilization, kind=ResearchOrder, giver=me, receiver=me, what=Technologies(kinds=order))
 

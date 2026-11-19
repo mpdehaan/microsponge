@@ -146,13 +146,26 @@ class TestComputerPlayer(unittest.TestCase):
                 self.assertGreaterEqual(OrderControl.left(game=game, civilization=civilization, points=points), 0)
             ComputerPlayer.play_turn(game=game, civilization=civilization)
 
-    def test_the_science_trait_decides_which_technologies_the_research_order_lists_first(self):
+    def test_the_research_order_lists_only_what_could_be_researched_next_ranked_as_the_science_trait_decides(self):
         game = computer_played_caveman_game(seed=A_SEED, traits=(SCIENTIST, SOLDIER))
+        first = Appraisal.researchable(theme=Caveman, known=set())
         for civilization, weights in ((FIRST, ComputerPlayer.SCIENCE_WEIGHTS), (SECOND, ComputerPlayer.MILITARY_WEIGHTS)):
             ComputerPlayer.plan(game=game, civilization=civilization)
             listed = given(game=game, civilization=civilization, kind=ResearchOrder)[0].get_what().kinds
-            self.assertEqual(listed, tuple(Appraisal.ranked_technologies(theme=Caveman, weights=weights)))
-        self.assertNotEqual(Appraisal.ranked_technologies(theme=Caveman, weights=ComputerPlayer.SCIENCE_WEIGHTS), Appraisal.ranked_technologies(theme=Caveman, weights=ComputerPlayer.MILITARY_WEIGHTS))
+            self.assertEqual(listed, tuple(Appraisal.ranked_technologies(theme=Caveman, weights=weights, among=first)))
+        self.assertLess(len(first), len(Caveman.TECHNOLOGIES))
+
+    def test_learning_a_technology_brings_a_new_research_order_with_what_it_opens(self):
+        game = computer_played_caveman_game(seed=A_SEED, traits=(SCIENTIST, SOLDIER))
+        ComputerPlayer.plan(game=game, civilization=FIRST)
+        before, = given(game=game, civilization=FIRST, kind=ResearchOrder)
+        technology = next(technology for technology in Appraisal.researchable(theme=Caveman, known=set()) if any(technology in later.REQUIRES for later in Caveman.TECHNOLOGIES))
+        learn(game=game, civilization=FIRST, technology=technology)
+        ComputerPlayer.plan(game=game, civilization=FIRST)
+        after, = given(game=game, civilization=FIRST, kind=ResearchOrder)
+        self.assertIsNot(after, before)
+        self.assertEqual(set(after.get_what().kinds), set(Appraisal.researchable(theme=Caveman, known={technology})))
+        self.assertNotIn(technology, after.get_what().kinds)
 
     def test_a_player_that_favors_expansion_founds_more_cities_than_one_that_never_does(self):
         game = computer_played_caveman_game(seed=A_SEED, traits=(EXPANDING, STAYING))

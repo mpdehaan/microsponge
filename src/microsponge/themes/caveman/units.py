@@ -33,14 +33,14 @@ class CavemanUnit(UnitKind):
 
 
 class Settler(CavemanUnit, SettlerUnit):
-    COST = {Currency: 15}
+    COST = {Currency: 45}
     BUILD_TURNS = 6
     HIT_POINTS = 5
 
 
 class Clubber(CavemanUnit, LandUnit):
     REQUIRES = (Clubs,)
-    COST = {Currency: 15}
+    COST = {Currency: 45}
     BUILD_TURNS = 3
     ATTACK = Dice(count=2, sides=6)
     ARMOR_CLASS = 8
@@ -50,7 +50,7 @@ class Clubber(CavemanUnit, LandUnit):
 
 class SlingshotCaveman(CavemanUnit, LandUnit):
     REQUIRES = (Clubs,)
-    COST = {Currency: 20}
+    COST = {Currency: 60}
     BUILD_TURNS = 3
     ATTACK = Dice(count=2, sides=4)
     EXTRA_DICE = {Domain.AIR: 2}
@@ -62,7 +62,7 @@ class SlingshotCaveman(CavemanUnit, LandUnit):
 
 class WildClubber(CavemanUnit, LandUnit):
     REQUIRES = (ChurchOfTheCaveBear, Poppies)
-    COST = {Currency: 30}
+    COST = {Currency: 90}
     BUILD_TURNS = 5
     ATTACK = Dice(count=3, sides=6)
     ARMOR_CLASS = 8
@@ -72,7 +72,7 @@ class WildClubber(CavemanUnit, LandUnit):
 
 class CaptainCaveman(CavemanUnit, LandUnit):
     REQUIRES = (Barracks,)
-    COST = {Currency: 40}
+    COST = {Currency: 120}
     BUILD_TURNS = 6
     ATTACK = Dice(count=4, sides=6)
     ARMOR_CLASS = 8
@@ -83,14 +83,14 @@ class CaptainCaveman(CavemanUnit, LandUnit):
 class Worker(CavemanUnit, LandUnit):
     REQUIRES = (Agriculture,)
     BUILDS = (Farm, Clearing)
-    COST = {Currency: 15}
+    COST = {Currency: 45}
     BUILD_TURNS = 3
     HIT_POINTS = 5
 
 
 class Raft(CavemanUnit, SeaUnit):
     REQUIRES = (Harbor,)
-    COST = {Currency: 15, Wood: 10}
+    COST = {Currency: 45, Wood: 10}
     BUILD_TURNS = 4
     ATTACK = Dice(count=2, sides=4)
     ARMOR_CLASS = 9
@@ -98,7 +98,7 @@ class Raft(CavemanUnit, SeaUnit):
 
 
 class AngryBird(CavemanUnit, AirUnit):
-    COST = {Currency: 15}
+    COST = {Currency: 45}
     BUILD_TURNS = 2
     ATTACK = Dice(count=2, sides=4)
     HIT_POINTS = 6

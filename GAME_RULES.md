@@ -1020,6 +1020,9 @@ single units, and are rewritten as the details are decided.
   Command of the turn it is carried out, and is not given again each turn.
 - A computer player orders a city's citizens to look first for a resource, by a resources policy
   order, when the next building the city wants costs that resource and the bank lacks it.
+- An expand order tells a settler where to go to found a city: it names the settler and the
+  place. Settlers themselves are built by a city's build order, like anything else a city
+  builds. The user decided this, which settles what area an expand order takes.
 - An ImproveOrder is a build target order for a city: the city builds an engineer, which the
   helper AI sends to build improvements on the tiles of the city, the way an expand order has
   a city build a settler that the helper AI sends to found a city.
@@ -1161,6 +1164,12 @@ single units, and are rewritten as the details are decided.
   a unit with the capabilities for it.
 - There are several ways to use each kind of unit, and each computer player may choose its own
   flavor of these ways, or all of them.
+- The tech tree has a fog of war for a computer player's planning: the planner sees only the
+  technologies one step away from those the civilization knows, so it cannot plan the whole
+  tree on the first turn.
+- A computer player plans its research one technology at a time: each time it learns one, it
+  ranks the technologies it can research next by what they allow, with a share for what they
+  lead to one step further, and gives a new research order.
 
 ## Not decided yet
 

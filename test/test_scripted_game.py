@@ -151,7 +151,7 @@ class TestScriptedGame(Refusals, unittest.TestCase):
         self.assertFalse(chronicle.is_stalled())
         for civilization in chronicle.get_civilizations():
             self.assertEqual(len(chronicle.get_counts(civilization=civilization, measure=Measure.CITIZENS)), TURNS)
-        self.assertEqual(len(chronicle.events_of(What.FOUNDED)), THREE)
+        self.assertEqual({event.civilization for event in chronicle.events_of(What.FOUNDED)}, set(chronicle.get_civilizations()))
 
     def test_a_game_that_reaches_its_turn_limit_says_who_was_still_playing(self):
         game = started_game(theme=Caveman, seed=A_SEED, civilizations=THREE)

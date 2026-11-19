@@ -65,7 +65,8 @@ NOTHING_HELD = 0
 WHOLE = 100
 PLENTY = 1000
 BARRACKS_LEVEL_BONUS = 1
-STARTING_CURRENCY = Caveman.STARTS_WITH[Currency]
+# What the first civilization holds when a test starts: the theme's starting currency and plenty more, so that a test is not about whether the theme's prices can be paid.
+STARTING_CURRENCY = Caveman.STARTS_WITH[Currency] + PLENTY
 # The currency a city of one citizen brings in each turn.
 INCOME = Village.CITIZEN_CURRENCY
 A_SEED = 7
@@ -204,6 +205,7 @@ class ProductionCase(Refusals, unittest.TestCase):
         self.first = self.game.get_civilization(FIRST_CIVILIZATION)
         self.city_id = found_village(game=self.game, civilization=FIRST_CIVILIZATION, name=A_NAME)
         self.city = self.game.get_city(self.city_id)
+        self.first.add(resource=resource_id(game=self.game, resource=Currency), amount=PLENTY)
         for technology in (Clubs, Agriculture):
             learn(game=self.game, civilization=FIRST_CIVILIZATION, technology=technology)
 
