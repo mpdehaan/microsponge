@@ -300,6 +300,11 @@ otherwise. What classic itself chooses, like its list of resources, is kept in
   them. Each civilization starts with its settler on a tile where a city can be built at once,
   the civilizations as far apart as the map allows and at least a city radius apart. Styles
   of map come later, once the maps made have been looked at.
+- A mostly good starting site matters for every civilization. The map generator may revise
+  the map around a starting site to make the site better. What makes a starting site good is
+  not decided yet.
+- Ordinarily the person setting up a game is asked what kind of world to create. The first
+  tests play on mostly flat land with small lakes.
 
 ## Worlds
 
