@@ -317,3 +317,11 @@ class TestReferee(OrdersCase):
         Referee.review(game=self.game, civilization=FIRST)
         self.assertEqual((build.get_reason(), garrison.get_reason()), (Reason.INVALID, Reason.INVALID))
         self.assertTrue(march.is_active())
+
+    def test_an_order_already_completed_stays_completed_when_its_receiver_is_gone(self):
+        unit = UnitControl.place(game=self.game, kind=Clubber, owner=FIRST, world=THE_WORLD, x=OPEN_TILES[0][0], y=OPEN_TILES[0][1])
+        order = self.give(kind=SettlerOrder, giver=unit_thing(unit), receiver=unit_thing(unit), what=NoDetails())
+        order.complete()
+        UnitControl.remove(game=self.game, unit=unit)
+        Referee.review(game=self.game, civilization=FIRST)
+        self.assertEqual(order.get_reason(), Reason.COMPLETED)

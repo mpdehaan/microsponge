@@ -39,13 +39,13 @@ from microsponge.engine.civilizations.sight import Sight
 from microsponge.engine.orders.order import BuildOrder, ExpandOrder, GarrisonOrder, ImproveOrder, MarchOrder, RaiseOrder, ResearchOrder, ResourcesPolicyOrder, RetireOrder, SettlerOrder
 from microsponge.engine.orders.order_control import OrderControl
 from microsponge.engine.orders.thing import city_thing, civilization_thing, division_thing, unit_thing
-from microsponge.engine.orders.what import BuildTarget, Buildings, CityTarget, Garrison, March, NoDetails, Priority, Technologies, Units
+from microsponge.engine.orders.what import BuildTarget, Buildings, CityTarget, Garrison, March, NoDetails, PointTarget, Priority, Technologies, Units
 from microsponge.engine.cities.city_control import CityControl
-from microsponge.engine.kinds.unit_kinds import can_hit
+from microsponge.engine.kinds.unit_kinds import SettlerUnit, can_hit
 from microsponge.engine.players.appraisal import Appraisal
 from microsponge.engine.players.hand import Hand
 from microsponge.engine.players.knowledge import Knowledge, distance
-from microsponge.engine.players.traits import AGGRESSIVE_HYPERFOCUS, BOLDNESS, CONQUEST, ECONOMICS, EXPANSION, PEACE, SCIENCE
+from microsponge.engine.players.traits import AGGRESSIVE_HYPERFOCUS, BOLDNESS, CONQUEST, ECONOMICS, EXPANSION, MOST, PEACE, SCIENCE
 from microsponge.engine.turns.orders import Orders
 from microsponge.engine.turns.turn_control import TurnControl
 from microsponge.engine.units.unit_control import UnitControl
@@ -54,6 +54,8 @@ from microsponge.engine.units.unit_control import UnitControl
 GARRISON = 1
 # A division asks for this many units of each kind of use, beyond its fighters.
 ONE_EACH = 1
+# A civilization of the most expansive traits keeps out one more settler for this many cities.
+CITIES_PER_SETTLER = 2
 # The best fighters, which most of a division is, by which a division judges what it can hit.
 MAIN_BODY = 1
 NONE_WANTED = 0
@@ -126,6 +128,7 @@ class ComputerPlayer:
         cls.tidy(game=game, civilization=civilization)
         cls.plan_research(game=game, civilization=civilization)
         cls.plan_first_settlers(game=game, civilization=civilization)
+        cls.plan_settlers(game=game, civilization=civilization)
         cls.plan_cities(game=game, civilization=civilization)
         cls.plan_division(game=game, civilization=civilization)
         cls.plan_priorities(game=game, civilization=civilization)
@@ -172,7 +175,7 @@ class ComputerPlayer:
         """Take out of the table the orders that are invalid and the orders to settle or to march that are completed, and switch every order the player disabled back on, to be weighed again this turn."""
         table = cls.table_of(game=game, civilization=civilization)
         for order in table.get_orders():
-            finished = order.get_reason() is Reason.COMPLETED and (order.is_a(SettlerOrder) or order.is_a(MarchOrder) or order.is_a(RetireOrder))
+            finished = order.get_reason() is Reason.COMPLETED and (order.is_a(SettlerOrder) or order.is_a(ExpandOrder) or order.is_a(MarchOrder) or order.is_a(RetireOrder))
             if order.get_reason() is Reason.INVALID or finished:
                 table.remove(order)
             elif order.get_reason() is Reason.DISABLED:
@@ -219,25 +222,55 @@ class ComputerPlayer:
 
     @classmethod
     def plan_cities(cls, *, game, civilization):
-        """Give every city its build order, with the buildings worth most first, the first city and every large city the order to improve its tiles, and the first city the order to expand, which is active on the turns the expansion trait says."""
+        """Give every city its build order, with the buildings worth most first and a settler first in the city chosen to build one, and the first city and every large city the order to improve its tiles."""
         cities = game.get_cities_of(civilization)
-        buildings = Buildings(kinds=cls.buildings_wanted(game=game, civilization=civilization))
+        buildings = cls.buildings_wanted(game=game, civilization=civilization)
+        settling = cls.settling_city(game=game, civilization=civilization)
+        settlers = tuple(kind for kind in game.get_theme().UNITS if issubclass(kind, SettlerUnit))
         for city in cities:
             here = city_thing(city)
+            wanted = Buildings(kinds=(*settlers, *buildings) if city == settling else buildings)
             orders = cls.given(game=game, civilization=civilization, kind=BuildOrder, receiver=here)
-            order = orders[0] if orders else cls.give(game=game, civilization=civilization, kind=BuildOrder, giver=here, receiver=here, what=buildings)
-            order.set_what(buildings)
+            order = orders[0] if orders else cls.give(game=game, civilization=civilization, kind=BuildOrder, giver=here, receiver=here, what=wanted)
+            order.set_what(wanted)
             improving = city == cities[0] or game.get_city(city).get_citizens() >= cls.IMPROVING_CITIZENS
             if improving and Appraisal.engineers(game.get_theme()) and not cls.given(game=game, civilization=civilization, kind=ImproveOrder, receiver=here):
                 cls.give(game=game, civilization=civilization, kind=ImproveOrder, giver=here, receiver=here, what=NoDetails())
-        if not cities:
-            return
-        expanding = cls.given(game=game, civilization=civilization, kind=ExpandOrder)
-        if not expanding:
-            first = city_thing(cities[0])
-            expanding = [cls.give(game=game, civilization=civilization, kind=ExpandOrder, giver=first, receiver=first, what=NoDetails())]
-        if not cls.favors(game=game, civilization=civilization, trait=EXPANSION):
-            expanding[0].disable()
+
+    @classmethod
+    def settlers_wanted(cls, *, game, civilization):
+        """Return how many settlers the civilization keeps out at once, read from its expansion trait: none for no expansion at all, and up to one for every two cities, rounded up, for the most expansive."""
+        expansion = game.get_civilization(civilization).get_traits().get(EXPANSION)
+        return -(-len(game.get_cities_of(civilization)) * expansion // (MOST * CITIES_PER_SETTLER))
+
+    @classmethod
+    def settling_city(cls, *, game, civilization):
+        """Return the city that should build a settler now, the one with the most citizens that can spare one, or NOTHING when the civilization has as many settlers out or being built as it wants."""
+        settlers = tuple(kind for kind in game.get_theme().UNITS if issubclass(kind, SettlerUnit))
+        out = len(Knowledge.settlers_of(game=game, civilization=civilization)) + Hand.being_built(game=game, civilization=civilization, kinds=settlers)
+        if not settlers or out >= cls.settlers_wanted(game=game, civilization=civilization):
+            return NOTHING
+        able = [city for city in game.get_cities_of(civilization) if game.get_city(city).get_citizens() > settlers[0].CITIZENS]
+        return max(able, key=lambda city: game.get_city(city).get_citizens(), default=NOTHING)
+
+    @classmethod
+    def plan_settlers(cls, *, game, civilization):
+        """Give each settler with no order an order to expand to the nearest site the civilization remembers, away from the places other settlers are going, or an order to settle on a site of its own when it knows of none."""
+        table = cls.table_of(game=game, civilization=civilization)
+        led = {order.get_receiver().id for order in table.get_orders() if (order.is_a(SettlerOrder) or order.is_a(ExpandOrder)) and order.is_active()}
+        taken = [order.get_what() for order in table.active(ExpandOrder)]
+        for unit in Knowledge.settlers_of(game=game, civilization=civilization):
+            if unit in led:
+                continue
+            settler = unit_thing(unit)
+            site = Knowledge.nearest_site(game=game, civilization=civilization, unit=unit, taken=taken)
+            if site is None:
+                cls.give(game=game, civilization=civilization, kind=SettlerOrder, giver=settler, receiver=settler, what=NoDetails())
+                continue
+            world, x, y = site
+            place = PointTarget(world=world, x=x, y=y)
+            taken.append(place)
+            cls.give(game=game, civilization=civilization, kind=ExpandOrder, giver=settler, receiver=settler, what=place)
 
     @classmethod
     def buildings_wanted(cls, *, game, civilization):

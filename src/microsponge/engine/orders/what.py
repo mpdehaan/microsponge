@@ -67,6 +67,15 @@ class CityTarget(Target):
 
 
 @dataclass(slots=True, kw_only=True, frozen=True)
+class PointTarget(Target):
+    """A tile of a world."""
+
+    world: int
+    x: int
+    y: int
+
+
+@dataclass(slots=True, kw_only=True, frozen=True)
 class Garrison:
     """What a GarrisonOrder says: the city, and how many units are kept inside."""
 
@@ -89,4 +98,4 @@ class March:
 
 @dataclass(slots=True, kw_only=True, frozen=True)
 class NoDetails:
-    """What an order says that needs no configuration, like an ExpandOrder with no target."""
+    """What an order says that needs no configuration, like a SettlerOrder, whose settler finds its own site."""

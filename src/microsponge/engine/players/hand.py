@@ -35,15 +35,14 @@ from microsponge.engine.civilizations.research import Research
 from microsponge.engine.civilizations.sight import Sight
 from microsponge.engine.kinds.catalog import NOTHING
 from microsponge.engine.kinds.category import Category
-from microsponge.engine.kinds.unit_kinds import SettlerUnit
 from microsponge.engine.orders.order import BuildOrder, BuildTargetOrder, ExpandOrder, GarrisonOrder, ImproveOrder, MarchOrder, RaiseOrder, ResearchOrder, ResourcesPolicyOrder, RetireOrder, SettlerOrder, WorkOrder
 from microsponge.engine.orders.order_control import OrderControl
 from microsponge.engine.orders.referee import Referee
 from microsponge.engine.orders.thing import ThingType, city_thing, unit_thing
-from microsponge.engine.orders.what import CityTarget, NoDetails
+from microsponge.engine.orders.what import CityTarget
 from microsponge.engine.players.appraisal import Appraisal
 from microsponge.engine.players.helper_ai import HelperAI
-from microsponge.engine.players.knowledge import Knowledge, distance
+from microsponge.engine.players.knowledge import Knowledge
 from microsponge.engine.turns.orders import Orders
 from microsponge.engine.units.unit_column import UnitColumn
 from microsponge.engine.units.unit_control import UnitControl
@@ -134,7 +133,7 @@ class Hand:
 
     @classmethod
     def muster(cls, *, game, civilization):
-        """Drop the realized orders that are finished, take dead units out of their divisions, put each new fighter in the division that asked for it, and send each new settler to settle for a city that was ordered to expand."""
+        """Drop the realized orders that are finished, take dead units out of their divisions, put each new fighter in the division that asked for it, and send each new engineer to work for a city ordered to improve. Settlers wait for the orders the player gives them."""
         alive = Knowledge.units_of(game=game, civilization=civilization)
         forces = cls.forces_of(game=game, civilization=civilization)
         table = cls.table_of(game=game, civilization=civilization)
@@ -145,26 +144,16 @@ class Hand:
             for unit in division.get_units():
                 if unit not in alive:
                     division.remove_unit(unit)
-        led = [order.get_receiver().id for order in cls.table_of(game=game, civilization=civilization).active(SettlerOrder)]
         working = [order.get_receiver().id for order in cls.table_of(game=game, civilization=civilization).active(WorkOrder)]
         engineers = Appraisal.engineers(game.get_theme())
         for unit in alive:
             if Knowledge.is_settler(game=game, unit=unit):
-                if unit not in led:
-                    cls.send_settler(game=game, civilization=civilization, unit=unit)
-            elif UnitControl.kind_of(game=game, unit=unit) in engineers:
+                continue
+            if UnitControl.kind_of(game=game, unit=unit) in engineers:
                 if unit not in working:
                     cls.send_engineer(game=game, civilization=civilization, unit=unit)
             elif Knowledge.is_fighter(game=game, unit=unit) and forces.division_of(unit) is None:
                 cls.enlist(game=game, civilization=civilization, unit=unit)
-
-    @classmethod
-    def send_settler(cls, *, game, civilization, unit):
-        """Give a settler no order leads a realized order to settle, from the first city ordered to expand. With no such city the settler waits."""
-        kind = cls.theme_order(game=game, kind=SettlerOrder)
-        expanding = cls.table_of(game=game, civilization=civilization).active(ExpandOrder)
-        if kind is not None and expanding:
-            OrderControl.give(game=game, civilization=civilization, kind=kind, giver=expanding[0].get_receiver(), receiver=unit_thing(unit), what=NoDetails(), realized=True)
 
     @classmethod
     def send_engineer(cls, *, game, civilization, unit):
@@ -239,19 +228,14 @@ class Hand:
         return len([queue for queue in queues if queue and Production.kind_of(game=game, item=queue[0]) in kinds])
 
     @classmethod
-    def settler_kinds(cls, *, game):
-        return tuple(kind for kind in game.get_theme().UNITS if issubclass(kind, SettlerUnit))
-
-    @classmethod
     def wanted_build(cls, *, game, civilization, city, order, except_for):
         """Return what a city should build for one order, leaving one kind out, or None when the order wants nothing the city can build now.
 
-        A build order wants its first building the city lacks. A raise order wants the first
-        kind the city can build of its unmet build targets, the first target first, and is
-        completed when every target is met. An
-        improve order wants an engineer while the civilization has fewer engineers than cities
-        ordered to improve. An expand order wants a settler while the civilization has none
-        alive or being built.
+        A build order wants the first thing it lists that the city can build: a building the
+        city lacks, or a unit, like a settler. A raise order wants the first kind the city can
+        build of its unmet build targets, the first target first, and is completed when every
+        target is met. An improve order wants an engineer while the civilization has fewer
+        engineers than cities ordered to improve.
         """
         what = order.get_what()
         if order.is_a(BuildOrder):
@@ -268,10 +252,7 @@ class Hand:
             return None
         if order.is_a(ImproveOrder):
             return cls.wanted_engineer(game=game, civilization=civilization, city=city, except_for=except_for)
-        settlers = cls.settler_kinds(game=game)
-        if Knowledge.settlers_of(game=game, civilization=civilization) or cls.being_built(game=game, civilization=civilization, kinds=settlers):
-            return None
-        return cls.buildable(game=game, city=city, kinds=settlers, except_for=except_for)
+        return None
 
     @classmethod
     def wanted_engineer(cls, *, game, civilization, city, except_for):
@@ -386,48 +367,63 @@ class Hand:
 
     @classmethod
     def direct_settlers(cls, *, game, civilization):
-        """Carry out each order for a settler, and complete the order when the settler has built its city."""
-        for order in cls.table_of(game=game, civilization=civilization).active(SettlerOrder):
-            if cls.settle(game=game, unit=order.get_receiver().id, civilization=civilization):
+        """Carry out each order for a settler with as many actions as the settler has: an order to settle finds its own site, and an order to expand goes to the place it names. An order is completed when the settler has built its city, and an order to expand whose place can no longer take a city is invalid."""
+        table = cls.table_of(game=game, civilization=civilization)
+        for order in table.active(SettlerOrder):
+            unit = order.get_receiver().id
+            cls.repeat(game=game, unit=unit, action=lambda: cls.settle(game=game, unit=unit, civilization=civilization))
+            if unit not in game.get_units().get_ids():
+                order.complete()
+        for order in table.active(ExpandOrder):
+            unit = order.get_receiver().id
+            place = order.get_what()
+            if not Knowledge.is_site(game=game, civilization=civilization, world=place.world, x=place.x, y=place.y) and not cls.is_at(game=game, unit=unit, place=place):
+                order.invalidate()
+                continue
+            cls.repeat(game=game, unit=unit, action=lambda: cls.go_found(game=game, unit=unit, civilization=civilization, place=place))
+            if unit not in game.get_units().get_ids():
                 order.complete()
 
     @classmethod
-    def settle(cls, *, game, unit, civilization):
-        """Have a settler build a city where it stands and return True, or else leave its city, walk toward the nearest site it remembers or explore toward the nearest tile never seen, and return False."""
-        if Knowledge.city_of(game=game, unit=unit) != NOTHING:
-            cls.leave_city(game=game, unit=unit)
+    def is_at(cls, *, game, unit, place):
+        world, x, y = UnitControl.tile_of(game=game, unit=unit)
+        return (world, x, y) == (place.world, place.x, place.y) and Knowledge.city_of(game=game, unit=unit) == NOTHING
+
+    @classmethod
+    def found_here(cls, *, game, unit, civilization):
+        """Have a settler build a city where it stands, and return whether it did."""
+        if CityControl.problem_founding(game=game, settler=unit) is not None:
             return False
-        if CityControl.problem_founding(game=game, settler=unit) is None:
-            name = cls.next_city_name(game=game, civilization=civilization)
-            return try_order(lambda: HelperAI.found_city(game=game, settler=unit, name=name, led=True))
+        name = cls.next_city_name(game=game, civilization=civilization)
+        return try_order(lambda: HelperAI.found_city(game=game, settler=unit, name=name, led=True))
+
+    @classmethod
+    def go_found(cls, *, game, unit, civilization, place):
+        """Have a settler take one action toward building a city at a place: leave its city, build the city when it stands there, or step toward the place. Return whether it did anything."""
+        if Knowledge.city_of(game=game, unit=unit) != NOTHING:
+            return cls.leave_city(game=game, unit=unit)
+        if cls.is_at(game=game, unit=unit, place=place):
+            cls.found_here(game=game, unit=unit, civilization=civilization)
+            return False
+        return cls.walk(game=game, unit=unit, civilization=civilization, arrived=lambda x, y: (x, y) == (place.x, place.y))
+
+    @classmethod
+    def settle(cls, *, game, unit, civilization):
+        """Have a settler take one action toward building a city on a site of its own: leave its city, build a city where it stands, or walk toward the nearest site it remembers, or explore toward the nearest tile never seen. Return whether it did anything that leaves it able to act again."""
+        if Knowledge.city_of(game=game, unit=unit) != NOTHING:
+            return cls.leave_city(game=game, unit=unit)
+        if cls.found_here(game=game, unit=unit, civilization=civilization):
+            return False
         world, _, _ = UnitControl.tile_of(game=game, unit=unit)
-        if not cls.walk(game=game, unit=unit, civilization=civilization, arrived=lambda x, y: cls.is_site(game=game, civilization=civilization, world=world, x=x, y=y)):
-            cls.walk(game=game, unit=unit, civilization=civilization, arrived=lambda x, y: cls.is_unseen(game=game, civilization=civilization, world=world, x=x, y=y))
-        return False
+        if cls.walk(game=game, unit=unit, civilization=civilization, arrived=lambda x, y: Knowledge.is_site(game=game, civilization=civilization, world=world, x=x, y=y)):
+            return True
+        return cls.walk(game=game, unit=unit, civilization=civilization, arrived=lambda x, y: cls.is_unseen(game=game, civilization=civilization, world=world, x=x, y=y))
 
     @classmethod
     def is_unseen(cls, *, game, civilization, world, x, y):
         """Return whether a tile is one the civilization has never seen and that is not in known foreign land: where a settler explores toward."""
         memory = game.get_civilization(civilization).get_memory(world)
         return not memory.has_seen(x=x, y=y) and not Knowledge.is_in_foreign_land(game=game, civilization=civilization, world=world, x=x, y=y)
-
-    @classmethod
-    def is_site(cls, *, game, civilization, world, x, y):
-        """Return whether the civilization remembers a tile as one where a city could be built.
-
-        A tile never seen, or too close to a city the civilization knows of, is passed over
-        before the full check of the site, which reads the whole city radius, so that the
-        search stays cheap.
-        """
-        memory = game.get_civilization(civilization).get_memory(world)
-        if not memory.has_seen(x=x, y=y):
-            return False
-        land = game.get_world(world)
-        too_close = game.get_theme().CITY.RADIUS_SIZE
-        known = [game.get_city(city) for city in game.get_city_ids() if memory.get_owner(city) != NOTHING and game.get_city(city).get_world() == world]
-        if any(distance(world=land, from_x=x, from_y=y, to_x=city.get_x(), to_y=city.get_y()) < too_close for city in known):
-            return False
-        return CityControl.problem_with_site(game=game, tiles=memory, x=x, y=y) is None
 
     @classmethod
     def next_city_name(cls, *, game, civilization):

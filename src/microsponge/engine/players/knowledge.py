@@ -16,12 +16,18 @@
 
 """What a civilization knows, read only through its view and its memory of the map, for the helper AI and the main AI alike."""
 
+from microsponge.engine.cities.city_control import CityControl
 from microsponge.engine.civilizations.sight import Sight
 from microsponge.engine.kinds.catalog import NOTHING
 from microsponge.engine.kinds.dice import NO_DICE
 from microsponge.engine.kinds.unit_kinds import SettlerUnit
 from microsponge.engine.units.unit_column import UnitColumn
 from microsponge.engine.units.unit_control import UnitControl
+
+
+# How far, in moves each way, a computer player looks for a site for a settler, and on every how many tiles.
+SITE_REACH = 30
+SITE_STEP = 2
 
 
 def distance(*, world, from_x, from_y, to_x, to_y):
@@ -104,3 +110,41 @@ class Knowledge:
         half = game.get_theme().CITY.RADIUS_SIZE // 2
         land = game.get_world(world)
         return any(distance(world=land, from_x=x, from_y=y, to_x=city.get_x(), to_y=city.get_y()) <= half for city in Knowledge.foreign_cities(game=game, civilization=civilization, world=world))
+
+    @staticmethod
+    def is_site(*, game, civilization, world, x, y):
+        """Return whether the civilization remembers a tile as one where a city could be built.
+
+        A tile never seen, or too close to a city the civilization knows of, is passed over
+        before the full check of the site, which reads the whole city radius, so that the
+        search stays cheap.
+        """
+        memory = game.get_civilization(civilization).get_memory(world)
+        if not memory.has_seen(x=x, y=y):
+            return False
+        land = game.get_world(world)
+        too_close = game.get_theme().CITY.RADIUS_SIZE
+        known = [game.get_city(city) for city in game.get_city_ids() if memory.get_owner(city) != NOTHING and game.get_city(city).get_world() == world]
+        if any(distance(world=land, from_x=x, from_y=y, to_x=city.get_x(), to_y=city.get_y()) < too_close for city in known):
+            return False
+        return CityControl.problem_with_site(game=game, tiles=memory, x=x, y=y) is None
+
+    @staticmethod
+    def nearest_site(*, game, civilization, unit, taken):
+        """Return (world, x, y) of the nearest tile, within SITE_REACH and on every SITE_STEP column and row of the world, that the civilization remembers as a site and that is not too close to a place already taken by another settler, or None."""
+        world, from_x, from_y = UnitControl.tile_of(game=game, unit=unit)
+        land = game.get_world(world)
+        too_close = game.get_theme().CITY.RADIUS_SIZE
+        candidates = []
+        for dy in range(-SITE_REACH, SITE_REACH + 1):
+            for dx in range(-SITE_REACH, SITE_REACH + 1):
+                x = land.column(from_x + dx)
+                y = from_y + dy
+                if 0 <= y < land.get_height() and x % SITE_STEP == 0 and y % SITE_STEP == 0:
+                    candidates.append((max(abs(dx), abs(dy)), x, y))
+        for _, x, y in sorted(candidates):
+            if any(place.world == world and distance(world=land, from_x=x, from_y=y, to_x=place.x, to_y=place.y) < too_close for place in taken):
+                continue
+            if Knowledge.is_site(game=game, civilization=civilization, world=world, x=x, y=y):
+                return (world, x, y)
+        return None

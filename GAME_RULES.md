@@ -1024,8 +1024,11 @@ single units, and are rewritten as the details are decided.
   place. Settlers themselves are built by a city's build order, like anything else a city
   builds. The user decided this, which settles what area an expand order takes.
 - An ImproveOrder is a build target order for a city: the city builds an engineer, which the
-  helper AI sends to build improvements on the tiles of the city, the way an expand order has
-  a city build a settler that the helper AI sends to found a city.
+  helper AI sends to build improvements on the tiles of the city.
+- A computer player decides how many settlers to keep out from its expansion trait, puts a
+  settler first in the build order of its city with the most citizens to spare, and gives each
+  settler an expand order to the nearest site it remembers, or an order to settle on a site
+  of its own when it knows of none. A settler uses all its action points each turn.
 - Orders can defend arbitrary areas, not only cities.
 - A completed order is set disabled. A disabled order costs no Policy and does nothing, and
   stays in the table as a convenience, so that a person can remove the order or modify the

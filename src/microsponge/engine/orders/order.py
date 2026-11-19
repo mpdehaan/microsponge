@@ -66,10 +66,6 @@ class RaiseOrder(BuildTargetOrder):
     """The units a city builds for the division that gives the order."""
 
 
-class ExpandOrder(BuildTargetOrder):
-    """A city builds a settler, which the helper AI sends to build a city."""
-
-
 class ImproveOrder(BuildTargetOrder):
     """A city builds an engineer, which the helper AI sends to build improvements on the city's tiles."""
 
@@ -81,7 +77,11 @@ class CivilOrder(PolicyOrder):
 
 
 class SettlerOrder(CivilOrder):
-    """A settler finds a site and builds a city."""
+    """A settler finds a site of its own and builds a city there."""
+
+
+class ExpandOrder(CivilOrder):
+    """A settler goes to a place the order names and builds a city there."""
 
 
 class WorkOrder(CivilOrder):

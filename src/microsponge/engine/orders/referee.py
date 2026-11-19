@@ -50,7 +50,7 @@ class Referee:
 
     @staticmethod
     def review(*, game, civilization):
-        """Mark invalid every order of a civilization that can no longer work."""
+        """Mark invalid every order of a civilization that can no longer work. An order already completed stays completed."""
         for order in game.get_civilization(civilization).get_orders().get_all():
-            if order.get_reason() is not Reason.INVALID and not Referee.can_work(game=game, civilization=civilization, order=order):
+            if order.get_reason() not in (Reason.INVALID, Reason.COMPLETED) and not Referee.can_work(game=game, civilization=civilization, order=order):
                 order.invalidate()

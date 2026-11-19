@@ -27,7 +27,7 @@ from microsponge.engine.orders.given_order import NEVER, Reason
 from microsponge.engine.orders.order import BuildOrder, ExpandOrder, GarrisonOrder, MarchOrder, RaiseOrder, ResearchOrder, RetireOrder, SettlerOrder
 from microsponge.engine.orders.order_control import OrderControl
 from microsponge.engine.orders.thing import army_thing, city_thing, civilization_thing, division_thing, unit_thing
-from microsponge.engine.orders.what import BuildTarget, Buildings, CityTarget, Garrison, March, NoDetails, Technologies, Units
+from microsponge.engine.orders.what import BuildTarget, Buildings, CityTarget, Garrison, March, NoDetails, PointTarget, Technologies, Units
 from microsponge.engine.kinds.dice import NO_DICE
 from microsponge.engine.kinds.unit_kinds import SettlerUnit
 from microsponge.engine.players.hand import Hand
@@ -186,24 +186,31 @@ class TestResearchAndBuilding(HandCase):
 
 class TestSettling(HandCase):
 
-    def test_an_expand_order_builds_a_settler_that_the_hand_sends_to_build_a_city_by_an_order_no_player_sees(self):
+    def test_a_build_order_builds_a_settler_and_an_expand_order_sends_it_to_its_place_to_build_a_city(self):
         self.game.get_city(self.city).set_citizens(ENOUGH_CITIZENS)
+        self.first.add(resource=self.game.get_catalog().get_id(category=Category.RESOURCES, kind=self.game.get_theme().PRIMARY_RESOURCE), amount=PLENTY)
         found_village(game=self.game, civilization=SECOND, name=ANOTHER_NAME)
-        expand = self.give(kind=ExpandOrder, giver=self.here, receiver=self.here, what=NoDetails())
+        self.give(kind=BuildOrder, giver=self.here, receiver=self.here, what=Buildings(kinds=(Settler,)))
         self.carry_out()
         self.assertEqual(self.queue(), [Settler])
         self.rounds(Settler.BUILD_TURNS + ONE_ROUND)
-        settlers = Knowledge.settlers_of(game=self.game, civilization=FIRST)
-        table = self.first.get_orders()
-        self.assertEqual(len(settlers), 1)
-        self.assertEqual([order.get_receiver() for order in table.get_realized()], [unit_thing(settlers[0])])
-        self.assertEqual(table.get_orders(), [expand])
-        self.assertEqual(table.get_realized()[0].get_giver(), self.here)
-        expand.disable()
+        settler, = Knowledge.settlers_of(game=self.game, civilization=FIRST)
+        self.first.get_memory(THE_WORLD).remember_all(self.game.get_world(THE_WORLD))
+        world, x, y = Knowledge.nearest_site(game=self.game, civilization=FIRST, unit=settler, taken=[])
+        expand = self.give(kind=ExpandOrder, giver=unit_thing(settler), receiver=unit_thing(settler), what=PointTarget(world=world, x=x, y=y))
         self.rounds(A_LONG_WALK)
         self.assertEqual(len(self.game.get_cities_of(FIRST)), 2)
-        self.assertEqual(table.get_realized(), [])
-        self.assertEqual(Knowledge.settlers_of(game=self.game, civilization=FIRST), [])
+        newest = self.game.get_city(self.game.get_cities_of(FIRST)[-1])
+        self.assertEqual((newest.get_x(), newest.get_y()), (x, y))
+        self.assertEqual(expand.get_reason(), Reason.COMPLETED)
+
+    def test_an_expand_order_whose_place_can_no_longer_take_a_city_is_invalid(self):
+        settler = settler_of(game=self.game, civilization=SECOND)
+        city = self.game.get_city(self.city)
+        self.game.get_civilization(SECOND).get_memory(THE_WORLD).remember_all(self.game.get_world(THE_WORLD))
+        order = OrderControl.give(game=self.game, civilization=SECOND, kind=ExpandOrder, giver=unit_thing(settler), receiver=unit_thing(settler), what=PointTarget(world=THE_WORLD, x=city.get_x(), y=city.get_y()))
+        Hand.direct_settlers(game=self.game, civilization=SECOND)
+        self.assertEqual(order.get_reason(), Reason.INVALID)
 
     def test_a_settler_with_no_order_and_no_city_ordered_to_expand_waits(self):
         settler = settler_of(game=self.game, civilization=SECOND)

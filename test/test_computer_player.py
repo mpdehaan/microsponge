@@ -27,7 +27,7 @@ from microsponge.engine.civilizations.sight import Sight
 from microsponge.engine.players.hand import Hand
 from microsponge.engine.turns.orders import Orders
 from microsponge.engine.kinds.category import Category
-from microsponge.engine.orders.order import BuildOrder, ExpandOrder, GarrisonOrder, MarchOrder, RaiseOrder, ResearchOrder, ResourcesPolicyOrder, RetireOrder, SettlerOrder
+from microsponge.engine.orders.order import BuildOrder, ImproveOrder, GarrisonOrder, MarchOrder, RaiseOrder, ResearchOrder, ResourcesPolicyOrder, RetireOrder, SettlerOrder
 from microsponge.engine.orders.order_control import OrderControl
 from microsponge.engine.kinds.dice import NO_DICE
 from microsponge.engine.kinds.domain import Domain
@@ -128,7 +128,7 @@ class TestComputerPlayer(unittest.TestCase):
         self.assertEqual(game.get_cities_of(FIRST), [])
         play_turns(game=game, turns=A_FEW_TURNS)
         city = game.get_cities_of(FIRST)[0]
-        for kind in (BuildOrder, RaiseOrder, ExpandOrder, GarrisonOrder):
+        for kind in (BuildOrder, RaiseOrder, GarrisonOrder):
             with self.subTest(kind=kind):
                 self.assertEqual(len(given(game=game, civilization=FIRST, kind=kind)), 1)
         self.assertEqual(given(game=game, civilization=FIRST, kind=SettlerOrder), [])
@@ -228,7 +228,7 @@ class TestPointsAfterTheHandActs(unittest.TestCase):
         ComputerPlayer.plan(game=game, civilization=FIRST)
         while OrderControl.left(game=game, civilization=FIRST, points=Policy) > 0:
             here = city_thing(city)
-            OrderControl.give(game=game, civilization=FIRST, kind=ExpandOrder, giver=here, receiver=here, what=NoDetails())
+            OrderControl.give(game=game, civilization=FIRST, kind=ImproveOrder, giver=here, receiver=here, what=NoDetails())
         Orders.build(game=game, city=city, kind=FREE_UNIT)
         self.assertLess(OrderControl.left(game=game, civilization=FIRST, points=Policy), 0)
         ComputerPlayer.keep_within_points(game=game, civilization=FIRST)

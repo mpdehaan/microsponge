@@ -34,7 +34,8 @@ says where things are and how the parts fit, and is kept true with every change 
   static class for the fog of war, and `view.py` the view of the map a player reads.
 - `orders`: standing orders. `order.py` has the kinds of order, definitions a theme lists in
   `ORDERS` and may subclass (`PolicyOrder`, `CommandOrder`, `BuildTargetOrder`, `BuildOrder`,
-  `RaiseOrder`, `ExpandOrder`, `CivilOrder`, `SettlerOrder`, `ResearchOrder`, `GarrisonOrder`,
+  `RaiseOrder`, `ImproveOrder`, `CivilOrder`, `SettlerOrder`, `ExpandOrder` (a settler and a
+  `PointTarget`), `WorkOrder`, `ResourcesPolicyOrder`, `RetireOrder`, `ResearchOrder`, `GarrisonOrder`,
   `MarchOrder`). `thing.py` names what gives and receives orders, `what.py` is what each kind
   of order says and the targets an order mentions, `given_order.py` is `GivenOrder`, one order
   in a game with its giver, receiver, what and reason for being inactive, `order_table.py` is a
@@ -250,9 +251,9 @@ says where things are and how the parts fit, and is kept true with every change 
   table and the forces are not in a saved game yet.
 - The Hand. `Hand.carry_out(game=, civilization=)` runs on the civilization's turn: the
   referee reviews, `muster()` drops finished realized orders, takes dead units out of
-  divisions, puts each new fighter in the division of the raise order that wants its kind
-  and gives each new settler a realized `SettlerOrder` from the first city ordered to
-  expand; `research()` picks from the research order, or at random with none;
+  divisions, puts each new fighter in the division of the raise order that wants its kind;
+  `direct_settlers()` moves each settler with all its action points, to its expand order's
+  place or to a site of its own; `research()` picks from the research order, or at random with none;
   `direct_cities()` has each waiting or blocked city start what the order that has waited
   longest wants (`GivenOrder.get_served()`); `direct_settlers()` settles; and
   `direct_divisions()` fills garrisons and then marches, never moving a unit a garrison
@@ -283,8 +284,9 @@ says where things are and how the parts fit, and is kept true with every change 
   each settler of a civilization with no city, a build order to each city (the buildings
   ranked by worth, leaving out a world wonder another civilization started unless the
   boldness trait gambles), an improve order to the first city and every city of
-  `IMPROVING_CITIZENS`, and an expand order to the first city (active on the turns the
-  expansion trait says), keeps one army with one division, a raise order from the division
+  `IMPROVING_CITIZENS`, a settler first in the build order of `settling_city()` while fewer
+  settlers are out than `settlers_wanted()` reads from the expansion trait, and an expand
+  order to each settler with none, to `Knowledge.nearest_site()`, keeps one army with one division, a raise order from the division
   to each city (`division_wanted()`: a unit that hits air for each enemy air unit seen, an
   air unit when the enemy units seen cannot hit air, and fighters that take cities for the
   rest; active up to the garrisons, and beyond them while the bank holds `RESERVE` and the
