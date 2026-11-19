@@ -35,7 +35,8 @@ turns and the saved game.
     unit, building and world wonder, improvement, the city spec and the theme itself. It also has the
     catalog, which gives each kind of a theme a number for the length of a game.
   - `world` is one map of tiles, what a civilization remembers of it, and the map generator,
-    which makes a world for a theme from a seed and finds where each civilization starts.
+    which makes a world for a theme from a seed, finds the best sites for the civilizations to
+    start on, and improves a site that lacks something a theme asks of a start.
   - `units` holds every unit of a game, the rules for units, and the rules for a unit that
     builds an improvement.
   - `cities` has the city, the rules for building one and for the units inside, the harvest,

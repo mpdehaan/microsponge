@@ -169,6 +169,18 @@ The user wants variance programmed in, so that no two computer players are the s
   many units each side lost, and when the first city was founded, the first warrior built, the
   war declared and the first attack made.
 
+- For now, the first thing to see is whether games naturally end or stalemate, with the
+  computer players playing the tribes of caveman almost like Conway's game of life.
+- At the end of a game the report tells a little story of the major world events: when each
+  city was founded, when a tribe started to really lose, and when each tribe was defeated. The
+  report shows graphs, drawn in plain characters, of each tribe's population, cities, wealth
+  and so on over the turns.
+- A good game follows the curve the model describes ("Computer players"): defeats spaced
+  somewhat evenly, and a winner likely within about 50 turns of the tech tree being
+  exhausted.
+- Better is tricky to measure when a player plays against itself. Every flavor of player is
+  made to try to win faster.
+
 ## What the first script shows
 
 - The first script runs up to 100 turns, with no failure criteria yet, and prints a summary

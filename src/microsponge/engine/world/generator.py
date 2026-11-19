@@ -21,6 +21,9 @@ whatever the theme's BASE_TERRAIN is, with patches of the theme's other terrains
 random walk, then strategic resources and terrain bonuses scattered on the terrains that can
 have them. The numbers are the theme's MAP spec (`kinds/map_spec.py`). The person who designs
 the game will look at what it makes and ask for styles later.
+
+Civilizations start on the best sites the world has (`start_survey.py`), far apart, and the
+world is then revised a little around a site that lacks something (`start_improver.py`).
 """
 
 from microsponge.engine.cities.city_control import CityControl
@@ -31,6 +34,8 @@ from microsponge.engine.kinds.kind import saved_name
 from microsponge.engine.kinds.unit_kinds import SettlerUnit
 from microsponge.engine.units.unit_control import UnitControl
 from microsponge.engine.world.layer import Layer
+from microsponge.engine.world.start_improver import StartImprover
+from microsponge.engine.world.start_survey import StartSurvey
 from microsponge.engine.world.terrain_bonus_control import TerrainBonusControl
 from microsponge.engine.world.world import World
 from microsponge.err_messages import ERR_NO_MAP, ERR_NO_ROOM_TO_START
@@ -139,13 +144,28 @@ class MapGenerator:
 
     @staticmethod
     def starting_tiles(*, game, world_id, count):
-        """Return a tile for each of count civilizations to start on, as far from one another as the sites allow: the first at random, each next the site farthest from those chosen.
+        """Return a tile for each of count civilizations to start on: the best sites the world has, as far from one another as those sites allow.
 
-        Two starting tiles are at least a city radius apart, so that the first cities founded
-        where the settlers stand never overlap.
+        The sites that are good as the world is are tried first, then the sites that only have
+        room, which the generator can improve, and then every site, for a world too small to
+        have a good one. Two starting tiles are at least a city radius apart, so that the first
+        cities founded where the settlers stand never overlap.
         """
-        world = game.get_world(world_id)
         candidates = MapGenerator.sites(game=game, world_id=world_id)
+        survey = StartSurvey(game=game, world_id=world_id, kind=MapGenerator.settler_kind(game))
+        roomy = [(x, y) for x, y in candidates if survey.has_room(x=x, y=y)]
+        ready = [(x, y) for x, y in roomy if survey.is_ready(x=x, y=y)]
+        chosen = []
+        for pool in (ready, roomy, candidates):
+            chosen = MapGenerator.spread(game=game, world_id=world_id, candidates=pool, count=count)
+            if len(chosen) == count:
+                return chosen
+        raise ValueError(ERR_NO_ROOM_TO_START.format(count=count, room=len(chosen)))
+
+    @staticmethod
+    def spread(*, game, world_id, candidates, count):
+        """Return up to count of the candidate tiles, as far from one another as the candidates allow and at least a city radius apart: the first at random, each next the candidate farthest from those chosen."""
+        world = game.get_world(world_id)
         apart = game.get_theme().CITY.RADIUS_SIZE
         chosen = [game.get_random().choice(candidates)] if candidates else []
         while chosen and len(chosen) < count:
@@ -153,8 +173,6 @@ class MapGenerator:
             if MapGenerator.nearest(world=world, tile=farthest, others=chosen) < apart:
                 break
             chosen.append(farthest)
-        if len(chosen) < count:
-            raise ValueError(ERR_NO_ROOM_TO_START.format(count=count, room=len(chosen)))
         return chosen
 
     @staticmethod
@@ -165,9 +183,11 @@ class MapGenerator:
 
     @staticmethod
     def place_civilizations(*, game, world_id):
-        """Put each civilization's starting settler on its starting tile, as far apart as the world allows, and return the tiles in turn order."""
+        """Choose each civilization's starting tile, improve the world around each tile that lacks something, put each starting settler on its tile, and return the tiles in turn order."""
         tiles = MapGenerator.starting_tiles(game=game, world_id=world_id, count=len(game.get_civilizations()))
         settler = MapGenerator.settler_kind(game)
+        for x, y in tiles:
+            StartImprover.improve(game=game, world_id=world_id, kind=settler, x=x, y=y)
         for civilization, (x, y) in enumerate(tiles, start=FIRST_CIVILIZATION):
             UnitControl.place(game=game, kind=settler, owner=civilization, world=world_id, x=x, y=y)
         return tiles

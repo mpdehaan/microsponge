@@ -24,7 +24,7 @@ first two when they choose. Versions are compared number by number, never as dec
 
 from microsponge.err_messages import ERR_BAD_VERSION_TEXT
 
-VERSION = '0.0.7'
+VERSION = '0.0.8'
 
 VERSION_SEPARATOR = '.'
 VERSION_PARTS = 3

@@ -230,6 +230,24 @@ says where things are and how the parts fit, and is kept true with every change 
   `themes/caveman/map.py`; a theme with no base terrain cannot have its maps made yet.
   `support/map_preview.py` and `tools/map_preview.py` (`make map THEME= SEED= CIVILIZATIONS=`)
   print a world as a grid of throwaway letters with a legend, for talking about the generator.
+- Starting sites. `MapGenerator.starting_tiles()` tries three pools of sites in turn, the
+  sites that are ready, the sites that only have room, and every site, and takes the first
+  pool that `spread()` can place every civilization in, far apart. `world/start_survey.py` is
+  `StartSurvey`, read once from a world: `has_room()` (the theme's `MAP.START_REACHABLE_PERCENT`
+  of the square `START_REACH` steps each way can be walked to, tiles off the world counting
+  against), `lacks()` (the resources in `START_NEEDS` that too few tiles of the first city
+  radius give, outside the center), `misses()` (the resources in `START_STRATEGIC` not within
+  `START_STRATEGIC_DISTANCE` of the radius) and `is_ready()`. `world/land.py` is `Land`, the
+  pieces of a world a kind of unit can walk, by the eight `NEIGHBORS`, and
+  `world/square_count.py` is `SquareCount`, a running count along each row that answers how
+  many marked tiles a square holds. `world/start_improver.py` is the static class
+  `StartImprover`, which `place_civilizations()` calls for each chosen site: it turns plain
+  land tiles of the radius into the terrain that gives the most of a lacking resource, never
+  taking a tile a needed resource cannot spare, and puts a missing strategic resource on a
+  tile near that can have it, or on a tile outside the radius changed for it. Caveman's
+  `MAP` asks for 3 tiles each of food, wood and stone, and flint, on a world of 80 by 80.
+  `world/terrain_control.py` is `TerrainControl.change()`, the one place a tile's terrain
+  changes after a world is made, which `WorkControl` uses too.
 - Not built yet: satellites, the colony ship, styles of map, the technology given after
   6000 turns, trading technology, and a technology that reveals land without exploring.
 

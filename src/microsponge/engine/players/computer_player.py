@@ -38,11 +38,10 @@ from microsponge.engine.players.traits import AGGRESSIVE_HYPERFOCUS, BOLDNESS, C
 from microsponge.engine.turns.orders import Orders
 from microsponge.engine.units.unit_column import UnitColumn
 from microsponge.engine.units.unit_control import UnitControl
+from microsponge.engine.world.land import NEIGHBORS
 from microsponge.engine.world.layer import Layer
 from microsponge.ui_strings import MSG_CITY_NUMBERED
 
-# The eight tiles around a tile, as (dx, dy).
-NEIGHBORS = tuple((dx, dy) for dy in (-1, 0, 1) for dx in (-1, 0, 1) if (dx, dy) != (0, 0))
 # A city holds at least this many units for the player to send one out.
 ONE_DEFENDER = 1
 # The next city a civilization founds is numbered from 1.

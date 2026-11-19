@@ -17,9 +17,13 @@
 """How a caveman world is made."""
 
 from microsponge.engine.kinds.map_spec import MapSpec
+from microsponge.themes.caveman.resources import Flint, Food, Stone, Wood
 from microsponge.themes.caveman.terrains import Forest, Grassland, Mountains, Tarpit, Water
 
 
 class CavemanMap(MapSpec):
     BASE_TERRAIN = Grassland
     TERRAIN_PERCENT = {Water: 15, Forest: 15, Mountains: 8, Tarpit: 1}
+    HEIGHT = 80
+    START_NEEDS = {Food: 3, Wood: 3, Stone: 3}
+    START_STRATEGIC = (Flint,)

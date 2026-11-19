@@ -304,9 +304,19 @@ otherwise. What classic itself chooses, like its list of resources, is kept in
   best sites to start the civilizations on, not too close to each other, preferring sites that
   are already good, and may then revise the map around a chosen site to make the site better.
 - A good starting site has room: at least 60 percent of the tiles within 25 steps of the
-  settler in every direction can be reached, for now. The generator scatters resources evenly
-  enough to be trusted to be reasonably fair, so a starting site is not judged by counting
-  every resource.
+  settler in every direction can be reached by land from the settler, for now. Tiles that
+  would be off the top or the bottom of the world count as tiles that cannot be reached, so
+  a civilization does not start pinned against an edge. The generator scatters resources
+  evenly enough to be trusted to be reasonably fair, so a starting site is not judged by
+  counting every resource: a theme only lists the resources that the first city radius must
+  give, each with the fewest tiles that give the resource. Caveman lists food, wood and
+  stone. Water beside the first city is not required, and terrain bonuses near a start are
+  a matter of luck.
+- The generator tries the sites that are good already, then the sites that have room and can
+  be improved, and then, on a world too small for a good site, any site where a city can be
+  built. Around a chosen site that lacks something, the generator changes a few plain land
+  tiles, never a tile of the city center, a tile with a strategic resource or a terrain
+  bonus, or water.
 - A strategic resource may be something a civilization has to expand toward, but not too far:
   about 15 tiles at most from the first city radius, for now.
 - These numbers are tuning, and how the generator optimizes a map is worked out later: maps
@@ -682,6 +692,31 @@ otherwise. What classic itself chooses, like its list of resources, is kept in
   every 240 turns, and again every 1200 turns, the way monitoring data keeps less detail the
   further back in time it goes.
 
+## Priorities and the helper AI
+
+This is the direction of the game, and the user decided to record it here before the details
+are worked out. The sections on units, action points and turns still describe orders given to
+single units, and are rewritten as the details are decided.
+
+- microsponge is a meta strategy game. A player does not ordinarily move single units. A
+  player sets behaviors and preferences, and jockeys priorities, like a president and a
+  general all at once, without tremendous detail.
+- The settings form a tree: the civilization, its cities, the kinds of unit, and under each
+  kind the single units. Everything in the tree can be given behaviors and preferences, a
+  setting may carry a condition, and a setting may be for a kind of unit or a kind of unit
+  under a condition. Whether an army is a thing of its own in the tree is not decided.
+- A helper AI carries the settings out: the helper AI is what moves the units and does the
+  rest of the detailed work of a turn.
+- The game is turn based in the player's eyes. A player may change any setting each turn.
+- A computer player works more or less the same way, in two layers. The main AI of a
+  computer player adjusts the strategy, which is the settings of the tree, and controls the
+  same helper AI beneath.
+- A player is allowed to give a direct order to a single unit, though doing so may quickly
+  make the game tricky for people. So the AI must know about units that are doing something
+  other than what the settings would have them do. Orders could include things like "attack
+  units I can reliably defeat within a range", which is explored in greater depth later.
+- No screen for the settings is built yet. A panel that shows the tree can be imagined.
+
 ## Computer players
 
 - The computer players are algorithms written for this game. No machine learning is involved.
@@ -723,9 +758,20 @@ otherwise. What classic itself chooses, like its list of resources, is kept in
   randomized when a game starts. No computer player is ever lazy: every one tries to win, each
   by a different strategy. One strategy looks at what the player knows about the map and
   adapts to it.
-- The computer players of each theme are subclasses of a common player: caveman has less
-  technology than the other themes, so decisions made for caveman may not all suit another
-  theme, but the flavors and the ideas are the same.
+- The computer player knows the rules of the game and can play any theme that the model can
+  define. The player works out what to do from what a theme defines about itself, and no code
+  of the player is about winning one theme, like caveman.
+- No computer player is allowed to cheat, and no computer player gets a bonus for being a
+  computer player. Bonuses that belong to a civilization may exist later.
+- A perfect player is built first: a player whose strategy is always ideal, with no trait
+  rolled. The flavors of strategy and personality are learnt from the perfect player, and
+  every flavor tries to win, and to win faster.
+- A game is meant to follow a curve. The civilizations drop off at a somewhat even rate, the
+  defeats well spaced, as a punctuated equilibrium and not as an endless war. One
+  civilization is likely to emerge victorious not long after the tech tree is exhausted, maybe
+  50 turns at most, and never thousands of turns after. A civilization mostly researches the
+  tech tree to win, though finishing the tech tree is not a way to win. The game is tuned
+  toward that curve, and a person will later play against the computer players.
 - Eventually games of computer players against each other are played to improve all of the
   strategies, and to make the players more unpredictable.
 - The game is tuned so that there is a wide variety of fun things to do without too many turns

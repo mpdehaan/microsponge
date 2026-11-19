@@ -17,14 +17,13 @@
 """The rules for a unit that builds an improvement on the tile it stands on."""
 
 from microsponge.engine.civilizations.requirements import missing_requirements
-from microsponge.engine.civilizations.strategic import Strategic
 from microsponge.engine.kinds.catalog import NOTHING
 from microsponge.engine.kinds.category import Category
 from microsponge.engine.kinds.kind import shown_name
 from microsponge.engine.units.unit_column import UnitColumn
 from microsponge.engine.units.unit_control import UnitControl
 from microsponge.engine.world.layer import Layer
-from microsponge.engine.world.terrain_bonus_control import TerrainBonusControl
+from microsponge.engine.world.terrain_control import TerrainControl
 from microsponge.err_messages import (
     ERR_CANNOT_BUILD_IMPROVEMENT, ERR_IMPROVEMENT_NOT_ON, ERR_IMPROVEMENT_REQUIRES, ERR_TILE_IMPROVED, ERR_UNIT_IN_A_CITY, ERR_UNIT_NOT_WORKING, ERR_UNIT_WORKING,
 )
@@ -140,6 +139,4 @@ class WorkControl:
         if improvement.BECOMES is None:
             tiles.set_value(layer=Layer.IMPROVEMENT, x=x, y=y, value=catalog.get_id(category=Category.IMPROVEMENTS, kind=improvement))
         else:
-            tiles.set_value(layer=Layer.TERRAIN, x=x, y=y, value=catalog.get_id(category=Category.TERRAINS, kind=improvement.BECOMES))
-            Strategic.terrain_changed(game=game, world=world, x=x, y=y)
-            TerrainBonusControl.terrain_changed(game=game, world=world, x=x, y=y)
+            TerrainControl.change(game=game, world=world, x=x, y=y, terrain=improvement.BECOMES)

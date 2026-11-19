@@ -23,6 +23,10 @@ class MapSpec:
     The generator fills the world with BASE_TERRAIN, then grows patches of each terrain in
     TERRAIN_PERCENT until each covers its percent of the tiles, then scatters the strategic
     resources and the terrain bonuses. A theme with no BASE_TERRAIN cannot have its worlds made yet.
+
+    The START constants say what a good place for a civilization to start is. The generator
+    prefers the sites that are already good, and then changes a few tiles around a chosen site
+    that still lacks a resource or misses a strategic resource.
     """
 
     # The terrain every tile starts as, or None for a theme whose maps cannot be made yet.
@@ -38,3 +42,11 @@ class MapSpec:
     # The size of a world the generator makes when asked for none in particular, in tiles.
     WIDTH = 80
     HEIGHT = 40
+    # A starting site has room when at least this percent of the tiles within START_REACH steps of the site, each way, can be walked to from the site. Tiles off the world count as tiles that cannot.
+    START_REACH = 25
+    START_REACHABLE_PERCENT = 60
+    # The resources the first city radius of a starting site must give, each with the fewest tiles of the radius that give it.
+    START_NEEDS = {}
+    # The strategic resources that must be within START_STRATEGIC_DISTANCE tiles of the first city radius of a starting site.
+    START_STRATEGIC = ()
+    START_STRATEGIC_DISTANCE = 15
