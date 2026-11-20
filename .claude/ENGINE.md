@@ -406,6 +406,9 @@ says where things are and how the parts fit, and is kept true with every change 
   which plays games in spawned worker processes with the numbers applied, `run.py`
   `optimize()`, and `report.py` the report. `tools/optimize.py` is `make optimize`, and
   `DEV_TOOLS.md` says how to read it.
+- `support/effectiveness.py` is the effectiveness report, from a theme and the logs of
+  games: `all_notes()` and `report_lines()`. `tools/effectiveness_report.py` is
+  `make effectiveness`.
 - `support/guides.py` knows where each theme's guide is (`GUIDE_<THEME>.md`, from the saved
   name) and generates its appendix, the five reports as Markdown between `START_MARKER` and
   `END_MARKER`. `tools/theme_guides.py` refreshes every guide, or with `--check` says which

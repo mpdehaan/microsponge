@@ -34,7 +34,7 @@ The project is licensed under GPLv3, with the full text in `LICENSE`. Every Pyth
 
 ## Commands
 
-`Makefile` at the root wraps everything below, and `make` lists its targets: `setup`, `run`, `test`, `test-one NAME=...`, `pyflakes`, `pep8` (a look, not a rule), `loose-strings`, `balance THEME=...`, `unit-report THEME=...`, `building-report THEME=...`, `wonder-report THEME=...`, `tech-report THEME=...` (add `FORMAT=--markdown` to any report for Markdown), `guides`, `map THEME=... SEED=... CIVILIZATIONS=...`, `game THEME=... SEED=... CIVILIZATIONS=... TURNS=...`, `game-log`, `game-report` and `game-page` with the same variables, `optimize THEME=... MINUTES=...`, `hooks` and `clean`. A new everyday command gets a target there too. Set up the virtual environment once. This also installs the `microsponge` command, which `setup.py` points at `microsponge.cli:main`, and `-e` makes it use the code here rather than a copy:
+`Makefile` at the root wraps everything below, and `make` lists its targets: `setup`, `run`, `test`, `test-one NAME=...`, `pyflakes`, `pep8` (a look, not a rule), `loose-strings`, `balance THEME=...`, `unit-report THEME=...`, `building-report THEME=...`, `wonder-report THEME=...`, `tech-report THEME=...` (add `FORMAT=--markdown` to any report for Markdown), `guides`, `map THEME=... SEED=... CIVILIZATIONS=...`, `game THEME=... SEED=... CIVILIZATIONS=... TURNS=...`, `game-log`, `game-report` and `game-page` with the same variables, `optimize THEME=... MINUTES=...`, `effectiveness THEME=...`, `hooks` and `clean`. A new everyday command gets a target there too. Set up the virtual environment once. This also installs the `microsponge` command, which `setup.py` points at `microsponge.cli:main`, and `-e` makes it use the code here rather than a copy:
 
 ```
 python3 -m venv .venv
@@ -54,6 +54,7 @@ python3 -m venv .venv
 .venv/bin/python tools/scripted_game.py caveman 7 3 300  # the computer players play a game: its story, tables and charts
 .venv/bin/python tools/game_log.py caveman 7 3 300       # the same game, written as a detailed log to logs/caveman_seed7.json
 .venv/bin/python tools/game_report.py logs/caveman_seed7.json --open  # the report of a log; --open writes the page of charts and opens the browser
+.venv/bin/python tools/effectiveness_report.py caveman  # what in a theme does nothing or too little, from its logs in logs/
 .venv/bin/python tools/optimize.py caveman 60      # search for better numbers for 60 minutes and print suggestions; it never changes the theme
 ```
 

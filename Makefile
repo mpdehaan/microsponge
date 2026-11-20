@@ -21,7 +21,7 @@
 PYTHON = .venv/bin/python
 NAME ?=
 
-.PHONY: help setup run test test-one pyflakes pep8 loose-strings balance unit-report building-report wonder-report tech-report guides map game balance-test game-log game-report game-page optimize hooks clean
+.PHONY: help setup run test test-one pyflakes pep8 loose-strings balance unit-report building-report wonder-report tech-report guides map game balance-test game-log game-report game-page optimize effectiveness hooks clean
 
 help:
 	@echo "make setup          make .venv and install microsponge into it"
@@ -41,6 +41,7 @@ help:
 	@echo "make game-log       have the computer players play a game and write its detailed log to logs/: THEME=caveman SEED=1 CIVILIZATIONS=3 TURNS=100"
 	@echo "make game-report    the timelines and tables of a log: THEME=caveman SEED=1, or LOG=logs/caveman_seed1.json; add FORMAT=--markdown"
 	@echo "make game-page      play a game, write its log and open the page with the charts in the browser: THEME=caveman SEED=1 CIVILIZATIONS=3 TURNS=100"
+	@echo "make effectiveness  what in a theme does nothing or too little, from its logs in logs/: THEME=caveman; add FORMAT=--markdown"
 	@echo "make optimize       search for better numbers for a theme and print suggestions: THEME=caveman MINUTES=10 SEEDS=6 HELD_OUT=3 CIVILIZATIONS=3 TURNS=200"
 	@echo "make game           have the computer players play a game and print its story: THEME=caveman SEED=1 CIVILIZATIONS=3 TURNS=100"
 	@echo "make map            preview a world the map generator makes: THEME=caveman SEED=1 CIVILIZATIONS=3"
@@ -124,3 +125,6 @@ HELD_OUT ?= 3
 
 optimize:
 	$(PYTHON) tools/optimize.py $(THEME) $(MINUTES) $(SEEDS) $(HELD_OUT) $(CIVILIZATIONS) $(TURNS)
+
+effectiveness:
+	$(PYTHON) tools/effectiveness_report.py $(THEME) $(FORMAT)

@@ -263,3 +263,33 @@ MSG_OPTIMIZER_CHANGES_HEADING = ['kind', 'constant', 'now', 'suggested']
 MSG_OPTIMIZER_STEP = 'step {number}: score {score}{mark}'
 MSG_OPTIMIZER_BEST_MARK = ', the best so far'
 MSG_OPTIMIZER_USAGE = 'name one theme, then how many minutes to search, how many seeds to search with, how many seeds to hold out, how many civilizations play and how many turns at most if you like, like: caveman 60 6 3 3 200. The report is printed, and written to logs/ as Markdown. The themes: {themes}'
+
+# effectiveness.py and tools/effectiveness_report.py
+MSG_EFFECTIVENESS_SUMMARY = 'What in {theme} does nothing or too little, from the theme and from {games} games the computer players played. The buildings include {wonders} world wonders.'
+MSG_EFFECTIVENESS_NOTES_TITLE = 'What looks ineffective:'
+MSG_EFFECTIVENESS_NOTE = '  {kind}: {notes}'
+MSG_EFFECTIVENESS_NOTHING = '  nothing'
+MSG_EFFECTIVENESS_UNITS_TITLE = 'Each unit, over every game:'
+MSG_EFFECTIVENESS_UNITS_HEADING = ['unit', 'made', 'games made in', 'attacks', 'kills', 'lost', 'attacks a unit', 'kills a unit', 'kills for 100 currency', 'note']
+MSG_EFFECTIVENESS_BUILDINGS_TITLE = 'Each building and world wonder, what it does, and how often it was built:'
+MSG_EFFECTIVENESS_BUILDINGS_HEADING = ['building', 'does', 'required by', 'built', 'games built in', 'first built, on average', 'note']
+MSG_EFFECTIVENESS_TECHNOLOGIES_TITLE = 'Each technology, what it allows and gives, and how often it was learnt:'
+MSG_EFFECTIVENESS_TECHNOLOGIES_HEADING = ['technology', 'allows', 'gives', 'games learnt in', 'first learnt, on average', 'note']
+MSG_EFFECTIVENESS_RESOURCES_TITLE = 'Each resource, what gives it and what uses it:'
+MSG_EFFECTIVENESS_RESOURCES_HEADING = ['resource', 'comes from', 'used by', 'note']
+MSG_NOTE_NEVER_MADE = 'never made'
+MSG_NOTE_RARELY_MADE = 'made in fewer than half the games'
+MSG_NOTE_NEVER_ATTACKED = 'made but never attacked'
+MSG_NOTE_LOSES_MORE = 'lost more than twice as many as it killed'
+MSG_NOTE_DOES_NOTHING = 'does nothing and allows nothing'
+MSG_NOTE_NEVER_BUILT = 'never built'
+MSG_NOTE_NEVER_LEARNT = 'never learnt'
+MSG_NOTE_NOTHING_USES = 'nothing costs or requires it'
+MSG_NOTE_NOTHING_GIVES = 'nothing gives it'
+MSG_EFFECT_NAMES = {
+    'CONTROL_POINTS': 'Policy or Command', 'RESEARCH_POINTS': 'research points', 'PRODUCES': 'resources', 'INCOME_BONUS': 'more currency',
+    'WORKED_TILE_BONUS': 'more from worked tiles', 'GROWS_SOONER': 'growth', 'UNIT_SUPPORT_DISCOUNT': 'cheaper upkeep', 'LEVEL_BONUS': 'higher levels',
+    'ARMOR_BONUS': 'better armor', 'WALLS': 'walls', 'HARVEST_BONUS': 'more harvest', 'UNIT_SUPPORT_BONUS': 'more unit support', 'ENDS_FOG_OF_WAR': 'an end to the fog of war',
+}
+MSG_EFFECTIVENESS_USAGE = 'name one theme, then the logs to read if you like; with none, every log of the theme in logs/ is read. Add --markdown for Markdown. Write logs with make game-log. The themes: {themes}'
+MSG_EFFECTIVENESS_NO_LOGS = 'there are no logs of {theme} in logs/: write some with make game-log THEME={theme} SEED=1'

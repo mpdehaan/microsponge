@@ -229,14 +229,29 @@ number as it fits the theme now and as the best found, and the third every const
 theme the best numbers would change, now and suggested. A game of caveman of 200 turns takes
 about 30 seconds, so an hour tries about a hundred sets of numbers on 6 seeds.
 
-## Planned tools
+## The effectiveness report: what does nothing or too little
 
-One tool the user has asked for, not built yet.
+```
+make effectiveness THEME=caveman
+.venv/bin/python tools/effectiveness_report.py caveman logs/caveman_seed1.json --markdown
+```
 
-### The effectiveness report
+It reads the theme and the logs of games the computer players played, every log of the theme
+in `logs/` unless some are named, so write logs first with `make game-log`. It starts with a
+list of what looks ineffective, then gives a table for each category:
 
-A report that finds what in a theme does nothing or too little: units that are made but
-rarely attack or kill, or that lose more than they are worth; buildings that give nothing, or
-that are built and change nothing a game measures; technologies that allow nothing and give
-nothing; resources that nothing costs or requires. It reads both the theme's properties and
-the logs of games the computer players played.
+- each unit: how many were made and in how many games, its attacks, kills and losses, its
+  attacks and kills for each unit made, and its kills for each 100 currency spent on making it.
+  A unit is noted when it was never made, made in fewer than half the games, made but never
+  attacked, or lost more than twice as many as it killed (`LOSSES_PER_KILL`);
+- each building and world wonder: what it does, read from its properties, what requires it,
+  and how often and how early it was built. It is noted when it does nothing and nothing
+  requires it, or when it was never built;
+- each technology: what it allows, what it gives, and in how many games it was learnt and how
+  early. It is noted when it allows and gives nothing, or was never learnt;
+- each resource: what gives it and what costs or requires it. It is noted when nothing uses
+  it, which the primary resource and food never are, or nothing gives it.
+
+What a building does is read from its properties, so the report cannot say whether a building
+does enough: that is the table's numbers, beside the scores in the game log, for the user and
+Claude to weigh. Losses are counted only in logs written after losses were counted four ways.
