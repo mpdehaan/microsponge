@@ -399,6 +399,13 @@ says where things are and how the parts fit, and is kept true with every change 
   shown and keeps the tab in the address's hash. `tools/game_log.py` writes `logs/<theme>_seed<seed>.json`, and
   `tools/game_report.py` prints the report, or with `--html` or `--open` writes the page.
   `DEV_TOOLS.md` is the guide to them.
+- The optimizer, `support/optimizer/`: `depth.py` is `TreeDepth`, `parameters.py` has
+  `PARAMETERS` and `Tuning` (`changes()`, `applied()`, which sets the theme's constants and
+  puts them back, and `start()`, the numbers fitted to the theme as it is), `criteria.py` the
+  criteria with `badness()` and `score()`, `search.py` `Anneal.search()`, `judge.py` `Judge`,
+  which plays games in spawned worker processes with the numbers applied, `run.py`
+  `optimize()`, and `report.py` the report. `tools/optimize.py` is `make optimize`, and
+  `DEV_TOOLS.md` says how to read it.
 - `support/guides.py` knows where each theme's guide is (`GUIDE_<THEME>.md`, from the saved
   name) and generates its appendix, the five reports as Markdown between `START_MARKER` and
   `END_MARKER`. `tools/theme_guides.py` refreshes every guide, or with `--check` says which

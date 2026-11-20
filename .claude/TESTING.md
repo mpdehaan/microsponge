@@ -188,7 +188,7 @@ beside them:
   against each other, and its tool), `test/test_kind_reports.py` (the reports on a theme's
   units, buildings, world wonders and tech tree, their Markdown form, the command line the
   theme tools share and the four scripts), `test/test_tables.py` (tables of text, plain and
-  Markdown) and `test/test_theme_guides.py` (every theme has a guide, the common guide links to
+  Markdown), `test/test_optimizer.py` (the optimizer: depth, the numbers and applying them, the criteria, the search, the judge, the report and the tool) and `test/test_theme_guides.py` (every theme has a guide, the common guide links to
   each, and the generated appendix of each guide is current). The scripts in `tools/` are run as
   subprocesses, with the repository's own interpreter, to check that each prints its report.
 - **The rules.** `test/test_slots.py`, `test/test_keyword_only.py`,

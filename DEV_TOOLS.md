@@ -170,9 +170,68 @@ again.
 - `make map THEME=caveman SEED=7 CIVILIZATIONS=3` prints a world the map generator makes.
 - `make guides` refreshes the generated appendix of every theme guide.
 
+## The optimizer: search for better numbers
+
+```
+make optimize THEME=caveman MINUTES=60
+.venv/bin/python tools/optimize.py caveman 60 6 3 3 200
+```
+
+The numbers after the theme are how many minutes to search, how many seeds to search with,
+how many seeds to hold out, how many civilizations play and how many turns a game may run.
+The optimizer prints each set of numbers it tries with its score as it goes, then its report,
+which it also writes to `logs/caveman_optimizer.md` as Markdown. It never changes a theme: the
+report is a list of suggestions, which Claude reads with the user before anything is changed.
+
+**What it searches.** A few numbers rather than every constant
+(`src/microsponge/support/optimizer/parameters.py`). What a unit, a building and a technology
+cost in the primary resource is a base times a growth rate for each level of depth in the tech
+tree, so that later kinds cost more by construction; a world wonder costs a factor times a
+building as deep. Beside those it searches the currency a working citizen earns, the upkeep of
+a unit and of a building, the food a city stores for each citizen and a scale on the hit points
+of every unit. Depth (`depth.py`) is one more than the deepest technology a technology
+requires, and a unit or a building is as deep as the technologies it requires and one deeper
+for each building on the way. The search starts from the numbers that fit the theme as it is,
+so its first step is near the theme, though not the theme itself: the costs of the theme as it
+is were not set by depth.
+
+**How it searches.** Simulated annealing with restarts (`search.py`): each step moves one or
+two numbers a little, keeps a better step, and sometimes keeps a worse one, more often early
+than late, so that it can leave a local best; after a run of steps with no new best it starts
+again from the best. Every set of numbers is played on the same seeds, one game on each, side
+by side in worker processes (`judge.py`), so a set is judged in about the time of its slowest
+game. At the end, the theme as it is and the best numbers are both played on seeds the search
+never saw, which shows whether the best numbers are better or only lucky on the seeds searched.
+
+**The criteria** (`criteria.py`), each a badness from 0, met, to 1, as far off as it gets, and
+the score is their weighted sum, smaller being better. The weights are in `Weights.WEIGHTS`
+and the targets in `Targets`, both for the user and Claude to review from time to time:
+
+- civilizations exterminated: how far the games fall short of all but one civilization lost;
+- last technology near the end: whether the first civilization to know every technology knew
+  it between 70 and 95 percent of the way through the game;
+- everything used: the share of units, buildings and technologies no game used;
+- short fights: the share of pairs of units that take more than 4 attacks to kill on average
+  rolls;
+- no piles of currency: how far banks at the end go past five times what a building costs;
+- cities peak late: how far before 60 percent of the game cities are 90 percent full;
+- fairness between places in the turn order: how much more often than an even share one place
+  won;
+- the lead changes hands: how far short of 2 changes of the leader in strength a game falls.
+
+Not yet criteria, from the user's list: steady things to do, fairness between traits, no
+runaway leader and variety. Each is a function in `criteria.py` and a weight when it is added.
+
+**Reading the report.** The first table gives each criterion for the theme as it is and for the
+best numbers, on the seeds searched and on those held out, with the scores last: the best
+numbers are worth suggesting when the held-out score is better too. The second gives each
+number as it fits the theme now and as the best found, and the third every constant of the
+theme the best numbers would change, now and suggested. A game of caveman of 200 turns takes
+about 30 seconds, so an hour tries about a hundred sets of numbers on 6 seeds.
+
 ## Planned tools
 
-Two tools the user has asked for, not built yet.
+One tool the user has asked for, not built yet.
 
 ### The effectiveness report
 
@@ -181,24 +240,3 @@ rarely attack or kill, or that lose more than they are worth; buildings that giv
 that are built and change nothing a game measures; technologies that allow nothing and give
 nothing; resources that nothing costs or requires. It reads both the theme's properties and
 the logs of games the computer players played.
-
-### The optimizer
-
-A tool that searches for better numbers for a theme, for caveman first and for classic and the
-other themes once they are playable. It searches a few numbers rather than every constant:
-later things, buildings and units alike, cost more than early ones by how deep they sit in the
-tech tree, as a base and a growth rate per level for each kind of cost, with upkeep, income,
-growth and unit strength beside them. Each set of numbers is judged by games the computer
-players play, against criteria of a good game that the user and Claude review from time to
-time: games that end with a winner in about 200 turns, civilizations exterminated now and
-then, the last technology near the end, everything used, short fights, no piles of currency,
-no early peak in a village's size, steady things to do, and fairness between places in the
-turn order and between traits. It runs for a set time, and searches by simulated annealing with
-restarts: it sometimes accepts worse numbers on purpose to escape a local best, and starts
-again from the best found now and then. Every candidate is played on the same seeds, with the
-games run side by side, and the best numbers are checked on seeds it did not search with. and reports: it never
-changes a theme. When the user asks Claude to run it, Claude suggests what to change from the
-report, and the user and Claude run it again, with other pairs of numbers or other ideas of
-what depth means, as many times as it takes. It is built after the computer player's expand
-orders, several divisions and the first steps of the utility AI, so that it tunes against a
-computer player worth tuning against.
