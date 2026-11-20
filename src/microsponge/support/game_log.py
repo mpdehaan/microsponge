@@ -54,7 +54,7 @@ NOT_GONE = -1
 NEVER = -1
 FILE_ENCODING = 'utf-8'
 # The tallies of fights each civilization keeps for each kind of its units.
-TALLIES = (Tally.ATTACKS, Tally.KILLS, Tally.CITY_ATTACKS, Tally.ATTACKS_ON_ITS_CITIES)
+TALLIES = (Tally.ATTACKS, Tally.KILLS, Tally.CITY_ATTACKS, Tally.ATTACKS_ON_ITS_CITIES, *Tally.LOSSES)
 WRITE_MODE = 'w'
 READ_MODE = 'r'
 
@@ -166,8 +166,12 @@ class Series:
     STRENGTH = 'strength'
     FOOD_STORED = 'food_stored'
     WARS = 'wars'
+    LOST_ATTACKING_CITY = Tally.LOST_ATTACKING_CITY
+    LOST_ATTACKING_FIELD = Tally.LOST_ATTACKING_FIELD
+    LOST_DEFENDING_CITY = Tally.LOST_DEFENDING_CITY
+    LOST_DEFENDING_FIELD = Tally.LOST_DEFENDING_FIELD
 
-    OWN = (HIT_POINTS, STRENGTH, FOOD_STORED, WARS, POLICY, POLICY_TAKEN, COMMAND, COMMAND_TAKEN, INSIDE, LEVEL, BUILDINGS, MILITARY_SCORE, SCIENCE_SCORE, POPULATION_SCORE, DEVELOPMENT_SCORE, SCORE)
+    OWN = (HIT_POINTS, STRENGTH, FOOD_STORED, WARS, LOST_ATTACKING_CITY, LOST_ATTACKING_FIELD, LOST_DEFENDING_CITY, LOST_DEFENDING_FIELD, POLICY, POLICY_TAKEN, COMMAND, COMMAND_TAKEN, INSIDE, LEVEL, BUILDINGS, MILITARY_SCORE, SCIENCE_SCORE, POPULATION_SCORE, DEVELOPMENT_SCORE, SCORE)
 
 
 # What the chronicle counts, by the name the log gives each.
@@ -415,6 +419,8 @@ class GameLog:
         series[Series.BUILDINGS].append(now[BUILDINGS])
         series[Series.FOOD_STORED].append(sum(city.get_food() for city in cities))
         series[Series.WARS].append(len(game.get_civilization(civilization).get_wars()))
+        for loss in Tally.LOSSES:
+            series[loss].append(sum(game.get_civilization(civilization).get_tally(loss).values()))
         series[Series.POLICY].append(TurnControl.control_points(game=game, civilization=civilization, points=Policy))
         series[Series.POLICY_TAKEN].append(OrderControl.taken(game=game, civilization=civilization, points=Policy))
         series[Series.COMMAND].append(TurnControl.control_points(game=game, civilization=civilization, points=Command))

@@ -391,7 +391,8 @@ class ComputerPlayer:
     def division_wanted(cls, *, game, civilization, division):
         """Return what the division is raised to, every kind chosen by what it can do and never by its class.
 
-        From the top: for each enemy kind seen that the division's best fighter cannot hit, units
+        From the top: a unit that attacks cities from range, while the civilization is at war;
+        for each enemy kind seen that the division's best fighter cannot hit, units
         that can hit it; units the enemy kinds seen cannot hit, to harass them; units that move
         on water and take cities, when an enemy city known is beside water; units that fight on
         water, when a city of the civilization is beside water; and fighters that move on land
@@ -402,6 +403,9 @@ class ComputerPlayer:
         fighters = Appraisal.fighters(theme)
         enemies = cls.enemy_kinds_seen(game=game, civilization=civilization)
         targets = []
+        siege = Appraisal.siege(theme)
+        if siege and Knowledge.enemies_of(game=game, civilization=civilization):
+            targets.append(BuildTarget(kinds=tuple(siege), count=ONE_EACH))
         unanswered = [enemy for enemy in enemies if not any(can_hit(kind=kind, target=enemy) for kind in fighters[:MAIN_BODY])]
         for enemy in unanswered[:size // 2]:
             targets.append(BuildTarget(kinds=tuple(Appraisal.counters_to(theme=theme, enemy=enemy)), count=ONE_EACH))

@@ -27,13 +27,13 @@ The tables below are generated from the code by `tools/theme_guides.py`, and `ma
 
 The units of PlanetWars:
 
-| unit            | class | turns | citizens used | armor class | hit points | experience worth | action points | strikes back % | cannot hit | takes cities |
-| --------------- | ----- | ----: | ------------: | ----------: | ---------: | ---------------: | ------------: | -------------: | ---------- | ------------ |
-| settler         | land  |     1 |             1 |          10 |         10 |                1 |             1 |             50 | air        | yes          |
-| colony ship     | space |     1 |             - |          10 |         10 |                1 |             1 |             50 | -          | yes          |
-| space transport | space |     1 |             - |          10 |         10 |                1 |             1 |             50 | -          | yes          |
+| unit            | class | turns | citizens used | armor class | hit points | experience worth | action points | strikes back % | cannot hit | takes cities | weight | attacks cities |
+| --------------- | ----- | ----: | ------------: | ----------: | ---------: | ---------------: | ------------: | -------------: | ---------- | ------------ | ------ | -------------- |
+| settler         | land  |     1 |             1 |          10 |         10 |                1 |             1 |             50 | air        | yes          | light  | yes            |
+| colony ship     | space |     1 |             - |          10 |         10 |                1 |             1 |             50 | -          | yes          | light  | yes            |
+| space transport | space |     1 |             - |          10 |         10 |                1 |             1 |             50 | -          | yes          | light  | yes            |
 
-no unit of PlanetWars sets these, so their columns are left out: requires, cost, support, attack dice, extra dice, heals, heals in a city, bypasses walls, builds, obsoleted by
+no unit of PlanetWars sets these, so their columns are left out: requires, cost, support, attack dice, extra dice, heals, heals in a city, bypasses walls, builds, obsoleted by, ranged attack, range, ranged extra dice, armor better against
 
 PlanetWars has no buildings yet
 

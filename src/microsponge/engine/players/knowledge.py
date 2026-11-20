@@ -19,8 +19,7 @@
 from microsponge.engine.cities.city_control import CityControl
 from microsponge.engine.civilizations.sight import Sight
 from microsponge.engine.kinds.catalog import NOTHING
-from microsponge.engine.kinds.dice import NO_DICE
-from microsponge.engine.kinds.unit_kinds import SettlerUnit
+from microsponge.engine.kinds.unit_kinds import SettlerUnit, has_melee, has_ranged
 from microsponge.engine.units.unit_column import UnitColumn
 from microsponge.engine.units.unit_control import UnitControl
 
@@ -50,7 +49,8 @@ class Knowledge:
 
     @staticmethod
     def is_fighter(*, game, unit):
-        return UnitControl.kind_of(game=game, unit=unit).ATTACK is not NO_DICE
+        kind = UnitControl.kind_of(game=game, unit=unit)
+        return has_melee(kind) or has_ranged(kind)
 
     @staticmethod
     def settlers_of(*, game, civilization):

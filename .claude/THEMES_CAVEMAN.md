@@ -104,6 +104,28 @@ file, so it's in force in every session. `.claude/TESTING.md` says what caveman 
   caveman costs 180 currency, with 5d6 and 20 hit points, worth 5, so that he is much stronger
   than before, which the user suggested to make the clubber worth building for longer.
 - A working citizen earns 3 currency, because banks ended near nothing.
+- Captain caveman is a very strong attacking unit: 7d6, armor class 8, 20 hit points, heavy,
+  120 currency, still behind discipline at 180 research points. The user decided this.
+- Most units are light, the wild clubber is medium and captain caveman heavy. The wild clubber
+  has 9 hit points instead of 13, so that more of them perish.
+- Slingshot caveman keeps his 2 extra dice against air units, gets 1 extra die against heavy
+  units, and has a ranged attack of 3 tiles with one die less, which ends his turn and cannot
+  take a village.
+- Caveman gets a siege unit, the mammoth catapult, from the middle of the game: it requires
+  carpentry and costs 120 currency and 20 wood over 5 turns, with a ranged attack of 4d6 at 3
+  tiles and 2 extra dice against units inside a village, heavy, armor class 10, 8 hit points;
+  it cannot hit air units, never strikes back, cannot take a village and ignores city walls.
+- Every unit's attack roll gets 1 more, so that villages fall in fewer attacks.
+- The angry bird cannot attack the units inside a village, so that it raids settlers, workers
+  and units in the open.
+- After these decisions the user froze caveman's numbers until the optimizer is written: the
+  engine's weight classes, ranged attacks, bonuses versus, units that cannot attack cities and
+  the counts of losses are built, the weight classes are given (the wild clubber medium,
+  captain caveman and the mammoth catapult heavy), the angry bird cannot attack villages and
+  the mammoth catapult is in, but the other numbers decided above (captain caveman's 7d6 and
+  120 currency, the wild clubber's 9 hit points, slingshot caveman's range and extra die versus
+  heavy, 1 more on every attack, villages with no armor bonus of their own, the watchtower at
+  1 and healing of 2 inside a village) wait for the optimizer.
 - Caveman has a resource called poppies, and a unit called the wild clubber, which can be
   built after learning church of the cave bear, and is about twice as good as the clubber.
   Captain caveman is half again better than the wild clubber.

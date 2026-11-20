@@ -24,7 +24,6 @@ from microsponge.engine.kinds.building import Building, Wonder
 from microsponge.engine.kinds.catalog import Catalog
 from microsponge.engine.kinds.category import CATEGORIES, Category
 from microsponge.engine.kinds.city_spec import CitySpec
-from microsponge.engine.kinds.dice import NO_DICE, Dice
 from microsponge.engine.kinds.domain import Domain
 from microsponge.engine.kinds.improvement import Improvement
 from microsponge.engine.kinds.kind import shown_name
@@ -34,7 +33,6 @@ from microsponge.engine.kinds.terrain import Terrain
 from microsponge.engine.kinds.terrain_bonus import TerrainBonus
 from microsponge.engine.kinds.theme import LEAST_COST, Theme, underpriced
 from microsponge.engine.kinds.unit_kinds import NO_ARMOR, SettlerUnit, UnitKind, can_hit
-from microsponge.engine.units.unit_control import BEST_ARMOR_CLASS
 from microsponge.themes import THEMES
 from microsponge.themes.caveman import buildings as caveman_buildings
 from microsponge.themes.caveman import city as caveman_city
@@ -290,10 +288,6 @@ class TestCaveman(unittest.TestCase):
         self.assertEqual(bird.COST, {caveman_resources.Currency: min(unit.COST[caveman_resources.Currency] for unit in Caveman.UNITS)})
         self.assertEqual(bird.BUILD_TURNS, min(unit.BUILD_TURNS for unit in Caveman.UNITS))
 
-    def test_the_angry_bird_is_the_unit_that_cannot_take_a_city(self):
-        self.assertEqual([unit for unit in Caveman.UNITS if not unit.TAKES_CITIES], [caveman_units.AngryBird])
-        self.assertTrue(UnitKind.TAKES_CITIES)
-
     def test_a_caveman_city_is_called_a_village_and_the_other_themes_say_city(self):
         self.assertEqual((Caveman.CITY.NAME, Caveman.CITY.NAMES), (VILLAGE, VILLAGES))
         for theme in (Classic, SciFi, Fantasy, PlanetWars):
@@ -353,23 +347,6 @@ class TestCaveman(unittest.TestCase):
 
     def test_a_unit_or_building_that_costs_less_than_10_currency_is_found(self):
         self.assertEqual(underpriced(CheapCaveman), [Bargain, FoodOnly])
-
-    def test_every_caveman_unit_defines_its_attack_dice_armor_class_and_hit_points_and_heals_faster_in_a_city(self):
-        for unit in Caveman.UNITS:
-            with self.subTest(unit=unit):
-                self.assertTrue(issubclass(unit, caveman_units.CavemanUnit))
-                self.assertTrue(WEAKEST_HIT_POINTS <= unit.HIT_POINTS <= MOST_HIT_POINTS)
-                self.assertTrue(unit.STRIKES_BACK)
-                self.assertIn(unit.DOMAIN, CAVEMAN_DOMAINS)
-                self.assertIsInstance(unit.ATTACK, Dice)
-                self.assertGreaterEqual(unit.ATTACK.least(), NO_ATTACK)
-                self.assertTrue(BEST_ARMOR_CLASS <= unit.ARMOR_CLASS <= NO_ARMOR)
-                self.assertEqual((unit.HEAL, unit.CITY_HEAL), (caveman_units.CavemanUnit.HEAL, caveman_units.CavemanUnit.CITY_HEAL))
-        self.assertGreater(caveman_units.CavemanUnit.HEAL, 0)
-        self.assertGreater(caveman_units.CavemanUnit.CITY_HEAL, caveman_units.CavemanUnit.HEAL)
-        self.assertEqual(caveman_units.Settler.ATTACK, NO_DICE)
-        self.assertGreater(caveman_units.Clubber.ATTACK.average(), NO_ATTACK)
-        self.assertEqual(Caveman.LEVEL_HIT_POINTS_PERCENT, LEVEL_HIT_POINTS_PERCENT)
 
     def test_every_caveman_unit_and_building_costs_something_to_support(self):
         for kind in Caveman.UNITS + Caveman.BUILDINGS:

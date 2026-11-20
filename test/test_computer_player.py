@@ -35,7 +35,7 @@ from microsponge.engine.orders.order_control import OrderControl
 from microsponge.engine.kinds.dice import NO_DICE
 from microsponge.engine.kinds.domain import Domain
 from microsponge.engine.kinds.unit_kinds import can_hit
-from microsponge.engine.players.appraisal import Appraisal
+from microsponge.engine.players.appraisal import Appraisal, can_fight, hits
 from microsponge.engine.players.computer_player import ComputerPlayer, Weights
 from microsponge.engine.players.knowledge import Knowledge
 from microsponge.engine.units.unit_control import UnitControl
@@ -108,7 +108,7 @@ class TestComputerPlayer(unittest.TestCase):
             for kind in Appraisal.counters_to(theme=theme, enemy=enemy):
                 self.assertTrue(can_hit(kind=kind, target=enemy))
             for kind in Appraisal.unhittable_by(theme=theme, enemies=[enemy]):
-                self.assertTrue(enemy.ATTACK is not NO_DICE and not can_hit(kind=enemy, target=kind))
+                self.assertTrue(can_fight(enemy) and not hits(attacker=enemy, target=kind))
         for kind in Appraisal.engineers(theme):
             self.assertTrue(kind.BUILDS)
         self.assertEqual(set(Appraisal.ranked_buildings(theme=theme, weights=Weights)), set(theme.BUILDINGS))

@@ -167,7 +167,7 @@ beside them:
   turn), `test/test_orders.py` (what a civilization may do on its turn), `test/test_work.py` (a
   worker building an improvement), `test/test_production.py` (what a city builds),
   `test/test_research.py` (what a civilization researches), `test/test_strategic.py`
-  (strategic resources and borders), `test/test_upgrades.py` (obsolete units and upgrades), `test/test_combat.py` (attacks, taking a city,
+  (strategic resources and borders), `test/test_upgrades.py` (obsolete units and upgrades), `test/test_ranged.py` (weight classes, bonuses versus, units that cannot attack cities, ranged attacks and losses counted four ways), `test/test_combat.py` (attacks, taking a city,
   losing, and experience and levels), `test/test_terrain_bonuses.py` (special tiles that give
   more), `test/test_sight.py` (the fog of war: what a civilization sees, what it remembers,
   and the view a player reads), `test/test_traits.py` (the traits of a computer-played

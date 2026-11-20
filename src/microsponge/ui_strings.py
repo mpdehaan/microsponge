@@ -46,6 +46,10 @@ MSG_PAGE_CHART_HIT_POINTS = 'Hit points of military units'
 MSG_PAGE_CHART_IMPROVEMENTS_OF_KIND = 'Improvements of the kind {kind} on the tiles of the {city} radii'
 MSG_PAGE_CHART_INSIDE = 'Military units inside a city'
 MSG_PAGE_CHART_LEVEL = 'Average level of military units'
+MSG_PAGE_CHART_LOST_ATTACKING_CITY = 'Units lost attacking a city, added up over the turns'
+MSG_PAGE_CHART_LOST_ATTACKING_FIELD = 'Units lost attacking in the field, added up over the turns'
+MSG_PAGE_CHART_LOST_DEFENDING_CITY = 'Units lost defending a city, added up over the turns'
+MSG_PAGE_CHART_LOST_DEFENDING_FIELD = 'Units lost defending in the field, added up over the turns'
 MSG_PAGE_CHART_MILITARY_SCORE = 'Military score: hit points of military units, added up every turn'
 MSG_PAGE_CHART_ORDERS_OF_KIND = 'Orders of the kind {kind} given in each {turns} turns'
 MSG_PAGE_CHART_POLICY = 'Policy each civilization has'
@@ -85,6 +89,8 @@ MSG_LOG_FORCES_HEADING = [
     'civilization', 'divisions made', 'first', 'last', 'armies made', 'first', 'last', 'units retired', 'first', 'last', 'divisions retired', 'first', 'last', 'armies retired', 'first', 'last',
 ]
 MSG_LOG_FORCES_TITLE = 'The divisions and armies each civilization made, and the units, divisions and armies it retired, each with the first and the last turn:'
+MSG_LOG_LOSSES_HEADING = ['civilization', 'unit', 'lost attacking a city', 'lost attacking in the field', 'lost defending a city', 'lost defending in the field']
+MSG_LOG_LOSSES_TITLE = 'The units each kind of each civilization lost, and where:'
 MSG_LOG_MADE_HEADING = ['civilization', 'unit', 'made', 'first on turn', 'last on turn']
 MSG_LOG_MADE_TITLE = 'The units each civilization made, with the turns it made the first and the last of each kind:'
 MSG_LOG_ORDERS_HEADING = ['civilization', 'order', 'given', 'first turn in use', 'last turn in use']
@@ -175,6 +181,7 @@ MSG_WONDERS_TITLE = 'The world wonders of {theme}:'
 MSG_UNITS_HEADING = (
     'unit', 'class', 'requires', 'cost', 'turns', 'support', 'citizens used', 'attack dice', 'extra dice', 'armor class', 'hit points', 'experience worth',
     'action points', 'heals', 'heals in a city', 'strikes back %', 'cannot hit', 'takes cities', 'bypasses walls', 'builds', 'obsoleted by',
+    'weight', 'ranged attack', 'range', 'ranged extra dice', 'attacks cities', 'armor better against',
 )
 MSG_UNITS_TITLE = 'The units of {theme}:'
 MSG_KIND_UNIT = 'unit'

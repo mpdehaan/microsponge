@@ -28,26 +28,26 @@ The tables below are generated from the code by `tools/theme_guides.py`, and `ma
 
 The units of fantasy:
 
-| unit      | class | turns | citizens used | armor class | hit points | experience worth | action points | strikes back % | cannot hit | takes cities |
-| --------- | ----- | ----: | ------------: | ----------: | ---------: | ---------------: | ------------: | -------------: | ---------- | ------------ |
-| settler   | land  |     1 |             1 |          10 |         10 |                1 |             1 |             50 | air        | yes          |
-| worker    | land  |     1 |             - |          10 |         10 |                1 |             1 |             50 | air        | yes          |
-| scout     | land  |     1 |             - |          10 |         10 |                1 |             1 |             50 | air        | yes          |
-| soldier   | land  |     1 |             - |          10 |         10 |                1 |             1 |             50 | air        | yes          |
-| knight    | land  |     1 |             - |          10 |         10 |                1 |             1 |             50 | air        | yes          |
-| ranger    | land  |     1 |             - |          10 |         10 |                1 |             1 |             50 | air        | yes          |
-| monk      | land  |     1 |             - |          10 |         10 |                1 |             1 |             50 | air        | yes          |
-| cleric    | land  |     1 |             - |          10 |         10 |                1 |             1 |             50 | air        | yes          |
-| sorcerer  | land  |     1 |             - |          10 |         10 |                1 |             1 |             50 | air        | yes          |
-| wizard    | land  |     1 |             - |          10 |         10 |                1 |             1 |             50 | air        | yes          |
-| elemental | land  |     1 |             - |          10 |         10 |                1 |             1 |             50 | air        | yes          |
-| ogre      | land  |     1 |             - |          10 |         10 |                1 |             1 |             50 | air        | yes          |
-| goblin    | land  |     1 |             - |          10 |         10 |                1 |             1 |             50 | air        | yes          |
-| dragon    | air   |     1 |             - |          10 |         10 |                1 |             1 |             50 | -          | yes          |
-| wyvern    | air   |     1 |             - |          10 |         10 |                1 |             1 |             50 | -          | yes          |
-| blimp     | air   |     1 |             - |          10 |         10 |                1 |             1 |             50 | -          | yes          |
+| unit      | class | turns | citizens used | armor class | hit points | experience worth | action points | strikes back % | cannot hit | takes cities | weight | attacks cities |
+| --------- | ----- | ----: | ------------: | ----------: | ---------: | ---------------: | ------------: | -------------: | ---------- | ------------ | ------ | -------------- |
+| settler   | land  |     1 |             1 |          10 |         10 |                1 |             1 |             50 | air        | yes          | light  | yes            |
+| worker    | land  |     1 |             - |          10 |         10 |                1 |             1 |             50 | air        | yes          | light  | yes            |
+| scout     | land  |     1 |             - |          10 |         10 |                1 |             1 |             50 | air        | yes          | light  | yes            |
+| soldier   | land  |     1 |             - |          10 |         10 |                1 |             1 |             50 | air        | yes          | light  | yes            |
+| knight    | land  |     1 |             - |          10 |         10 |                1 |             1 |             50 | air        | yes          | light  | yes            |
+| ranger    | land  |     1 |             - |          10 |         10 |                1 |             1 |             50 | air        | yes          | light  | yes            |
+| monk      | land  |     1 |             - |          10 |         10 |                1 |             1 |             50 | air        | yes          | light  | yes            |
+| cleric    | land  |     1 |             - |          10 |         10 |                1 |             1 |             50 | air        | yes          | light  | yes            |
+| sorcerer  | land  |     1 |             - |          10 |         10 |                1 |             1 |             50 | air        | yes          | light  | yes            |
+| wizard    | land  |     1 |             - |          10 |         10 |                1 |             1 |             50 | air        | yes          | light  | yes            |
+| elemental | land  |     1 |             - |          10 |         10 |                1 |             1 |             50 | air        | yes          | light  | yes            |
+| ogre      | land  |     1 |             - |          10 |         10 |                1 |             1 |             50 | air        | yes          | light  | yes            |
+| goblin    | land  |     1 |             - |          10 |         10 |                1 |             1 |             50 | air        | yes          | light  | yes            |
+| dragon    | air   |     1 |             - |          10 |         10 |                1 |             1 |             50 | -          | yes          | light  | yes            |
+| wyvern    | air   |     1 |             - |          10 |         10 |                1 |             1 |             50 | -          | yes          | light  | yes            |
+| blimp     | air   |     1 |             - |          10 |         10 |                1 |             1 |             50 | -          | yes          | light  | yes            |
 
-no unit of fantasy sets these, so their columns are left out: requires, cost, support, attack dice, extra dice, heals, heals in a city, bypasses walls, builds, obsoleted by
+no unit of fantasy sets these, so their columns are left out: requires, cost, support, attack dice, extra dice, heals, heals in a city, bypasses walls, builds, obsoleted by, ranged attack, range, ranged extra dice, armor better against
 
 fantasy has no buildings yet
 

@@ -33,14 +33,14 @@ The tables below are generated from the code by `tools/theme_guides.py`, and `ma
 
 The units of SciFi:
 
-| unit          | class     | turns | armor class | hit points | experience worth | action points | strikes back % | takes cities |
-| ------------- | --------- | ----: | ----------: | ---------: | ---------------: | ------------: | -------------: | ------------ |
-| infantry      | undecided |     1 |          10 |         10 |                1 |             1 |             50 | yes          |
-| probe         | undecided |     1 |          10 |         10 |                1 |             1 |             50 | yes          |
-| space fighter | space     |     1 |          10 |         10 |                1 |             1 |             50 | yes          |
-| space carrier | space     |     1 |          10 |         10 |                1 |             1 |             50 | yes          |
+| unit          | class     | turns | armor class | hit points | experience worth | action points | strikes back % | takes cities | weight | attacks cities |
+| ------------- | --------- | ----: | ----------: | ---------: | ---------------: | ------------: | -------------: | ------------ | ------ | -------------- |
+| infantry      | undecided |     1 |          10 |         10 |                1 |             1 |             50 | yes          | light  | yes            |
+| probe         | undecided |     1 |          10 |         10 |                1 |             1 |             50 | yes          | light  | yes            |
+| space fighter | space     |     1 |          10 |         10 |                1 |             1 |             50 | yes          | light  | yes            |
+| space carrier | space     |     1 |          10 |         10 |                1 |             1 |             50 | yes          | light  | yes            |
 
-no unit of SciFi sets these, so their columns are left out: requires, cost, support, citizens used, attack dice, extra dice, heals, heals in a city, cannot hit, bypasses walls, builds, obsoleted by
+no unit of SciFi sets these, so their columns are left out: requires, cost, support, citizens used, attack dice, extra dice, heals, heals in a city, cannot hit, bypasses walls, builds, obsoleted by, ranged attack, range, ranged extra dice, armor better against
 
 The buildings of SciFi:
 

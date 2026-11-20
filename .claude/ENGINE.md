@@ -107,6 +107,16 @@ says where things are and how the parts fit, and is kept true with every change 
   `Orders.upgrade()`, `HelperAI.upgrade()`, the free `UpgradeOrder`, `Hand.upgrade()` and the
   main AI's `plan_upgrades()` carry it out. `Tally.CITY_ATTACKS` and
   `Tally.ATTACKS_ON_ITS_CITIES` count attacks on cities for both sides.
+- Ranged attacks and bonuses versus. `kinds/weight.py` has `Weight` (light, medium, heavy)
+  and `Versus.IN_CITY`. A kind's `EXTRA_DICE` and `RANGED_EXTRA_DICE` and its
+  `ARMOR_BONUS_AGAINST` are keyed by a class of unit, a weight class or `Versus.IN_CITY`
+  (`attack_dice()`, `armor_against()`, `versus_keys()`); `RANGED_ATTACK`, `RANGE` and
+  `RANGED_HITS` make the ranged attack, and `ATTACKS_CITIES` false keeps a kind from
+  attacking the units inside a city. `Combat.attack()` (melee) and `Combat.ranged_attack()`
+  share `Combat.resolve()`; `Orders.ranged_attack()` ends the unit's turn. The Hand's
+  `shoot()` has a marching ranged unit fire at its target city or an enemy in range, and a
+  division asks for a siege unit (`Appraisal.siege()`) while at war. `Tally.LOSSES` counts
+  each loss four ways.
 - `TurnControl.end_turn()` does, for the civilization playing and in this order: building units
   go on building, the cities collect, the citizens eat, the units and buildings are paid for,
   the cities go on with what they build, the cities grow, the units heal, research goes on, and

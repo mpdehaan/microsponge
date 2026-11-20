@@ -60,18 +60,19 @@ The tables below are generated from the code by `tools/theme_guides.py`, and `ma
 
 The units of caveman:
 
-| unit              | class | requires                         | cost                 | turns | support    | citizens used | attack dice | extra dice    | armor class | hit points | experience worth | action points | heals | heals in a city | strikes back % | cannot hit | takes cities | builds         | obsoleted by    |
-| ----------------- | ----- | -------------------------------- | -------------------- | ----: | ---------- | ------------: | ----------- | ------------- | ----------: | ---------: | ---------------: | ------------: | ----: | --------------: | -------------: | ---------- | ------------ | -------------- | --------------- |
-| settler           | land  | -                                | 45 currency          |     6 | 2 currency |             1 | -           | -             |          10 |          5 |                1 |             2 |     1 |               3 |             50 | air        | yes          | -              | -               |
-| clubber           | land  | clubs                            | 45 currency          |     3 | 2 currency |             - | 2d6         | -             |           8 |         10 |                2 |             2 |     1 |               3 |             50 | air        | yes          | -              | captain caveman |
-| worker            | land  | agriculture                      | 45 currency          |     3 | 2 currency |             - | -           | -             |          10 |          5 |                1 |             2 |     1 |               3 |             50 | air        | yes          | farm, clearing | -               |
-| captain caveman   | land  | barracks                         | 180 currency         |     6 | 2 currency |             - | 5d6         | -             |           8 |         20 |                5 |             2 |     1 |               3 |             50 | air        | yes          | -              | -               |
-| slingshot caveman | land  | clubs                            | 60 currency          |     3 | 2 currency |             - | 2d4         | 2 against air |           8 |          8 |                2 |             2 |     1 |               3 |             50 | -          | yes          | -              | -               |
-| raft              | sea   | harbor                           | 45 currency, 10 wood |     4 | 2 currency |             - | 2d4         | -             |           9 |          8 |                1 |             2 |     1 |               3 |             50 | air        | yes          | -              | -               |
-| angry bird        | air   | -                                | 45 currency          |     2 | 2 currency |             - | 2d4         | -             |          10 |          6 |                1 |             6 |     1 |               3 |             50 | -          | -            | -              | -               |
-| wild clubber      | land  | church of the cave bear, poppies | 60 currency          |     5 | 2 currency |             - | 3d6         | -             |           8 |         13 |                3 |             2 |     1 |               3 |             50 | air        | yes          | -              | -               |
+| unit              | class | requires                         | cost                  | turns | support    | citizens used | attack dice | extra dice    | armor class | hit points | experience worth | action points | heals | heals in a city | strikes back % | cannot hit | takes cities | bypasses walls | builds         | obsoleted by    | weight | ranged attack | range | ranged extra dice   | attacks cities |
+| ----------------- | ----- | -------------------------------- | --------------------- | ----: | ---------- | ------------: | ----------- | ------------- | ----------: | ---------: | ---------------: | ------------: | ----: | --------------: | -------------: | ---------- | ------------ | -------------- | -------------- | --------------- | ------ | ------------- | ----: | ------------------- | -------------- |
+| settler           | land  | -                                | 45 currency           |     6 | 2 currency |             1 | -           | -             |          10 |          5 |                1 |             2 |     1 |               3 |             50 | air        | yes          | -              | -              | -               | light  | -             |     - | -                   | yes            |
+| clubber           | land  | clubs                            | 45 currency           |     3 | 2 currency |             - | 2d6         | -             |           8 |         10 |                2 |             2 |     1 |               3 |             50 | air        | yes          | -              | -              | captain caveman | light  | -             |     - | -                   | yes            |
+| worker            | land  | agriculture                      | 45 currency           |     3 | 2 currency |             - | -           | -             |          10 |          5 |                1 |             2 |     1 |               3 |             50 | air        | yes          | -              | farm, clearing | -               | light  | -             |     - | -                   | yes            |
+| captain caveman   | land  | barracks                         | 180 currency          |     6 | 2 currency |             - | 5d6         | -             |           8 |         20 |                5 |             2 |     1 |               3 |             50 | air        | yes          | -              | -              | -               | heavy  | -             |     - | -                   | yes            |
+| slingshot caveman | land  | clubs                            | 60 currency           |     3 | 2 currency |             - | 2d4         | 2 against air |           8 |          8 |                2 |             2 |     1 |               3 |             50 | -          | yes          | -              | -              | -               | light  | -             |     - | -                   | yes            |
+| raft              | sea   | harbor                           | 45 currency, 10 wood  |     4 | 2 currency |             - | 2d4         | -             |           9 |          8 |                1 |             2 |     1 |               3 |             50 | air        | yes          | -              | -              | -               | light  | -             |     - | -                   | yes            |
+| angry bird        | air   | -                                | 45 currency           |     2 | 2 currency |             - | 2d4         | -             |          10 |          6 |                1 |             6 |     1 |               3 |             50 | -          | -            | -              | -              | -               | light  | -             |     - | -                   | -              |
+| wild clubber      | land  | church of the cave bear, poppies | 60 currency           |     5 | 2 currency |             - | 3d6         | -             |           8 |         13 |                3 |             2 |     1 |               3 |             50 | air        | yes          | -              | -              | -               | medium | -             |     - | -                   | yes            |
+| mammoth catapult  | land  | carpentry                        | 120 currency, 20 wood |     5 | 2 currency |             - | -           | -             |          10 |          8 |                3 |             2 |     1 |               3 |              - | air        | -            | yes            | -              | -               | heavy  | 4d6           |     3 | 2 against in a city | yes            |
 
-no unit of caveman sets these, so their columns are left out: bypasses walls
+no unit of caveman sets these, so their columns are left out: armor better against
 
 The buildings of caveman:
 
@@ -107,7 +108,7 @@ The tech tree of caveman:
 | discipline              |             180 | leadership                          | barracks                       | -               |                    - |            - |
 | fire                    |              15 | -                                   | watchtower                     | -               |                    - |            - |
 | sewing                  |              50 | agriculture                         | granary                        | -               |                    - |            2 |
-| carpentry               |              50 | -                                   | city walls                     | -               |                    - |            - |
+| carpentry               |              50 | -                                   | mammoth catapult, city walls   | -               |                    - |            - |
 | church of the cave bear |              90 | fire, leadership                    | wild clubber, cave bear shrine | -               |                    - |            - |
 | barter                  |             100 | sewing, leadership                  | trading post                   | -               |                    - |            - |
 | astrology               |             200 | church of the cave bear, leadership | arrangement of rocks           | -               |                    - |            - |
@@ -125,14 +126,14 @@ The units of caveman that can attack:
 
 Attacks needed, on average rolls, by the attacker in each row to kill a whole level 1 unit of the defender in each column (- means the attacker cannot hit that defender):
 
-| attacker \ defender | settler | clubber | worker | captain caveman | slingshot caveman | raft | angry bird | wild clubber |
-| ------------------- | ------: | ------: | -----: | --------------: | ----------------: | ---: | ---------: | -----------: |
-| clubber             |       1 |       2 |      1 |               4 |                 2 |    2 |          - |            3 |
-| captain caveman     |       1 |       1 |      1 |               2 |                 1 |    1 |          - |            1 |
-| slingshot caveman   |       1 |       3 |      1 |               5 |                 2 |    2 |          1 |            4 |
-| raft                |       1 |       3 |      1 |               5 |                 2 |    2 |          - |            4 |
-| angry bird          |       1 |       3 |      1 |               5 |                 2 |    2 |          2 |            4 |
-| wild clubber        |       1 |       2 |      1 |               3 |                 1 |    1 |          - |            2 |
+| attacker \ defender | settler | clubber | worker | captain caveman | slingshot caveman | raft | angry bird | wild clubber | mammoth catapult |
+| ------------------- | ------: | ------: | -----: | --------------: | ----------------: | ---: | ---------: | -----------: | ---------------: |
+| clubber             |       1 |       2 |      1 |               4 |                 2 |    2 |          - |            3 |                2 |
+| captain caveman     |       1 |       1 |      1 |               2 |                 1 |    1 |          - |            1 |                1 |
+| slingshot caveman   |       1 |       3 |      1 |               5 |                 2 |    2 |          1 |            4 |                2 |
+| raft                |       1 |       3 |      1 |               5 |                 2 |    2 |          - |            4 |                2 |
+| angry bird          |       1 |       3 |      1 |               5 |                 2 |    2 |          2 |            4 |                2 |
+| wild clubber        |       1 |       2 |      1 |               3 |                 1 |    1 |          - |            2 |                1 |
 
 Pairs outside what the user wants, a defender gone after one attack or still standing after 10:
 
@@ -146,6 +147,7 @@ Pairs outside what the user wants, a defender gone after one attack or still sta
 | captain caveman   | slingshot caveman |       1 | gone after one attack |
 | captain caveman   | raft              |       1 | gone after one attack |
 | captain caveman   | wild clubber      |       1 | gone after one attack |
+| captain caveman   | mammoth catapult  |       1 | gone after one attack |
 | slingshot caveman | settler           |       1 | gone after one attack |
 | slingshot caveman | worker            |       1 | gone after one attack |
 | slingshot caveman | angry bird        |       1 | gone after one attack |
@@ -157,6 +159,7 @@ Pairs outside what the user wants, a defender gone after one attack or still sta
 | wild clubber      | worker            |       1 | gone after one attack |
 | wild clubber      | slingshot caveman |       1 | gone after one attack |
 | wild clubber      | raft              |       1 | gone after one attack |
+| wild clubber      | mammoth catapult  |       1 | gone after one attack |
 
 A level 20 unit against a level 1 unit of the same kind, in attacks needed:
 

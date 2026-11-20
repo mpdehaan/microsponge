@@ -560,6 +560,14 @@ otherwise. What classic itself chooses, like its list of resources, is kept in
   army, anywhere within its civilization's borders, for the theme's percent of what the newer
   kind costs, a third to start. The unit keeps its level, its experience and its share of hit
   points. The order itself is free.
+- A theme gives each kind of unit a weight class: light, medium or heavy, light by default.
+  Extra dice and armor bonuses can be "versus" a weight class as well as a class of unit, like
+  air.
+- A kind of unit has separate numbers for its melee attack and its ranged attack, and some
+  kinds have only one of the two. A ranged attack has a range in tiles, ends the attacker's
+  turn, and never takes a city. The extra dice and armor bonuses versus light, medium and
+  heavy units and versus air and land units, and which classes of unit each attack can hit,
+  are set separately for the melee attack and for the ranged attack.
 
 ## Action points
 
@@ -708,6 +716,15 @@ otherwise. What classic itself chooses, like its list of resources, is kept in
 - A land unit gets a defense bonus from the terrain the land unit is on.
 - Air units have advantages.
 - Combat needs more discussion, and attacking a city needs planning in more detail.
+- A unit with a ranged attack attacks a unit it can see up to its range away, with its ranged
+  dice. The attack ends its turn and never takes a city. The unit attacked strikes back only
+  when it has a ranged attack of its own that reaches the attacker. A unit with no melee
+  attack never strikes back at a melee attacker.
+- A kind of unit can be unable to attack the units inside a city at all, like caveman's angry
+  bird.
+- An extra die can be versus a unit inside a city, like the mammoth catapult's.
+- Every unit lost is counted as lost attacking a city, attacking in the field, defending a city
+  or defending in the field.
 
 ## Turns
 

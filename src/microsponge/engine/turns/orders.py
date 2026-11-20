@@ -152,6 +152,23 @@ class Orders:
         return Combat.attack(game=game, unit=unit, x=x, y=y)
 
     @staticmethod
+    def ranged_attack(*, game, unit, x, y, led=False):
+        """Have a unit make a ranged attack on a tile within its range that its civilization sees, and return what the attack did. It takes the theme's straight attack cost, at least, and ends the unit's turn."""
+        if game.get_units().get_value(column=UnitColumn.CITY, unit=unit) != NOTHING:
+            raise ValueError(ERR_UNIT_IN_A_CITY.format(unit=unit, city=game.get_theme().CITY.NAME))
+        WorkControl.check_idle(game=game, unit=unit)
+        cost = game.get_theme().STRAIGHT_ATTACK_COST_BASE
+        Orders.check_points(game=game, unit=unit, cost=cost, led=led)
+        problem = Combat.problem_ranged(game=game, unit=unit, x=x, y=y)
+        if problem is not None:
+            raise ValueError(problem)
+        Orders.charge(game=game, unit=unit, cost=game.get_units().get_value(column=UnitColumn.ACTION_POINTS, unit=unit), led=True)
+        if not led:
+            owner = game.get_civilization(Orders.owner_of(game=game, unit=unit))
+            owner.set_policy_points(owner.get_policy_points() - cost)
+        return Combat.ranged_attack(game=game, unit=unit, x=x, y=y)
+
+    @staticmethod
     def found_city(*, game, settler, name, led=False):
         """Build a city where a settler stands, and return the city's id."""
         cost = game.get_theme().ACTION_COST_BASE

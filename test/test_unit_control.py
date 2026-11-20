@@ -105,8 +105,9 @@ class Slinger(LandUnit):
 
 
 class Harpooner(SeaUnit):
-    """A sea unit that can hit air units."""
+    """A sea unit with a melee attack that can hit air units."""
 
+    ATTACK = fixed(10)
     CAN_HIT_AIR = True
 
 
@@ -123,7 +124,13 @@ class Canoe(SeaUnit):
 
 
 class Pterodactyl(AirUnit):
-    """An aerial unit with no attack dice."""
+    """An aerial unit with no attack dice, which therefore never strikes back."""
+
+
+class Harrier(AirUnit):
+    """An aerial unit with a melee attack."""
+
+    ATTACK = fixed(10)
 
 
 class Boulder(SeaUnit):
@@ -296,7 +303,8 @@ class TestUnitControl(Refusals, unittest.TestCase):
         self.assertEqual(UnitControl.strike_back_damage(attacker=Pterodactyl, defender=Canoe), NO_DAMAGE)
         self.assertGreater(UnitControl.strike_back_damage(attacker=Pterodactyl, defender=SpearThrower), NO_DAMAGE)
         self.assertGreater(UnitControl.strike_back_damage(attacker=Pterodactyl, defender=Harpooner), NO_DAMAGE)
-        self.assertGreater(UnitControl.strike_back_damage(attacker=Clubber, defender=Pterodactyl), NO_DAMAGE)
+        self.assertGreater(UnitControl.strike_back_damage(attacker=Clubber, defender=Harrier), NO_DAMAGE)
+        self.assertEqual(UnitControl.strike_back_damage(attacker=Clubber, defender=Pterodactyl), NO_DAMAGE)
 
     def test_which_class_of_unit_each_class_can_hit_by_default(self):
         expected = {

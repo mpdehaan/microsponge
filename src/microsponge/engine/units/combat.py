@@ -21,15 +21,20 @@ from dataclasses import dataclass
 from microsponge.engine.cities.city_control import CityControl
 from microsponge.engine.kinds.catalog import NOTHING
 from microsponge.engine.kinds.kind import shown_name
-from microsponge.engine.kinds.unit_kinds import can_hit
+from microsponge.engine.civilizations.sight import Sight
+from microsponge.engine.kinds.unit_kinds import armor_against, attack_dice, can_hit, can_hit_ranged, has_melee, has_ranged
 from microsponge.engine.units.unit_column import UnitColumn
 from microsponge.engine.units.levels import NO_EXPERIENCE, Levels
 from microsponge.engine.units.unit_control import NO_BONUS, NO_DAMAGE, WHOLE, UnitControl
 from microsponge.engine.world.layer import Layer
-from microsponge.err_messages import ERR_ATTACK_OWN, ERR_CANNOT_HIT, ERR_CITY_UNDEFENDED, ERR_NOT_AT_WAR, ERR_NOTHING_TO_ATTACK
+from microsponge.err_messages import (
+    ERR_ATTACK_OWN, ERR_CANNOT_ATTACK_CITIES, ERR_CANNOT_HIT, ERR_CITY_UNDEFENDED, ERR_NO_MELEE, ERR_NO_RANGED, ERR_NOT_AT_WAR, ERR_NOT_IN_SIGHT, ERR_NOTHING_TO_ATTACK, ERR_OUT_OF_RANGE,
+)
 
 # The hit points of a unit that is gone.
 DEAD = 0
+# A ranged attack reaches at least the tiles next to the attacker.
+NEXT_TO = 1
 # The experience a unit gains for an attack it makes, beside what a kill gives, and the percent of that a unit gains for being attacked and surviving.
 # The attack experience is 2 so that half of it is a whole point, since percentages round down.
 ATTACK_EXPERIENCE = 2
@@ -61,6 +66,13 @@ class Tally:
     # Attacks the civilization's units made on a city, and attacks on the civilization's cities, by the kind of the unit attacking.
     CITY_ATTACKS = 'city_attacks'
     ATTACKS_ON_ITS_CITIES = 'attacks_on_its_cities'
+    # The civilization's units lost, by their kind: attacking a city, attacking a unit in the field, defending inside a city and defending in the field.
+    LOST_ATTACKING_CITY = 'lost_attacking_city'
+    LOST_ATTACKING_FIELD = 'lost_attacking_field'
+    LOST_DEFENDING_CITY = 'lost_defending_city'
+    LOST_DEFENDING_FIELD = 'lost_defending_field'
+
+    LOSSES = (LOST_ATTACKING_CITY, LOST_ATTACKING_FIELD, LOST_DEFENDING_CITY, LOST_DEFENDING_FIELD)
 
 
 class Combat:
@@ -85,12 +97,41 @@ class Combat:
 
     @staticmethod
     def problem_attacking(*, game, unit, x, y):
-        """Return why a unit cannot attack a tile next to it, as an error message, or None when it can.
+        """Return why a unit cannot make a melee attack on a tile next to it, as an error message, or None when it can.
 
-        There has to be a unit on the tile, or a city center with units inside, of a
-        civilization the attacker's is at war with, and the attacker's kind has to be able to
-        hit the unit that would be hit.
+        The unit's kind has to have a melee attack. There has to be a unit on the tile, or a
+        city center with units inside, of a civilization the attacker's is at war with; a kind
+        that does not attack cities cannot attack the units inside one; and the attacker's kind
+        has to be able to hit the unit that would be hit.
         """
+        kind = UnitControl.kind_of(game=game, unit=unit)
+        if not has_melee(kind):
+            return ERR_NO_MELEE.format(unit=shown_name(kind))
+        return Combat.problem_target(game=game, unit=unit, x=x, y=y, hits=can_hit)
+
+    @staticmethod
+    def problem_ranged(*, game, unit, x, y):
+        """Return why a unit cannot make a ranged attack on a tile, as an error message, or None when it can: its kind has a ranged attack, the tile is within the range and in its civilization's sight, and the target is one the ranged attack can hit, as for a melee attack."""
+        kind = UnitControl.kind_of(game=game, unit=unit)
+        if not has_ranged(kind):
+            return ERR_NO_RANGED.format(unit=shown_name(kind))
+        world, from_x, from_y = UnitControl.tile_of(game=game, unit=unit)
+        away = Combat.tiles_apart(game=game, world=world, from_x=from_x, from_y=from_y, to_x=x, to_y=y)
+        if not NEXT_TO <= away <= kind.RANGE:
+            return ERR_OUT_OF_RANGE.format(unit=shown_name(kind), range=kind.RANGE)
+        owner = game.get_units().get_value(column=UnitColumn.OWNER, unit=unit)
+        if not Sight.view(game=game, civilization=owner).can_see(world=world, x=x, y=y):
+            return ERR_NOT_IN_SIGHT.format(unit=shown_name(kind))
+        return Combat.problem_target(game=game, unit=unit, x=x, y=y, hits=lambda kind, target: can_hit_ranged(kind=kind, target=target))
+
+    @staticmethod
+    def tiles_apart(*, game, world, from_x, from_y, to_x, to_y):
+        """Return how many moves apart two tiles of a world are, going around the world the shorter way."""
+        return max(game.get_world(world).columns_apart(first=from_x, second=to_x), abs(from_y - to_y))
+
+    @staticmethod
+    def problem_target(*, game, unit, x, y, hits):
+        """Return why a unit cannot attack what is on a tile, as an error message, or None when it can, with hits(kind, target) saying whether the attack can hit a kind of unit."""
         units = game.get_units()
         world, _, _ = UnitControl.tile_of(game=game, unit=unit)
         target, city = Combat.target_at(game=game, world=world, x=x, y=y)
@@ -102,13 +143,15 @@ class Combat:
             return ERR_ATTACK_OWN.format(unit=unit)
         if not game.get_civilization(owner).is_at_war_with(other):
             return ERR_NOT_AT_WAR.format(name=game.get_civilization(other).get_name())
+        kind = UnitControl.kind_of(game=game, unit=unit)
         if target == NOTHING:
+            if not kind.ATTACKS_CITIES:
+                return ERR_CANNOT_ATTACK_CITIES.format(unit=shown_name(kind), city=game.get_theme().CITY.NAME)
             target = Combat.defender_of_city(game=game, city=city)
             if target is None:
                 return ERR_CITY_UNDEFENDED.format(name=game.get_city(city).get_name(), city=game.get_theme().CITY.NAME)
-        kind = UnitControl.kind_of(game=game, unit=unit)
         hit = UnitControl.kind_of(game=game, unit=target)
-        if not can_hit(kind=kind, target=hit):
+        if not hits(kind=kind, target=hit):
             return ERR_CANNOT_HIT.format(unit=shown_name(kind), target=shown_name(hit))
         return None
 
@@ -122,42 +165,88 @@ class Combat:
     def striker_of_city(*, game, city, attacker):
         """Return the id of the unit inside a city that strikes back at an attacker, the one with the strongest dice on average among those that can hit the attacker, or None."""
         kind = UnitControl.kind_of(game=game, unit=attacker)
-        able = [unit for unit in game.get_city(city).get_units() if can_hit(kind=UnitControl.kind_of(game=game, unit=unit), target=kind)]
+        able = [unit for unit in game.get_city(city).get_units() if has_melee(UnitControl.kind_of(game=game, unit=unit)) and can_hit(kind=UnitControl.kind_of(game=game, unit=unit), target=kind)]
         return max(able, key=lambda unit: UnitControl.average_roll(attacker=UnitControl.kind_of(game=game, unit=unit), defender=kind), default=None)
 
     @staticmethod
     def attack(*, game, unit, x, y):
-        """Have a unit attack the tile next to it, and return what the attack did. The order checks and the action points are Orders' business."""
+        """Have a unit make a melee attack on the tile next to it, and return what the attack did. The order checks and the action points are Orders' business."""
         problem = Combat.problem_attacking(game=game, unit=unit, x=x, y=y)
         if problem is not None:
             raise ValueError(problem)
+        return Combat.resolve(game=game, unit=unit, x=x, y=y, ranged=False)
+
+    @staticmethod
+    def ranged_attack(*, game, unit, x, y):
+        """Have a unit make a ranged attack on a tile within its range, and return what the attack did. A ranged attack never takes a city, and the target strikes back only with a ranged attack of its own that reaches the attacker."""
+        problem = Combat.problem_ranged(game=game, unit=unit, x=x, y=y)
+        if problem is not None:
+            raise ValueError(problem)
+        return Combat.resolve(game=game, unit=unit, x=x, y=y, ranged=True)
+
+    @staticmethod
+    def ranged_striker(*, game, candidates, attacker):
+        """Return the unit among some that strikes back at a ranged attacker, the one with the strongest ranged dice among those whose ranged attack reaches and can hit the attacker, or None."""
+        world, x, y = UnitControl.tile_of(game=game, unit=attacker)
+        kind = UnitControl.kind_of(game=game, unit=attacker)
+
+        def reaches(unit):
+            striker = UnitControl.kind_of(game=game, unit=unit)
+            _, from_x, from_y = UnitControl.tile_of(game=game, unit=unit)
+            return can_hit_ranged(kind=striker, target=kind) and Combat.tiles_apart(game=game, world=world, from_x=from_x, from_y=from_y, to_x=x, to_y=y) <= striker.RANGE
+
+        able = [unit for unit in candidates if UnitControl.kind_of(game=game, unit=unit).STRIKES_BACK and reaches(unit)]
+        return max(able, key=lambda unit: attack_dice(kind=UnitControl.kind_of(game=game, unit=unit), target=kind, ranged=True).average(), default=None)
+
+    @staticmethod
+    def resolve(*, game, unit, x, y, ranged):
+        """Resolve an attack, melee or ranged, on a tile: the roll through the defender's armor, the strike back, the experience, the tallies, and who has lost. Return what the attack did."""
         world, _, _ = UnitControl.tile_of(game=game, unit=unit)
         target, city = Combat.target_at(game=game, world=world, x=x, y=y)
-        if target != NOTHING:
+        in_city = target == NOTHING
+        attacking = UnitControl.kind_of(game=game, unit=unit)
+        if not in_city:
             defender = target
-            striker = target
+            candidates = [target]
             bonus = NO_BONUS
         else:
             defender = Combat.defender_of_city(game=game, city=city)
-            striker = Combat.striker_of_city(game=game, city=city, attacker=unit)
-            bonus = CityControl.armor_bonus(game=game, city=city, against=UnitControl.kind_of(game=game, unit=unit))
+            candidates = game.get_city(city).get_units()
+            bonus = CityControl.armor_bonus(game=game, city=city, against=attacking)
+        if ranged:
+            striker = Combat.ranged_striker(game=game, candidates=candidates, attacker=unit)
+        else:
+            striker = target if not in_city else Combat.striker_of_city(game=game, city=city, attacker=unit)
+        bonus += armor_against(defender=UnitControl.kind_of(game=game, unit=defender), attacker=attacking)
         attacker_kind = Combat.owner_and_kind(game=game, unit=unit)
+        defender_kind = Combat.owner_and_kind(game=game, unit=defender)
         striker_kind = None if striker is None else Combat.owner_and_kind(game=game, unit=striker)
-        roll = UnitControl.roll_against(game=game, unit=unit, target=defender)
+        roll = UnitControl.roll_against(game=game, unit=unit, target=defender, in_city=in_city, ranged=ranged)
         damage = UnitControl.mitigated(roll=roll, armor_class=UnitControl.armor_class_of(game=game, unit=defender, bonus=bonus))
         prizes = {defender: Combat.kill_experience(game=game, unit=defender), unit: Combat.kill_experience(game=game, unit=unit)}
         defender_killed = Combat.hurt(game=game, unit=defender, damage=damage)
         strike_back = NO_DAMAGE
         attacker_killed = False
         if striker is not None and not (defender_killed and striker == defender):
-            strike_back = Combat.strike_back(game=game, attacker=unit, striker=striker)
+            strike_back = Combat.strike_back(game=game, attacker=unit, striker=striker, ranged=ranged)
             attacker_killed = Combat.hurt(game=game, unit=unit, damage=strike_back)
         Combat.reward(game=game, attacker=unit, defender=defender, striker=striker, prizes=prizes, defender_killed=defender_killed, attacker_killed=attacker_killed)
         Combat.tally(game=game, attacker=attacker_kind, striker=striker_kind, defender_killed=defender_killed, attacker_killed=attacker_killed)
-        if city != NOTHING:
+        Combat.tally_losses(game=game, attacker=attacker_kind, defender=defender_kind, in_city=in_city, defender_killed=defender_killed, attacker_killed=attacker_killed)
+        if in_city:
             Combat.tally_city_attack(game=game, attacker=attacker_kind, city=city)
         Combat.settle_losses(game)
         return AttackOutcome(defender=defender, damage=damage, strike_back=strike_back, defender_killed=defender_killed, attacker_killed=attacker_killed, striker=striker if strike_back else None)
+
+    @staticmethod
+    def tally_losses(*, game, attacker, defender, in_city, defender_killed, attacker_killed):
+        """Count a unit lost for its civilization and kind: the attacker lost attacking a city or in the field, and the defender lost defending a city or in the field."""
+        if attacker_killed:
+            owner, kind = attacker
+            game.get_civilization(owner).add_to_tally(tally=Tally.LOST_ATTACKING_CITY if in_city else Tally.LOST_ATTACKING_FIELD, kind=kind)
+        if defender_killed:
+            owner, kind = defender
+            game.get_civilization(owner).add_to_tally(tally=Tally.LOST_DEFENDING_CITY if in_city else Tally.LOST_DEFENDING_FIELD, kind=kind)
 
     @staticmethod
     def owner_and_kind(*, game, unit):
@@ -184,15 +273,18 @@ class Combat:
         game.get_civilization(game.get_city(city).get_owner()).add_to_tally(tally=Tally.ATTACKS_ON_ITS_CITIES, kind=kind)
 
     @staticmethod
-    def strike_back(*, game, attacker, striker):
-        """Return the damage a unit that was attacked deals its attacker by striking back: its kind's percent of its own roll, through the attacker's armor, or nothing when its kind does not strike back at the attacker."""
-        roll = UnitControl.strike_back_roll(
-            attacker=UnitControl.kind_of(game=game, unit=attacker), defender=UnitControl.kind_of(game=game, unit=striker),
-            roll=UnitControl.roll_against(game=game, unit=striker, target=attacker),
-        )
+    def strike_back(*, game, attacker, striker, ranged=False):
+        """Return the damage a unit that was attacked deals its attacker by striking back: its kind's percent of its own roll, melee or ranged as the attack was, through the attacker's armor, or nothing when its kind does not strike back at the attacker."""
+        attacking = UnitControl.kind_of(game=game, unit=attacker)
+        striking = UnitControl.kind_of(game=game, unit=striker)
+        if ranged:
+            roll = UnitControl.roll_against(game=game, unit=striker, target=attacker, ranged=True) * striking.STRIKE_BACK_PERCENT // WHOLE
+        else:
+            roll = UnitControl.strike_back_roll(attacker=attacking, defender=striking, roll=UnitControl.roll_against(game=game, unit=striker, target=attacker))
         if roll is None:
             return NO_DAMAGE
-        return UnitControl.mitigated(roll=roll, armor_class=UnitControl.armor_class_of(game=game, unit=attacker))
+        bonus = armor_against(defender=attacking, attacker=striking)
+        return UnitControl.mitigated(roll=roll, armor_class=UnitControl.armor_class_of(game=game, unit=attacker, bonus=bonus))
 
     @staticmethod
     def kill_experience(*, game, unit):

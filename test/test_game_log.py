@@ -45,7 +45,7 @@ from microsponge.support.game_log_page import (
     ALL_UNITS_CHARTS, BUILDING_CHARTS, CITY_CHARTS, CONTROL_POINT_CHARTS, MAIN_CHARTS, MILITARY_CHARTS, ORDER_SPAN_TURNS, PLACEHOLDER, SCORE_PART_CHARTS, Content, PageKey, Tab, given_in_spans,
     page_data, page_path, page_text, spans_of, write_page,
 )
-from microsponge.support.game_log_report import SCORE_PARTS, built_table, scores_table, fighting_table, forces_table, last_of, name_of, winner_line, made_table, orders_table, ranked, report_lines, series_of, strongest_turn, tables, timelines, title_of
+from microsponge.support.game_log_report import SCORE_PARTS, built_table, scores_table, fighting_table, forces_table, losses_table, last_of, name_of, winner_line, made_table, orders_table, ranked, report_lines, series_of, strongest_turn, tables, timelines, title_of
 from microsponge.support.scripted_game import play, started_game
 from microsponge.support.theme_tools import FAILED, SUCCEEDED
 from microsponge.themes.caveman.buildings import Granary
@@ -348,7 +348,7 @@ class TestGameLogReport(unittest.TestCase):
             for chart in tab[PageKey.CHARTS]:
                 self.assertEqual(len(chart[PageKey.SERIES]), THREE)
         self.assertEqual(len(page[PageKey.TABLES]), len(tables(self.data)))
-        expected = {Tab.UNITS: (made_table(self.data), fighting_table(self.data), forces_table(self.data)), Tab.BUILDINGS: (built_table(self.data),), Tab.ORDERS: (orders_table(self.data),)}
+        expected = {Tab.UNITS: (made_table(self.data), fighting_table(self.data), losses_table(self.data), forces_table(self.data)), Tab.BUILDINGS: (built_table(self.data),), Tab.ORDERS: (orders_table(self.data),)}
         for tab, shown_tables in expected.items():
             self.assertEqual([shown[PageKey.TITLE] for shown in tab_called(page=page, tab=tab)[PageKey.TABLES]], [table.title for table in shown_tables])
         made = made_table(self.data)

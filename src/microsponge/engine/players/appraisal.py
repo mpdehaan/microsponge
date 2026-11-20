@@ -23,8 +23,7 @@ are constants on `ComputerPlayer`, which a theme's player may change.
 """
 
 from microsponge.engine.kinds.building import Wonder
-from microsponge.engine.kinds.dice import NO_DICE
-from microsponge.engine.kinds.unit_kinds import SettlerUnit, attack_dice, can_hit
+from microsponge.engine.kinds.unit_kinds import SettlerUnit, attack_dice, can_hit, can_hit_ranged, has_melee, has_ranged
 
 NOTHING_WORTH = 0
 # A kind that costs nothing is counted as costing this much, so that its worth can be divided by its cost.
@@ -37,7 +36,12 @@ def total_cost(kind):
 
 
 def can_fight(kind):
-    return kind.ATTACK is not NO_DICE
+    return has_melee(kind) or has_ranged(kind)
+
+
+def hits(*, attacker, target):
+    """Return whether a kind of unit can hit another, with its melee attack or its ranged attack."""
+    return (has_melee(attacker) and can_hit(kind=attacker, target=target)) or can_hit_ranged(kind=attacker, target=target)
 
 
 class Appraisal:
@@ -47,8 +51,11 @@ class Appraisal:
 
     @staticmethod
     def strength(kind):
-        """Return how strong a kind of unit is in a fight: the average of its attack dice times its hit points."""
-        return attack_dice(kind=kind, target=kind).average() * kind.HIT_POINTS if can_fight(kind) else NOTHING_WORTH
+        """Return how strong a kind of unit is in a fight: the average of its stronger attack, melee or ranged, times its hit points."""
+        if not can_fight(kind):
+            return NOTHING_WORTH
+        best = max(attack_dice(kind=kind, target=kind, ranged=ranged).average() for ranged in (False, True))
+        return best * kind.HIT_POINTS
 
     @staticmethod
     def unit_worth(kind):
@@ -76,13 +83,19 @@ class Appraisal:
         attackers = [enemy for enemy in enemies if can_fight(enemy)]
         if not attackers:
             return []
-        return Appraisal.ranked_units([kind for kind in theme.UNITS if can_fight(kind) and not any(can_hit(kind=enemy, target=kind) for enemy in attackers)])
+        return Appraisal.ranked_units([kind for kind in theme.UNITS if can_fight(kind) and not any(hits(attacker=enemy, target=kind) for enemy in attackers)])
 
     @staticmethod
     def counters_to(*, theme, enemy):
         """Return the kinds of unit that can hit an enemy kind, those that roll most against it for their cost first."""
         hitting = [kind for kind in theme.UNITS if can_fight(kind) and can_hit(kind=kind, target=enemy)]
         return sorted(hitting, key=lambda kind: attack_dice(kind=kind, target=enemy).average() / total_cost(kind), reverse=True)
+
+    @staticmethod
+    def siege(theme):
+        """Return the kinds of unit with a ranged attack that can attack the units inside a city, those that roll most against units inside a city first."""
+        kinds = [kind for kind in theme.UNITS if has_ranged(kind) and kind.ATTACKS_CITIES]
+        return sorted(kinds, key=lambda kind: attack_dice(kind=kind, target=kind, in_city=True, ranged=True).average() / total_cost(kind), reverse=True)
 
     @staticmethod
     def engineers(theme):

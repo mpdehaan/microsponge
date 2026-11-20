@@ -27,10 +27,10 @@ import webbrowser
 from pathlib import Path
 
 from microsponge.support.game_log import Key, Series
-from microsponge.support.game_log_report import built_table, civilization_ids, fighting_table, forces_table, winner_line, made_table, name_of, orders_table, series_of, tables, timelines, title_of
+from microsponge.support.game_log_report import built_table, civilization_ids, fighting_table, forces_table, losses_table, winner_line, made_table, name_of, orders_table, series_of, tables, timelines, title_of
 from microsponge.ui_strings import (
     MSG_PAGE_CHART_BUILDINGS, MSG_PAGE_CHART_CITIES, MSG_PAGE_CHART_CITIZENS, MSG_PAGE_CHART_COMMAND, MSG_PAGE_CHART_COMMAND_TAKEN, MSG_PAGE_CHART_DEVELOPMENT_SCORE, MSG_PAGE_CHART_FOOD_STORED, MSG_PAGE_CHART_HIT_POINTS,
-    MSG_PAGE_CHART_IMPROVEMENTS_OF_KIND, MSG_PAGE_CHART_INSIDE, MSG_PAGE_CHART_LEVEL, MSG_PAGE_CHART_MILITARY_SCORE, MSG_PAGE_CHART_POLICY, MSG_PAGE_CHART_POLICY_TAKEN,
+    MSG_PAGE_CHART_IMPROVEMENTS_OF_KIND, MSG_PAGE_CHART_INSIDE, MSG_PAGE_CHART_LOST_ATTACKING_CITY, MSG_PAGE_CHART_LOST_ATTACKING_FIELD, MSG_PAGE_CHART_LOST_DEFENDING_CITY, MSG_PAGE_CHART_LOST_DEFENDING_FIELD, MSG_PAGE_CHART_LEVEL, MSG_PAGE_CHART_MILITARY_SCORE, MSG_PAGE_CHART_POLICY, MSG_PAGE_CHART_POLICY_TAKEN,
     MSG_PAGE_CHART_POPULATION_SCORE, MSG_PAGE_CHART_SCIENCE_SCORE, MSG_PAGE_CHART_SCORE, MSG_PAGE_CHART_STRENGTH, MSG_PAGE_CHART_TECHNOLOGIES, MSG_PAGE_CHART_UNITS, MSG_PAGE_CHART_UNITS_OF_KIND, MSG_PAGE_CHART_WARS,
     MSG_PAGE_CHART_BANK_OF, MSG_PAGE_CHART_ORDERS_OF_KIND, MSG_PAGE_NO_CHARTS, MSG_PAGE_TAB_BUILDINGS, MSG_PAGE_TAB_ORDERS, MSG_PAGE_TURNS_FROM_TO, MSG_PAGE_NO_IMPROVEMENTS, MSG_PAGE_TAB_CITIES, MSG_PAGE_TAB_CONTROL_POINTS, MSG_PAGE_TAB_IMPROVEMENTS, MSG_PAGE_TAB_SCORE, MSG_PAGE_TAB_TABLES,
     MSG_PAGE_TAB_TIMELINES, MSG_PAGE_TAB_UNITS, MSG_PAGE_TURN,
@@ -68,6 +68,10 @@ ORDER_SPAN_TURNS = 10
 # The units tab has the units in all, then a chart for each kind of unit, then these.
 ALL_UNITS_CHARTS = ((Series.UNITS, MSG_PAGE_CHART_UNITS),)
 MILITARY_CHARTS = (
+    (Series.LOST_ATTACKING_CITY, MSG_PAGE_CHART_LOST_ATTACKING_CITY),
+    (Series.LOST_ATTACKING_FIELD, MSG_PAGE_CHART_LOST_ATTACKING_FIELD),
+    (Series.LOST_DEFENDING_CITY, MSG_PAGE_CHART_LOST_DEFENDING_CITY),
+    (Series.LOST_DEFENDING_FIELD, MSG_PAGE_CHART_LOST_DEFENDING_FIELD),
     (Series.HIT_POINTS, MSG_PAGE_CHART_HIT_POINTS),
     (Series.INSIDE, MSG_PAGE_CHART_INSIDE),
     (Series.LEVEL, MSG_PAGE_CHART_LEVEL),
@@ -79,7 +83,7 @@ CONTROL_POINT_CHARTS = (
     (Series.COMMAND_TAKEN, MSG_PAGE_CHART_COMMAND_TAKEN),
 )
 # Counts that change by whole steps are drawn as steps, and totals that grow every turn as lines.
-SMOOTH = (Series.FOOD_STORED, Series.SCORE, Series.MILITARY_SCORE, Series.SCIENCE_SCORE, Series.POPULATION_SCORE, Series.DEVELOPMENT_SCORE, Series.WEALTH, Series.STRENGTH, Series.HIT_POINTS, Series.LEVEL)
+SMOOTH = (Series.LOST_ATTACKING_CITY, Series.LOST_ATTACKING_FIELD, Series.LOST_DEFENDING_CITY, Series.LOST_DEFENDING_FIELD, Series.FOOD_STORED, Series.SCORE, Series.MILITARY_SCORE, Series.SCIENCE_SCORE, Series.POPULATION_SCORE, Series.DEVELOPMENT_SCORE, Series.WEALTH, Series.STRENGTH, Series.HIT_POINTS, Series.LEVEL)
 
 
 class PageKey:
@@ -211,7 +215,7 @@ def tabs_of(data):
     return [
         tab_of(tab=Tab.SCORE, name=MSG_PAGE_TAB_SCORE, charts=(*charts_of(data=data, charts=MAIN_CHARTS, wide=True), *charts_of(data=data, charts=SCORE_PART_CHARTS))),
         tab_of(tab=Tab.CITIES, name=MSG_PAGE_TAB_CITIES, charts=(*charts_of(data=data, charts=CITY_CHARTS), *kind_charts(data=data, key=Key.BANKS, title=MSG_PAGE_CHART_BANK_OF, stepped=False))),
-        tab_of(tab=Tab.UNITS, name=MSG_PAGE_TAB_UNITS, charts=units, tab_tables=(made_table(data), fighting_table(data), forces_table(data))),
+        tab_of(tab=Tab.UNITS, name=MSG_PAGE_TAB_UNITS, charts=units, tab_tables=(made_table(data), fighting_table(data), losses_table(data), forces_table(data))),
         tab_of(tab=Tab.BUILDINGS, name=MSG_PAGE_TAB_BUILDINGS, charts=charts_of(data=data, charts=BUILDING_CHARTS), tab_tables=(built_table(data),)),
         tab_of(tab=Tab.IMPROVEMENTS, name=MSG_PAGE_TAB_IMPROVEMENTS, charts=improvements, note=None if improvements else MSG_PAGE_NO_IMPROVEMENTS.format(city=data[Key.CITY_WORD])),
         tab_of(tab=Tab.ORDERS, name=MSG_PAGE_TAB_ORDERS, charts=order_charts(data), tab_tables=(orders_table(data),)),

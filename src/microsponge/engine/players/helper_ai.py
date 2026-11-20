@@ -52,6 +52,11 @@ class HelperAI:
         return Orders.attack(game=game, unit=unit, x=x, y=y, led=led)
 
     @staticmethod
+    def ranged_attack(*, game, unit, x, y, led=False):
+        """Have a unit make a ranged attack on a tile within its range."""
+        return Orders.ranged_attack(game=game, unit=unit, x=x, y=y, led=led)
+
+    @staticmethod
     def found_city(*, game, settler, name, led=False):
         """Have a settler build a city where the settler stands, and return the city's id."""
         return Orders.found_city(game=game, settler=settler, name=name, led=led)

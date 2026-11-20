@@ -19,6 +19,7 @@
 from microsponge.engine.kinds.domain import Domain
 from microsponge.engine.kinds.dice import NO_DICE
 from microsponge.engine.kinds.kind import Kind, saved_name
+from microsponge.engine.kinds.weight import Versus, Weight
 from microsponge.err_messages import ERR_NO_DOMAIN
 
 # The armor class of a unit with no armor, which lets every damage roll land whole.
@@ -33,8 +34,19 @@ class UnitKind(Kind):
     ATTACK = NO_DICE
     ARMOR_CLASS = NO_ARMOR
     HIT_POINTS = 10
-    # The extra dice the kind rolls against a class of unit, like a slingshot against air units: {Domain.AIR: 1}.
+    # The extra dice the kind's melee attack rolls versus a class of unit, a weight class or a unit inside a city, like a slingshot against air units: {Domain.AIR: 1}.
     EXTRA_DICE = {}
+    # The kind's ranged attack, a melee attack's twin for a target up to RANGE tiles away, which ends the attacker's turn and never takes a city: its dice, its range, its extra dice, and the classes of unit it can hit.
+    RANGED_ATTACK = NO_DICE
+    RANGE = 0
+    RANGED_EXTRA_DICE = {}
+    RANGED_HITS = (Domain.LAND, Domain.SEA)
+    # How heavy the kind is, which bonuses can be versus.
+    WEIGHT = Weight.LIGHT
+    # By how much the kind's armor class is better versus an attacker of a class of unit or a weight class: {Weight.LIGHT: 2}.
+    ARMOR_BONUS_AGAINST = {}
+    # Whether a unit of this kind can attack the units inside a city.
+    ATTACKS_CITIES = True
     # Whether a unit of this kind attacks back when it is attacked, and with what percent of its damage roll.
     STRIKES_BACK = True
     STRIKE_BACK_PERCENT = 50
@@ -113,9 +125,34 @@ class SettlerUnit(LandUnit):
     CITIZENS = 1
 
 
-def attack_dice(*, kind, target):
-    """Return the dice a kind of unit rolls against another kind: its attack dice, with the extra dice it has against the other's class of unit."""
-    return kind.ATTACK.with_extra(dice=kind.EXTRA_DICE.get(target.DOMAIN, NO_EXTRA_DICE))
+def versus_keys(*, target, in_city=False):
+    """Return what a bonus can be versus for a target: its class of unit, its weight class, and being inside a city when it is."""
+    return (target.DOMAIN, target.WEIGHT, *((Versus.IN_CITY,) if in_city else ()))
+
+
+def attack_dice(*, kind, target, in_city=False, ranged=False):
+    """Return the dice a kind of unit rolls against another kind, melee or ranged: the attack's dice, with the attack's extra dice versus the other's class of unit, its weight class and being inside a city."""
+    dice = kind.RANGED_ATTACK if ranged else kind.ATTACK
+    extra = kind.RANGED_EXTRA_DICE if ranged else kind.EXTRA_DICE
+    return dice.with_extra(dice=sum(extra.get(key, NO_EXTRA_DICE) for key in versus_keys(target=target, in_city=in_city)))
+
+
+def armor_against(*, defender, attacker):
+    """Return by how much a defending kind's armor class is better versus an attacking kind, by the attacker's class of unit and weight class."""
+    return sum(defender.ARMOR_BONUS_AGAINST.get(key, NO_EXTRA_DICE) for key in versus_keys(target=attacker))
+
+
+def has_melee(kind):
+    return kind.ATTACK is not NO_DICE
+
+
+def has_ranged(kind):
+    return kind.RANGED_ATTACK is not NO_DICE and kind.RANGE > 0
+
+
+def can_hit_ranged(*, kind, target):
+    """Return whether a kind of unit's ranged attack can hit another kind, by the class of unit the target is."""
+    return has_ranged(kind) and target.DOMAIN in kind.RANGED_HITS
 
 
 def can_hit(*, kind, target):

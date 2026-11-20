@@ -23,6 +23,7 @@ names the columns left out, so that a table stays as narrow as the theme.
 from microsponge.engine.kinds.building import Wonder
 from microsponge.engine.kinds.domain import Domain
 from microsponge.engine.kinds.kind import shown_name
+from microsponge.engine.kinds.unit_kinds import has_ranged
 from microsponge.support.tables import shown_amounts, shown_amounts_by_kind, shown_flag, shown_kinds, shown_number, table_lines
 from microsponge.ui_strings import (
     MSG_BUILDINGS_HEADING, MSG_BUILDINGS_TITLE, MSG_KIND_BUILDING, MSG_KIND_TECHNOLOGY, MSG_KIND_WONDER, MSG_LIST_SEPARATOR, MSG_NO_BUILDINGS, MSG_NO_TECHNOLOGIES,
@@ -121,7 +122,9 @@ def unit_row(unit):
         shown_number(unit.CITIZENS), unit.ATTACK.shown() if unit.ATTACK.most() else shown_number(0), shown_extra_dice(unit.EXTRA_DICE), str(unit.ARMOR_CLASS), str(unit.HIT_POINTS), str(unit.EXPERIENCE_WORTH),
         str(unit.ACTION_POINTS), shown_number(unit.HEAL), shown_number(unit.CITY_HEAL), shown_number(unit.STRIKE_BACK_PERCENT if unit.STRIKES_BACK else 0),
         cannot_hit(unit), shown_flag(unit.TAKES_CITIES), shown_flag(unit.BYPASSES_WALLS), shown_kinds(unit.BUILDS),
-        shown_kinds(() if unit.OBSOLETED_BY is None else (unit.OBSOLETED_BY,)),
+        shown_kinds(() if unit.OBSOLETED_BY is None else (unit.OBSOLETED_BY,)), unit.WEIGHT,
+        unit.RANGED_ATTACK.shown() if has_ranged(unit) else shown_number(0), shown_number(unit.RANGE if has_ranged(unit) else 0), shown_extra_dice(unit.RANGED_EXTRA_DICE),
+        shown_flag(unit.ATTACKS_CITIES), shown_extra_dice(unit.ARMOR_BONUS_AGAINST),
     ]
 
 

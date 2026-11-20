@@ -85,6 +85,12 @@ def strike_back_range(*, attacker, defender):
     return UnitControl.mitigated(roll=least, armor_class=armor), UnitControl.mitigated(roll=most, armor_class=armor)
 
 
+class Hawk(AngryBird):
+    """An air unit like the angry bird that can attack the units inside a city."""
+
+    ATTACKS_CITIES = True
+
+
 class Grunt(Clubber):
     """A clubber that does not strike back."""
 
@@ -111,7 +117,7 @@ class Palisade(Building):
     WALLS = True
 
 
-MEEK_CAVEMAN = later_caveman({Category.UNITS: (*Caveman.UNITS, Grunt, Rockthrower, Turtle), Category.BUILDINGS: (*Caveman.BUILDINGS, Palisade)})
+MEEK_CAVEMAN = later_caveman({Category.UNITS: (*Caveman.UNITS, Grunt, Rockthrower, Turtle, Hawk), Category.BUILDINGS: (*Caveman.BUILDINGS, Palisade)})
 
 
 class CombatCase(Refusals, unittest.TestCase):
@@ -334,6 +340,8 @@ class CityCombatCase(CombatCase):
 
 class TestAttackingACity(CityCombatCase):
 
+    THEME = MEEK_CAVEMAN
+
     def test_an_attack_on_a_city_is_counted_for_the_attacking_kind_and_for_the_civilization_the_city_belongs_to(self):
         self.put_inside(Clubber)
         raider = self.game.get_catalog().get_id(category=Category.UNITS, kind=UnitControl.kind_of(game=self.game, unit=self.raider))
@@ -366,13 +374,13 @@ class TestAttackingACity(CityCombatCase):
         self.assertEqual(Combat.defender_of_city(game=self.game, city=self.city), clubber)
         self.assertEqual(Combat.striker_of_city(game=self.game, city=self.city, attacker=self.raider), clubber)
         bird = self.put_inside(AngryBird)
-        raider = self.place(kind=AngryBird, civilization=SECOND_CIVILIZATION, x=self.east[0], y=self.east[1] + ONE_STEP)
+        raider = self.place(kind=Hawk, civilization=SECOND_CIVILIZATION, x=self.east[0], y=self.east[1] + ONE_STEP)
         self.assertEqual(Combat.striker_of_city(game=self.game, city=self.city, attacker=raider), bird)
         x, y = self.middle
         outcome = Orders.attack(game=self.game, unit=raider, x=x + 2, y=y + 1)
         self.assertEqual((outcome.defender, outcome.striker), (clubber, bird))
-        self.assertWithin(value=outcome.strike_back, bounds=strike_back_range(attacker=AngryBird, defender=AngryBird))
-        self.assertEqual(self.hit_points(raider), AngryBird.HIT_POINTS - outcome.strike_back)
+        self.assertWithin(value=outcome.strike_back, bounds=strike_back_range(attacker=Hawk, defender=AngryBird))
+        self.assertEqual(self.hit_points(raider), Hawk.HIT_POINTS - outcome.strike_back)
 
     def test_a_watchtower_makes_the_armor_class_of_every_unit_inside_better(self):
         clubber = self.put_inside(Clubber)

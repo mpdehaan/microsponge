@@ -18,11 +18,12 @@
 
 from microsponge.engine.kinds.dice import Dice
 from microsponge.engine.kinds.domain import Domain
+from microsponge.engine.kinds.weight import Versus, Weight
 from microsponge.engine.kinds.unit_kinds import AirUnit, LandUnit, SeaUnit, SettlerUnit, UnitKind
 from microsponge.themes.caveman.buildings import Barracks, Harbor
 from microsponge.themes.caveman.improvements import Clearing, Farm
 from microsponge.themes.caveman.resources import Currency, Poppies, Wood
-from microsponge.themes.caveman.technologies import Agriculture, ChurchOfTheCaveBear, Clubs
+from microsponge.themes.caveman.technologies import Agriculture, Carpentry, ChurchOfTheCaveBear, Clubs
 
 
 class CavemanUnit(UnitKind):
@@ -40,6 +41,7 @@ class Settler(CavemanUnit, SettlerUnit):
 
 class CaptainCaveman(CavemanUnit, LandUnit):
     REQUIRES = (Barracks,)
+    WEIGHT = Weight.HEAVY
     COST = {Currency: 180}
     BUILD_TURNS = 6
     ATTACK = Dice(count=5, sides=6)
@@ -73,6 +75,7 @@ class SlingshotCaveman(CavemanUnit, LandUnit):
 
 class WildClubber(CavemanUnit, LandUnit):
     REQUIRES = (ChurchOfTheCaveBear, Poppies)
+    WEIGHT = Weight.MEDIUM
     COST = {Currency: 60}
     BUILD_TURNS = 5
     ATTACK = Dice(count=3, sides=6)
@@ -104,5 +107,22 @@ class AngryBird(CavemanUnit, AirUnit):
     ATTACK = Dice(count=2, sides=4)
     HIT_POINTS = 6
     TAKES_CITIES = False
+    ATTACKS_CITIES = False
     ACTION_POINTS = 6
     VISION = 7
+
+
+class MammothCatapult(CavemanUnit, LandUnit):
+    REQUIRES = (Carpentry,)
+    WEIGHT = Weight.HEAVY
+    COST = {Currency: 120, Wood: 20}
+    BUILD_TURNS = 5
+    RANGED_ATTACK = Dice(count=4, sides=6)
+    RANGE = 3
+    RANGED_EXTRA_DICE = {Versus.IN_CITY: 2}
+    ARMOR_CLASS = 10
+    HIT_POINTS = 8
+    EXPERIENCE_WORTH = 3
+    STRIKES_BACK = False
+    TAKES_CITIES = False
+    BYPASSES_WALLS = True

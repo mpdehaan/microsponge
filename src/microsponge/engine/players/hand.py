@@ -35,6 +35,7 @@ from microsponge.engine.civilizations.research import Research
 from microsponge.engine.civilizations.sight import Sight
 from microsponge.engine.kinds.catalog import NOTHING
 from microsponge.engine.kinds.category import Category
+from microsponge.engine.kinds.unit_kinds import has_ranged
 from microsponge.engine.orders.order import BuildOrder, BuildTargetOrder, ExpandOrder, GarrisonOrder, ImproveOrder, MarchOrder, RaiseOrder, ResearchOrder, ResourcesPolicyOrder, RetireOrder, SettlerOrder, UpgradeOrder, WorkOrder
 from microsponge.engine.orders.order_control import OrderControl
 from microsponge.engine.orders.referee import Referee
@@ -44,6 +45,7 @@ from microsponge.engine.players.appraisal import Appraisal
 from microsponge.engine.players.helper_ai import HelperAI
 from microsponge.engine.players.knowledge import Knowledge
 from microsponge.engine.turns.orders import Orders
+from microsponge.engine.units.combat import Combat
 from microsponge.engine.units.unit_column import UnitColumn
 from microsponge.engine.units.unit_control import UnitControl
 from microsponge.engine.units.upgrades import Upgrades
@@ -574,9 +576,32 @@ class Hand:
             return False
         if inside != NOTHING:
             return cls.leave_city(game=game, unit=unit)
+        if has_ranged(UnitControl.kind_of(game=game, unit=unit)) and cls.shoot(game=game, unit=unit, civilization=civilization, what=what):
+            return False
         if cls.fight_next_to(game=game, unit=unit, civilization=civilization, what=what):
             return True
         return cls.walk_to_city(game=game, unit=unit, civilization=civilization, city=what.target.city, at_peace=False)
+
+    @classmethod
+    def shoot(cls, *, game, unit, civilization, what):
+        """Have a unit with a ranged attack shoot at the city the march order names when it is within range, or else at an enemy unit within range unless the order says to ignore units, and return whether it did. A ranged attack ends the unit's turn."""
+        kind = UnitControl.kind_of(game=game, unit=unit)
+        world, x, y = UnitControl.tile_of(game=game, unit=unit)
+        target = game.get_city(what.target.city)
+        tiles = [(target.get_x(), target.get_y())]
+        if not what.ignore_units:
+            view = Sight.view(game=game, civilization=civilization)
+            enemies = Knowledge.enemies_of(game=game, civilization=civilization)
+            land = game.get_world(world)
+            for dy in range(-kind.RANGE, kind.RANGE + 1):
+                for dx in range(-kind.RANGE, kind.RANGE + 1):
+                    other = view.unit_on(world=world, x=land.column(x + dx), y=y + dy) if 0 <= y + dy < land.get_height() else NOTHING
+                    if other != NOTHING and game.get_units().get_value(column=UnitColumn.OWNER, unit=other) in enemies:
+                        tiles.append((land.column(x + dx), y + dy))
+        for to_x, to_y in tiles:
+            if Combat.problem_ranged(game=game, unit=unit, x=to_x, y=to_y) is None:
+                return try_order(lambda: HelperAI.ranged_attack(game=game, unit=unit, x=to_x, y=to_y, led=True))
+        return False
 
     @classmethod
     def fight_next_to(cls, *, game, unit, civilization, what):

@@ -31,7 +31,7 @@ from microsponge.support.game_log import NEVER, WHATS, Ending, Group, Key, Serie
 from microsponge.support.game_story import SENTENCES
 from microsponge.support.tables import BLANK_LINE, shown_flag, shown_number, table_lines
 from microsponge.ui_strings import (
-    MSG_LOG_BUILDINGS_HEADING, MSG_LOG_BUILDINGS_TITLE, MSG_LOG_BUILT_HEADING, MSG_LOG_BUILT_TITLE, MSG_LOG_MADE_HEADING, MSG_LOG_MADE_TITLE, MSG_LOG_ORDERS_HEADING, MSG_LOG_ORDERS_TITLE, MSG_NONE_MARK, MSG_LOG_CITIES_HEADING, MSG_LOG_CITIES_TITLE, MSG_LOG_FIGHTING_HEADING, MSG_LOG_FIGHTING_TITLE, MSG_LOG_FORCES_HEADING, MSG_LOG_FORCES_TITLE, MSG_LOG_POINTS_HEADING, MSG_LOG_POINTS_TITLE, MSG_LOG_SCORES_HEADING,
+    MSG_LOG_BUILDINGS_HEADING, MSG_LOG_BUILDINGS_TITLE, MSG_LOG_BUILT_HEADING, MSG_LOG_BUILT_TITLE, MSG_LOG_MADE_HEADING, MSG_LOG_MADE_TITLE, MSG_LOG_ORDERS_HEADING, MSG_LOG_ORDERS_TITLE, MSG_NONE_MARK, MSG_LOG_CITIES_HEADING, MSG_LOG_CITIES_TITLE, MSG_LOG_FIGHTING_HEADING, MSG_LOG_FIGHTING_TITLE, MSG_LOG_FORCES_HEADING, MSG_LOG_FORCES_TITLE, MSG_LOG_LOSSES_HEADING, MSG_LOG_LOSSES_TITLE, MSG_LOG_POINTS_HEADING, MSG_LOG_POINTS_TITLE, MSG_LOG_SCORES_HEADING,
     MSG_LOG_SCORES_TITLE, MSG_LOG_TIMELINE_ENDED, MSG_LOG_TIMELINE_LOST_CITY, MSG_LOG_TIMELINE_STRONGEST, MSG_LOG_TIMELINE_TITLE, MSG_LOG_TIMELINE_WAR_DECLARED_ON, MSG_LOG_NO_WINNER, MSG_LOG_TITLE, MSG_LOG_WON_BY_CONQUEST, MSG_LOG_WON_ON_SCORE,
     MSG_LOG_UNITS_HEADING, MSG_LOG_UNITS_TITLE, MSG_STORY_NOBODY,
 )
@@ -226,6 +226,17 @@ def fighting_table(data):
     return Table(title=MSG_LOG_FIGHTING_TITLE, heading=MSG_LOG_FIGHTING_HEADING, rows=rows)
 
 
+def losses_table(data):
+    """Return the table of the units each kind of each civilization lost: attacking a city, attacking in the field, defending a city and defending in the field."""
+    rows = []
+    for entry in data[Key.CIVILIZATIONS]:
+        tallies = entry[Key.TALLIES]
+        kinds = list(dict.fromkeys(kind for loss in Tally.LOSSES for kind in tallies[loss]))
+        for kind in kinds:
+            rows.append([entry[Key.NAME], kind, *[shown_number(tallies[loss].get(kind, 0)) for loss in Tally.LOSSES]])
+    return Table(title=MSG_LOG_LOSSES_TITLE, heading=MSG_LOG_LOSSES_HEADING, rows=rows)
+
+
 def shown_turn(turn):
     """Return the cell for a turn, or the mark for none when there was no such turn."""
     return MSG_NONE_MARK if turn == NEVER else str(turn)
@@ -264,7 +275,7 @@ def forces_table(data):
 
 def tables(data):
     """Return every table of the report of a log, as the text report prints them."""
-    return [scores_table(data), cities_table(data), units_table(data), made_table(data), fighting_table(data), forces_table(data), points_table(data), buildings_table(data), built_table(data), orders_table(data)]
+    return [scores_table(data), cities_table(data), units_table(data), made_table(data), fighting_table(data), losses_table(data), forces_table(data), points_table(data), buildings_table(data), built_table(data), orders_table(data)]
 
 
 def told(*, data, event, sentence):

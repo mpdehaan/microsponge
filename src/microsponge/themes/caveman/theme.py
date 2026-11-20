@@ -27,7 +27,7 @@ from microsponge.themes.caveman.technologies import Agriculture, Astrology, Bart
 from microsponge.themes.caveman.terrain_bonuses import Bison, Elephants
 from microsponge.themes.caveman.terrains import Forest, Grassland, Mountains, Tarpit, Water
 from microsponge.themes.caveman.map import CavemanMap
-from microsponge.themes.caveman.units import AngryBird, CaptainCaveman, Raft, Settler, SlingshotCaveman, Clubber, WildClubber, Worker
+from microsponge.themes.caveman.units import AngryBird, CaptainCaveman, Raft, Settler, SlingshotCaveman, Clubber, WildClubber, Worker, MammothCatapult
 
 
 class Caveman(Theme):
@@ -46,7 +46,7 @@ class Caveman(Theme):
     TERRAINS = (Grassland, Mountains, Water, Forest, Tarpit)
     RESOURCES = (Currency, Food, Stone, Wood, Flint, Ivory, Poppies)
     TECHNOLOGIES = (Clubs, Agriculture, Leadership, Discipline, Fire, Sewing, Carpentry, ChurchOfTheCaveBear, Barter, Astrology)
-    UNITS = (Settler, Clubber, Worker, CaptainCaveman, SlingshotCaveman, Raft, AngryBird, WildClubber)
+    UNITS = (Settler, Clubber, Worker, CaptainCaveman, SlingshotCaveman, Raft, AngryBird, WildClubber, MammothCatapult)
     BUILDINGS = (Granary, GreatCavePainting, ArrangementOfRocks, Barracks, Harbor, Watchtower, ChieftainsHut, CityWalls, CaveBearShrine, TradingPost)
     IMPROVEMENTS = (Farm, Clearing)
     TERRAIN_BONUSES = (Bison, Elephants)

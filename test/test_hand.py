@@ -30,7 +30,12 @@ from microsponge.engine.orders.thing import army_thing, city_thing, civilization
 from microsponge.engine.orders.what import BuildTarget, Buildings, CityTarget, Garrison, March, NoDetails, PointTarget, Technologies, Units
 from microsponge.engine.kinds.dice import NO_DICE
 from microsponge.engine.kinds.unit_kinds import SettlerUnit
+from microsponge.engine.cities.city_control import CityControl
+from microsponge.engine.civilizations.sight import Sight
+from microsponge.engine.players.appraisal import Appraisal
 from microsponge.engine.players.hand import Hand
+from microsponge.engine.units.combat import Tally
+from microsponge.engine.units.unit_column import UnitColumn
 from microsponge.themes.caveman.theme import Caveman
 from microsponge.engine.players.knowledge import Knowledge
 from microsponge.engine.turns.orders import Orders
@@ -334,3 +339,21 @@ class TestAUnitAlreadyGone(HandCase):
         acted = []
         Hand.repeat(game=self.game, unit=unit, action=lambda: acted.append(unit))
         self.assertEqual(acted, [])
+
+
+class TestShooting(HandCase):
+
+    def test_a_marching_unit_with_a_ranged_attack_shoots_at_the_target_city_within_its_range_and_its_turn_ends(self):
+        target = found_village(game=self.game, civilization=SECOND, name=ANOTHER_NAME)
+        Orders.declare_war(game=self.game, civilization=FIRST, on=SECOND)
+        city = self.game.get_city(target)
+        defender = self.clubber(tile=(city.get_x(), city.get_y() + 3), owner=SECOND)
+        CityControl.enter(game=self.game, unit=defender, city=target)
+        siege = Appraisal.siege(self.game.get_theme())[0]
+        unit = self.clubber(tile=(city.get_x() + siege.RANGE, city.get_y()), kind=siege)
+        Sight.refresh(game=self.game, civilization=FIRST)
+        self.give(kind=MarchOrder, giver=self.me, receiver=self.me, what=March(target=CityTarget(city=target)))
+        self.carry_out()
+        self.assertEqual(sum(self.first.get_tally(Tally.CITY_ATTACKS).values()), 1)
+        self.assertEqual(self.game.get_units().get_value(column=UnitColumn.ACTION_POINTS, unit=unit), 0)
+        self.assertEqual(self.tile_of(unit), (city.get_x() + siege.RANGE, city.get_y()))

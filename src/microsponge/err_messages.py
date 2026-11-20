@@ -64,6 +64,11 @@ ERR_CIVILIZATION_NAME = 'the name of a civilization must be text that is not bla
 ERR_NO_MEMORY = 'civilization {name!r} has no memory of a world with the id {world!r}: has the game started?'
 
 # combat.py
+ERR_CANNOT_ATTACK_CITIES = 'a {unit} cannot attack the units inside a {city}'
+ERR_NO_MELEE = 'a {unit} has no melee attack'
+ERR_NO_RANGED = 'a {unit} has no ranged attack'
+ERR_NOT_IN_SIGHT = 'a {unit} can make a ranged attack only on a tile its civilization sees'
+ERR_OUT_OF_RANGE = 'a {unit} can make a ranged attack only on a tile from 1 to {range} tiles away'
 ERR_ATTACK_OWN = 'the unit {unit} cannot attack its own civilization'
 ERR_CANNOT_HIT = 'a {unit} cannot hit a {target}'
 ERR_CITY_UNDEFENDED = 'no unit is inside {name}: move a unit in to take the {city}'

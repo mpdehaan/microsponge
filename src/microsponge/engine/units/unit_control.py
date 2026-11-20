@@ -20,7 +20,7 @@ from microsponge.engine.kinds.catalog import NOTHING
 from microsponge.engine.kinds.category import Category
 from microsponge.engine.kinds.domain import Domain
 from microsponge.engine.kinds.kind import shown_name
-from microsponge.engine.kinds.unit_kinds import NO_ARMOR, attack_dice, can_hit
+from microsponge.engine.kinds.unit_kinds import NO_ARMOR, armor_against, attack_dice, can_hit, has_melee
 from microsponge.engine.units.levels import FIRST_LEVEL, Levels
 from microsponge.engine.units.unit_column import UnitColumn
 from microsponge.engine.world.layer import Layer
@@ -80,12 +80,13 @@ class UnitControl:
     def damage(*, attacker, defender, armor_bonus=NO_BONUS, attacker_level=FIRST_LEVEL, defender_level=FIRST_LEVEL):
         """Return the hit points a kind of unit takes off another on an average roll, through the other's armor class, for balancing and for screens that say what to expect."""
         roll = UnitControl.average_roll(attacker=attacker, defender=defender, level=attacker_level)
-        return UnitControl.mitigated(roll=roll, armor_class=UnitControl.armor_class(kind=defender, level=defender_level, bonus=armor_bonus))
+        bonus = armor_bonus + armor_against(defender=defender, attacker=attacker)
+        return UnitControl.mitigated(roll=roll, armor_class=UnitControl.armor_class(kind=defender, level=defender_level, bonus=bonus))
 
     @staticmethod
     def strike_back_roll(*, attacker, defender, roll):
         """Return what a unit that was attacked strikes back with from its own roll: its kind's percent of the roll, rounded down, or None when its kind does not strike back or cannot hit the attacker's class of unit."""
-        if not defender.STRIKES_BACK or not can_hit(kind=defender, target=attacker):
+        if not defender.STRIKES_BACK or not has_melee(defender) or not can_hit(kind=defender, target=attacker):
             return None
         return roll * defender.STRIKE_BACK_PERCENT // WHOLE
 
@@ -123,9 +124,9 @@ class UnitControl:
         return UnitControl.armor_class(kind=UnitControl.kind_of(game=game, unit=unit), level=UnitControl.level_of(game=game, unit=unit), bonus=bonus)
 
     @staticmethod
-    def roll_against(*, game, unit, target):
-        """Return a unit's damage roll against another unit: its kind's dice against the other's class of unit, plus its level's bonus, drawn from the game's random source."""
-        dice = attack_dice(kind=UnitControl.kind_of(game=game, unit=unit), target=UnitControl.kind_of(game=game, unit=target))
+    def roll_against(*, game, unit, target, in_city=False, ranged=False):
+        """Return a unit's damage roll against another unit, melee or ranged: its kind's dice versus the other's class of unit, weight class and being inside a city, plus its level's bonus, drawn from the game's random source."""
+        dice = attack_dice(kind=UnitControl.kind_of(game=game, unit=unit), target=UnitControl.kind_of(game=game, unit=target), in_city=in_city, ranged=ranged)
         return dice.roll(random=game.get_random()) + Levels.damage_bonus(level=UnitControl.level_of(game=game, unit=unit))
 
     @staticmethod
