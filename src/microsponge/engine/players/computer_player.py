@@ -36,7 +36,7 @@ from microsponge.engine.orders.given_order import Reason
 from microsponge.engine.cities.production import Production
 from microsponge.engine.civilizations.requirements import known_technologies
 from microsponge.engine.civilizations.sight import Sight
-from microsponge.engine.orders.order import BuildOrder, ExpandOrder, GarrisonOrder, ImproveOrder, MarchOrder, RaiseOrder, ResearchOrder, ResourcesPolicyOrder, RetireOrder, SettlerOrder
+from microsponge.engine.orders.order import BuildOrder, ExpandOrder, GarrisonOrder, ImproveOrder, MarchOrder, RaiseOrder, ResearchOrder, ResourcesPolicyOrder, RetireOrder, SettlerOrder, UpgradeOrder
 from microsponge.engine.orders.order_control import OrderControl
 from microsponge.engine.orders.thing import city_thing, civilization_thing, division_thing, unit_thing
 from microsponge.engine.orders.what import BuildTarget, Buildings, CityTarget, Garrison, March, NoDetails, PointTarget, Priority, Technologies, Units
@@ -48,6 +48,7 @@ from microsponge.engine.players.knowledge import Knowledge, distance
 from microsponge.engine.players.traits import AGGRESSIVE_HYPERFOCUS, BOLDNESS, CONQUEST, ECONOMICS, EXPANSION, MOST, PEACE, SCIENCE
 from microsponge.engine.turns.orders import Orders
 from microsponge.engine.turns.turn_control import TurnControl
+from microsponge.engine.units.upgrades import Upgrades
 from microsponge.engine.units.unit_control import UnitControl
 
 # Each city keeps this many units of the division inside.
@@ -133,6 +134,7 @@ class ComputerPlayer:
         cls.plan_division(game=game, civilization=civilization)
         cls.plan_priorities(game=game, civilization=civilization)
         cls.plan_retirement(game=game, civilization=civilization)
+        cls.plan_upgrades(game=game, civilization=civilization)
         cls.consider_war(game=game, civilization=civilization)
         cls.plan_march(game=game, civilization=civilization)
         cls.keep_within_points(game=game, civilization=civilization)
@@ -175,7 +177,7 @@ class ComputerPlayer:
         """Take out of the table the orders that are invalid and the orders to settle or to march that are completed, and switch every order the player disabled back on, to be weighed again this turn."""
         table = cls.table_of(game=game, civilization=civilization)
         for order in table.get_orders():
-            finished = order.get_reason() is Reason.COMPLETED and (order.is_a(SettlerOrder) or order.is_a(ExpandOrder) or order.is_a(MarchOrder) or order.is_a(RetireOrder))
+            finished = order.get_reason() is Reason.COMPLETED and (order.is_a(SettlerOrder) or order.is_a(ExpandOrder) or order.is_a(MarchOrder) or order.is_a(RetireOrder) or order.is_a(UpgradeOrder))
             if order.get_reason() is Reason.INVALID or finished:
                 table.remove(order)
             elif order.get_reason() is Reason.DISABLED:
@@ -459,6 +461,24 @@ class ComputerPlayer:
                     return resource
             return None
         return None
+
+    @classmethod
+    def plan_upgrades(cls, *, game, civilization):
+        """Order each division with a unit of an obsolete kind to upgrade, when the bank holds the price of upgrading it beyond the reserve, and take back the order when the bank falls short."""
+        alive = Knowledge.units_of(game=game, civilization=civilization)
+        bank = cls.bank(game=game, civilization=civilization)
+        primary = game.get_theme().PRIMARY_RESOURCE
+        for division in game.get_civilization(civilization).get_forces().get_divisions():
+            me = division_thing(division.get_id())
+            given = [order for order in cls.given(game=game, civilization=civilization, kind=UpgradeOrder) if order.get_receiver() == me]
+            newer = [Upgrades.newer_of(UnitControl.kind_of(game=game, unit=unit)) for unit in division.get_units() if unit in alive]
+            prices = [Upgrades.price(game=game, kind=kind).get(primary, 0) for kind in newer if kind is not None]
+            affordable = bool(prices) and bank >= cls.RESERVE + min(prices)
+            if affordable and not given:
+                cls.give(game=game, civilization=civilization, kind=UpgradeOrder, giver=me, receiver=me, what=NoDetails())
+            if not affordable:
+                for order in given:
+                    cls.table_of(game=game, civilization=civilization).remove(order)
 
     @classmethod
     def given_garrison(cls, *, game, civilization, city):

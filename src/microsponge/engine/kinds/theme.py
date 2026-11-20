@@ -52,6 +52,8 @@ class Theme:
     LEAST_INCOME = 1
     # The percent of what a city has paid for a build that comes back when the city switches to another build, or to nothing.
     SWITCH_REFUND_PERCENT = 20
+    # The percent of what the newer kind costs that upgrading an obsolete unit to it costs.
+    UPGRADE_PERCENT = 33
     # The hit points each level adds to a unit, as a percent of its kind's hit points, so that a level 20 unit is only about half again as strong.
     LEVEL_HIT_POINTS_PERCENT = 2
     # How much currency each research point becomes while a civilization has nothing left to research.

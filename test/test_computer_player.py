@@ -27,9 +27,10 @@ from microsponge.engine.orders.thing import city_thing, division_thing
 from microsponge.engine.orders.what import Buildings, NoDetails, Priority
 from microsponge.engine.civilizations.sight import Sight
 from microsponge.engine.players.hand import Hand
+from microsponge.engine.units.upgrades import Upgrades
 from microsponge.engine.turns.orders import Orders
 from microsponge.engine.kinds.category import Category
-from microsponge.engine.orders.order import BuildOrder, ImproveOrder, GarrisonOrder, MarchOrder, RaiseOrder, ResearchOrder, ResourcesPolicyOrder, RetireOrder, SettlerOrder
+from microsponge.engine.orders.order import UpgradeOrder, BuildOrder, ImproveOrder, GarrisonOrder, MarchOrder, RaiseOrder, ResearchOrder, ResourcesPolicyOrder, RetireOrder, SettlerOrder
 from microsponge.engine.orders.order_control import OrderControl
 from microsponge.engine.kinds.dice import NO_DICE
 from microsponge.engine.kinds.domain import Domain
@@ -312,3 +313,23 @@ class TestSeveralDivisions(unittest.TestCase):
             for city in division.get_bases():
                 raising, = given_to(game=game, kind=RaiseOrder, receiver=city_thing(city))
                 self.assertEqual(raising.get_giver(), division_thing(division.get_id()))
+
+
+class TestUpgradingUnits(unittest.TestCase):
+
+    def test_a_division_with_an_obsolete_unit_is_ordered_to_upgrade_when_the_bank_holds_the_price_beyond_the_reserve(self):
+        game = computer_played_caveman_game(seed=A_SEED)
+        found_village(game=game, civilization=FIRST, name=A_NAME)
+        ComputerPlayer.plan_division(game=game, civilization=FIRST)
+        division = ComputerPlayer.division_of(game=game, civilization=FIRST)
+        older = next(kind for kind in Caveman.UNITS if Upgrades.newer_of(kind) is not None)
+        x, y = SPARE_TILES[0]
+        division.add_unit(UnitControl.place(game=game, kind=older, owner=FIRST, world=THE_WORLD, x=x, y=y))
+        holder = game.get_civilization(FIRST)
+        holder.pay(resource=currency_of(game), amount=holder.get_amount(currency_of(game)))
+        ComputerPlayer.plan_upgrades(game=game, civilization=FIRST)
+        self.assertEqual(given(game=game, civilization=FIRST, kind=UpgradeOrder), [])
+        holder.add(resource=currency_of(game), amount=WEALTH)
+        ComputerPlayer.plan_upgrades(game=game, civilization=FIRST)
+        order, = given(game=game, civilization=FIRST, kind=UpgradeOrder)
+        self.assertEqual(order.get_receiver(), division_thing(division.get_id()))

@@ -51,7 +51,7 @@ class Leadership(Technology):
 
 class Discipline(Technology):
     REQUIRES = (Leadership,)
-    RESEARCH = 90
+    RESEARCH = 180
 
 
 class ChurchOfTheCaveBear(Technology):

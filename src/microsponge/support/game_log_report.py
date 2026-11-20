@@ -125,10 +125,12 @@ def events_of(*, data, what):
 def cities_table(data):
     rows = []
     took = events_of(data=data, what=What.TOOK)
+    tallies = {entry[Key.ID]: entry[Key.TALLIES] for entry in data[Key.CIVILIZATIONS]}
     for civilization in civilization_ids(data):
         held = [city for city in data[Key.CITIES] if city[Key.OWNER] == civilization]
         rows.append([
             name_of(data=data, civilization=civilization),
+            shown_number(sum(tallies[civilization][Tally.CITY_ATTACKS].values())), shown_number(sum(tallies[civilization][Tally.ATTACKS_ON_ITS_CITIES].values())),
             shown_number(len([city for city in data[Key.CITIES] if city[Key.FOUNDER] == civilization])),
             shown_number(len([event for event in took if event[Key.CIVILIZATION] == civilization])),
             shown_number(len([event for event in took if event[Key.OTHER] == civilization])),
@@ -218,7 +220,7 @@ def fighting_table(data):
         for kind in kinds_in_order(own):
             units = [unit for unit in own if unit[Key.KIND] == kind]
             rows.append([
-                entry[Key.NAME], kind, str(len(units)), shown_number(tallies[Tally.ATTACKS].get(kind, 0)), shown_number(sum(unit[Key.MOVED] for unit in units)),
+                entry[Key.NAME], kind, str(len(units)), shown_number(tallies[Tally.ATTACKS].get(kind, 0)), shown_number(tallies[Tally.CITY_ATTACKS].get(kind, 0)), shown_number(sum(unit[Key.MOVED] for unit in units)),
                 shown_number(tallies[Tally.KILLS].get(kind, 0)), shown_number(len([unit for unit in units if unit[Key.ENDING] == Ending.LOST])),
             ])
     return Table(title=MSG_LOG_FIGHTING_TITLE, heading=MSG_LOG_FIGHTING_HEADING, rows=rows)

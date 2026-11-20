@@ -63,7 +63,7 @@ The units of classic:
 | anti-missile platform | undecided | -                     |     1 |             - | -           |          10 |         10 |                1 |             1 |             50 | -          | yes          | -              |
 | anti-air platform     | undecided | -                     |     1 |             - | -           |          10 |         10 |                1 |             1 |             50 | -          | yes          | -              |
 
-no unit of classic sets these, so their columns are left out: cost, support, extra dice, heals, heals in a city, builds
+no unit of classic sets these, so their columns are left out: cost, support, extra dice, heals, heals in a city, builds, obsoleted by
 
 The buildings of classic:
 

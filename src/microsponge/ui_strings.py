@@ -77,9 +77,9 @@ MSG_LOG_BUILDINGS_HEADING = 'building'
 MSG_LOG_BUILDINGS_TITLE = 'The buildings each civilization held at the end:'
 MSG_LOG_BUILT_HEADING = ['civilization', 'building', 'built', 'first on turn', 'last on turn']
 MSG_LOG_BUILT_TITLE = 'The buildings each civilization built, with the turns it finished the first and the last of each:'
-MSG_LOG_CITIES_HEADING = ['civilization', 'founded', 'took', 'lost', 'held at the end', 'citizens at the end', 'buildings at the end']
+MSG_LOG_CITIES_HEADING = ['civilization', 'attacks made on cities', 'attacks on its cities', 'founded', 'took', 'lost', 'held at the end', 'citizens at the end', 'buildings at the end']
 MSG_LOG_CITIES_TITLE = 'The cities of each civilization:'
-MSG_LOG_FIGHTING_HEADING = ['civilization', 'unit', 'made', 'attacks made', 'tiles moved', 'units killed', 'units lost']
+MSG_LOG_FIGHTING_HEADING = ['civilization', 'unit', 'made', 'attacks made', 'attacks on cities', 'tiles moved', 'units killed', 'units lost']
 MSG_LOG_FIGHTING_TITLE = 'What the units of each kind of each civilization did, added up over every unit of the kind:'
 MSG_LOG_FORCES_HEADING = [
     'civilization', 'divisions made', 'first', 'last', 'armies made', 'first', 'last', 'units retired', 'first', 'last', 'divisions retired', 'first', 'last', 'armies retired', 'first', 'last',
@@ -174,7 +174,7 @@ MSG_WONDERS_HEADING = ('world wonder', *MSG_BUILDING_PROPERTIES)
 MSG_WONDERS_TITLE = 'The world wonders of {theme}:'
 MSG_UNITS_HEADING = (
     'unit', 'class', 'requires', 'cost', 'turns', 'support', 'citizens used', 'attack dice', 'extra dice', 'armor class', 'hit points', 'experience worth',
-    'action points', 'heals', 'heals in a city', 'strikes back %', 'cannot hit', 'takes cities', 'bypasses walls', 'builds',
+    'action points', 'heals', 'heals in a city', 'strikes back %', 'cannot hit', 'takes cities', 'bypasses walls', 'builds', 'obsoleted by',
 )
 MSG_UNITS_TITLE = 'The units of {theme}:'
 MSG_KIND_UNIT = 'unit'

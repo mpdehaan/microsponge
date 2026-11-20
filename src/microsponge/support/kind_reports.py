@@ -121,6 +121,7 @@ def unit_row(unit):
         shown_number(unit.CITIZENS), unit.ATTACK.shown() if unit.ATTACK.most() else shown_number(0), shown_extra_dice(unit.EXTRA_DICE), str(unit.ARMOR_CLASS), str(unit.HIT_POINTS), str(unit.EXPERIENCE_WORTH),
         str(unit.ACTION_POINTS), shown_number(unit.HEAL), shown_number(unit.CITY_HEAL), shown_number(unit.STRIKE_BACK_PERCENT if unit.STRIKES_BACK else 0),
         cannot_hit(unit), shown_flag(unit.TAKES_CITIES), shown_flag(unit.BYPASSES_WALLS), shown_kinds(unit.BUILDS),
+        shown_kinds(() if unit.OBSOLETED_BY is None else (unit.OBSOLETED_BY,)),
     ]
 
 

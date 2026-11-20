@@ -25,7 +25,7 @@ class Village(CitySpec):
     NAME = 'village'
     NAMES = 'villages'
     PRODUCES = {Food: 2}
-    CITIZEN_CURRENCY = 2
+    CITIZEN_CURRENCY = 3
     ARMOR_BONUS = 1
     STORE_FOOD = 20
     CONTROL_POINTS = {Policy: 2, Command: 2}

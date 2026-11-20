@@ -58,6 +58,9 @@ class Tally:
 
     ATTACKS = 'attacks'
     KILLS = 'kills'
+    # Attacks the civilization's units made on a city, and attacks on the civilization's cities, by the kind of the unit attacking.
+    CITY_ATTACKS = 'city_attacks'
+    ATTACKS_ON_ITS_CITIES = 'attacks_on_its_cities'
 
 
 class Combat:
@@ -151,6 +154,8 @@ class Combat:
             attacker_killed = Combat.hurt(game=game, unit=unit, damage=strike_back)
         Combat.reward(game=game, attacker=unit, defender=defender, striker=striker, prizes=prizes, defender_killed=defender_killed, attacker_killed=attacker_killed)
         Combat.tally(game=game, attacker=attacker_kind, striker=striker_kind, defender_killed=defender_killed, attacker_killed=attacker_killed)
+        if city != NOTHING:
+            Combat.tally_city_attack(game=game, attacker=attacker_kind, city=city)
         Combat.settle_losses(game)
         return AttackOutcome(defender=defender, damage=damage, strike_back=strike_back, defender_killed=defender_killed, attacker_killed=attacker_killed, striker=striker if strike_back else None)
 
@@ -170,6 +175,13 @@ class Combat:
         if attacker_killed and striker is not None:
             striker_owner, striker_kind = striker
             game.get_civilization(striker_owner).add_to_tally(tally=Tally.KILLS, kind=striker_kind)
+
+    @staticmethod
+    def tally_city_attack(*, game, attacker, city):
+        """Count an attack on a city, for the attacking civilization's kind of unit and for the civilization the city belongs to."""
+        owner, kind = attacker
+        game.get_civilization(owner).add_to_tally(tally=Tally.CITY_ATTACKS, kind=kind)
+        game.get_civilization(game.get_city(city).get_owner()).add_to_tally(tally=Tally.ATTACKS_ON_ITS_CITIES, kind=kind)
 
     @staticmethod
     def strike_back(*, game, attacker, striker):

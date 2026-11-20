@@ -54,7 +54,7 @@ NOT_GONE = -1
 NEVER = -1
 FILE_ENCODING = 'utf-8'
 # The tallies of fights each civilization keeps for each kind of its units.
-TALLIES = (Tally.ATTACKS, Tally.KILLS)
+TALLIES = (Tally.ATTACKS, Tally.KILLS, Tally.CITY_ATTACKS, Tally.ATTACKS_ON_ITS_CITIES)
 WRITE_MODE = 'w'
 READ_MODE = 'r'
 

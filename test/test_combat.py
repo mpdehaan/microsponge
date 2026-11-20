@@ -161,8 +161,8 @@ class CombatCase(Refusals, unittest.TestCase):
         return attacker, target
 
     def sturdy(self, unit):
-        """Give a unit more hit points than a clubber's highest roll can take, so that one attack never kills it, and return its hit points."""
-        hit_points = Clubber.ATTACK.count * Clubber.ATTACK.sides + Clubber.ATTACK.plus + 1
+        """Give a unit more hit points than the highest roll of any kind of unit of the theme can take, so that no attack or strike back kills it, and return its hit points."""
+        hit_points = max(kind.ATTACK.with_extra(dice=max(kind.EXTRA_DICE.values(), default=0)).most() for kind in Caveman.UNITS) + 1
         self.units.set_value(column=UnitColumn.HIT_POINTS, unit=unit, value=hit_points)
         return hit_points
 
@@ -334,12 +334,22 @@ class CityCombatCase(CombatCase):
 
 class TestAttackingACity(CityCombatCase):
 
+    def test_an_attack_on_a_city_is_counted_for_the_attacking_kind_and_for_the_civilization_the_city_belongs_to(self):
+        self.put_inside(Clubber)
+        raider = self.game.get_catalog().get_id(category=Category.UNITS, kind=UnitControl.kind_of(game=self.game, unit=self.raider))
+        self.raid()
+        attacking = self.game.get_civilization(SECOND_CIVILIZATION).get_tally(Tally.CITY_ATTACKS)
+        attacked = self.game.get_civilization(FIRST_CIVILIZATION).get_tally(Tally.ATTACKS_ON_ITS_CITIES)
+        self.assertEqual(attacking, {raider: 1})
+        self.assertEqual(attacked, {raider: 1})
+
     def test_the_unit_with_the_strongest_defense_is_hit_and_the_strongest_attacker_able_to_hit_strikes_back(self):
         bird = self.put_inside(AngryBird)
         captain = self.put_inside(CaptainCaveman)
         slingshot = self.put_inside(SlingshotCaveman)
         self.assertEqual(Combat.defender_of_city(game=self.game, city=self.city), captain)
         self.assertEqual(Combat.striker_of_city(game=self.game, city=self.city, attacker=self.raider), captain)
+        sturdy = self.sturdy(self.raider)
         outcome = self.raid()
         self.assertEqual(outcome.defender, captain)
         self.assertWithin(value=outcome.damage, bounds=damage_range(attacker=Clubber, defender=CaptainCaveman))
@@ -347,7 +357,7 @@ class TestAttackingACity(CityCombatCase):
         self.assertEqual(outcome.striker, captain)
         self.assertEqual(self.hit_points(bird), AngryBird.HIT_POINTS)
         self.assertEqual(self.hit_points(slingshot), SlingshotCaveman.HIT_POINTS)
-        self.assertEqual(self.hit_points(self.raider), Clubber.HIT_POINTS - outcome.strike_back)
+        self.assertEqual(self.hit_points(self.raider), sturdy - outcome.strike_back)
 
     def test_the_striker_can_be_another_unit_than_the_one_hit(self):
         self.put_inside(Settler)

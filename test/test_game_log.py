@@ -470,7 +470,8 @@ class TestTheFightingTable(unittest.TestCase):
             for row in rows:
                 with self.subTest(kind=row[KIND_COLUMN]):
                     units = [unit for unit in own if unit[Key.KIND] == row[KIND_COLUMN]]
-                    expected = [str(len(units)), shown_number(entry[Key.TALLIES][Tally.ATTACKS].get(row[KIND_COLUMN], 0)), shown_number(sum(unit[Key.MOVED] for unit in units))]
+                    tallies = entry[Key.TALLIES]
+                    expected = [str(len(units)), shown_number(tallies[Tally.ATTACKS].get(row[KIND_COLUMN], 0)), shown_number(tallies[Tally.CITY_ATTACKS].get(row[KIND_COLUMN], 0)), shown_number(sum(unit[Key.MOVED] for unit in units))]
                     self.assertEqual(row[MADE_COLUMN:MADE_COLUMN + len(expected)], expected)
 
 

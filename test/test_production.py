@@ -67,6 +67,8 @@ PLENTY = 1000
 BARRACKS_LEVEL_BONUS = 1
 # What the first civilization holds when a test starts: the theme's starting currency and plenty more, so that a test is not about whether the theme's prices can be paid.
 STARTING_CURRENCY = Caveman.STARTS_WITH[Currency] + PLENTY
+# A kind of unit of the theme that requires nothing, uses up no citizen and is made obsolete by nothing, which any city can build.
+TRAINEE = next(kind for kind in Caveman.UNITS if not kind.REQUIRES and not kind.CITIZENS and kind.OBSOLETED_BY is None)
 # The currency a city of one citizen brings in each turn.
 INCOME = Village.CITIZEN_CURRENCY
 A_SEED = 7
@@ -374,19 +376,19 @@ class TestABuildingAUnitRequires(ProductionCase):
         self.assertEqual(Barracks.LEVEL_BONUS, BARRACKS_LEVEL_BONUS)
         self.assertEqual(CityControl.starting_level(game=self.game, city=self.city_id), FIRST_LEVEL + BARRACKS_LEVEL_BONUS)
         self.assertEqual(CityControl.starting_level(game=self.game, city=other), FIRST_LEVEL)
-        self.build(Clubber)
-        Orders.build(game=self.game, city=other, kind=Clubber)
-        self.rounds(Clubber.BUILD_TURNS)
-        trained, raw = self.units_of_kind(Clubber)
+        self.build(TRAINEE)
+        Orders.build(game=self.game, city=other, kind=TRAINEE)
+        self.rounds(TRAINEE.BUILD_TURNS)
+        trained, raw = self.units_of_kind(TRAINEE)
         self.assertEqual(UnitControl.level_of(game=self.game, unit=trained), FIRST_LEVEL + BARRACKS_LEVEL_BONUS)
         self.assertEqual(self.units.get_value(column=UnitColumn.EXPERIENCE, unit=trained), Levels.experience_for(level=FIRST_LEVEL + BARRACKS_LEVEL_BONUS))
-        self.assertEqual(self.units.get_value(column=UnitColumn.HIT_POINTS, unit=trained), Levels.hit_points(theme=Caveman, kind=Clubber, level=FIRST_LEVEL + BARRACKS_LEVEL_BONUS))
+        self.assertEqual(self.units.get_value(column=UnitColumn.HIT_POINTS, unit=trained), Levels.hit_points(theme=Caveman, kind=TRAINEE, level=FIRST_LEVEL + BARRACKS_LEVEL_BONUS))
         self.assertEqual(UnitControl.level_of(game=self.game, unit=raw), FIRST_LEVEL)
-        self.assertEqual(self.units.get_value(column=UnitColumn.HIT_POINTS, unit=raw), Clubber.HIT_POINTS)
+        self.assertEqual(self.units.get_value(column=UnitColumn.HIT_POINTS, unit=raw), TRAINEE.HIT_POINTS)
         for _ in range(Village.MOST_UNITS):
-            self.build(Clubber)
-            self.rounds(Clubber.BUILD_TURNS)
-        outside = self.units_of_kind(Clubber)[-1]
+            self.build(TRAINEE)
+            self.rounds(TRAINEE.BUILD_TURNS)
+        outside = self.units_of_kind(TRAINEE)[-1]
         self.assertEqual(self.units.get_value(column=UnitColumn.CITY, unit=outside), NOTHING)
         self.assertEqual(UnitControl.level_of(game=self.game, unit=outside), FIRST_LEVEL + BARRACKS_LEVEL_BONUS)
 

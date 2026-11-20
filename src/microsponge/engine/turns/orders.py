@@ -28,6 +28,7 @@ from microsponge.engine.turns.turn_control import TurnControl
 from microsponge.engine.units.combat import Combat
 from microsponge.engine.units.unit_column import UnitColumn
 from microsponge.engine.units.unit_control import UnitControl
+from microsponge.engine.units.upgrades import Upgrades
 from microsponge.engine.units.work_control import WorkControl
 from microsponge.engine.world.layer import Layer
 from microsponge.err_messages import (
@@ -222,6 +223,12 @@ class Orders:
         """Set a city to build nothing. What was paid for the build under way is lost."""
         Orders.check_turn(game=game, civilization=game.get_city(city).get_owner())
         Production.stop(game=game, city=city)
+
+    @staticmethod
+    def upgrade(*, game, unit, led=False):
+        """Upgrade an obsolete unit to the kind that made it obsolete, within its civilization's borders, for the theme's percent of what that kind costs. It costs no action points."""
+        Orders.check_turn(game=game, civilization=game.get_units().get_value(column=UnitColumn.OWNER, unit=unit))
+        Upgrades.upgrade(game=game, unit=unit, problem_building=Production.problem_building)
 
     @staticmethod
     def research(*, game, civilization, technology):

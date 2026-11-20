@@ -47,7 +47,7 @@ The units of fantasy:
 | wyvern    | air   |     1 |             - |          10 |         10 |                1 |             1 |             50 | -          | yes          |
 | blimp     | air   |     1 |             - |          10 |         10 |                1 |             1 |             50 | -          | yes          |
 
-no unit of fantasy sets these, so their columns are left out: requires, cost, support, attack dice, extra dice, heals, heals in a city, bypasses walls, builds
+no unit of fantasy sets these, so their columns are left out: requires, cost, support, attack dice, extra dice, heals, heals in a city, bypasses walls, builds, obsoleted by
 
 fantasy has no buildings yet
 

@@ -40,7 +40,7 @@ The units of SciFi:
 | space fighter | space     |     1 |          10 |         10 |                1 |             1 |             50 | yes          |
 | space carrier | space     |     1 |          10 |         10 |                1 |             1 |             50 | yes          |
 
-no unit of SciFi sets these, so their columns are left out: requires, cost, support, citizens used, attack dice, extra dice, heals, heals in a city, cannot hit, bypasses walls, builds
+no unit of SciFi sets these, so their columns are left out: requires, cost, support, citizens used, attack dice, extra dice, heals, heals in a city, cannot hit, bypasses walls, builds, obsoleted by
 
 The buildings of SciFi:
 

@@ -120,5 +120,13 @@ class RetireOrder(PolicyOrder):
     RECEIVERS = (ThingType.ARMY, ThingType.DIVISION, ThingType.UNIT)
 
 
+class UpgradeOrder(PolicyOrder):
+    """A unit, or every unit of a division or of an army, is upgraded from an obsolete kind to the kind that made it obsolete, when it is within its civilization's borders and the price can be paid. The order itself is free; the upgrade costs what the theme says."""
+
+    BASE_COST = 0
+    LONE_UNIT_COST = 0
+    RECEIVERS = (ThingType.ARMY, ThingType.DIVISION, ThingType.UNIT)
+
+
 # The orders every theme has unless the theme lists its own.
-ORDERS = (BuildOrder, RaiseOrder, ExpandOrder, ImproveOrder, SettlerOrder, WorkOrder, ResourcesPolicyOrder, ResearchOrder, GarrisonOrder, MarchOrder, RetireOrder)
+ORDERS = (BuildOrder, RaiseOrder, ExpandOrder, ImproveOrder, SettlerOrder, WorkOrder, ResourcesPolicyOrder, ResearchOrder, GarrisonOrder, MarchOrder, RetireOrder, UpgradeOrder)

@@ -549,6 +549,17 @@ otherwise. What classic itself chooses, like its list of resources, is kept in
 - Aerial units may only travel so far from home or from a city, where they are at the end of
   their turn.
 - Naval units can only move in water.
+- A unit can become obsolete. An obsolete unit can no longer be built, and an obsolete unit can
+  be upgraded to the newer unit for a small price, maybe a third of what the newer unit costs.
+  A unit is never made obsolete by a unit that requires a unique resource, like a strategic
+  resource. The user decided this.
+- A theme names, for each kind of unit, the kind that makes it obsolete. A city can no longer
+  build the older kind once that city can build the newer one, so a city that cannot build the
+  newer kind still builds the older.
+- A unit of an obsolete kind is upgraded by an upgrade order, for one unit, a division or an
+  army, anywhere within its civilization's borders, for the theme's percent of what the newer
+  kind costs, a third to start. The unit keeps its level, its experience and its share of hit
+  points. The order itself is free.
 
 ## Action points
 

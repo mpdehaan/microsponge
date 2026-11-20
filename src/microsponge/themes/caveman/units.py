@@ -38,8 +38,19 @@ class Settler(CavemanUnit, SettlerUnit):
     HIT_POINTS = 5
 
 
+class CaptainCaveman(CavemanUnit, LandUnit):
+    REQUIRES = (Barracks,)
+    COST = {Currency: 180}
+    BUILD_TURNS = 6
+    ATTACK = Dice(count=5, sides=6)
+    ARMOR_CLASS = 8
+    HIT_POINTS = 20
+    EXPERIENCE_WORTH = 5
+
+
 class Clubber(CavemanUnit, LandUnit):
     REQUIRES = (Clubs,)
+    OBSOLETED_BY = CaptainCaveman
     COST = {Currency: 45}
     BUILD_TURNS = 3
     ATTACK = Dice(count=2, sides=6)
@@ -62,22 +73,12 @@ class SlingshotCaveman(CavemanUnit, LandUnit):
 
 class WildClubber(CavemanUnit, LandUnit):
     REQUIRES = (ChurchOfTheCaveBear, Poppies)
-    COST = {Currency: 90}
+    COST = {Currency: 60}
     BUILD_TURNS = 5
     ATTACK = Dice(count=3, sides=6)
     ARMOR_CLASS = 8
     HIT_POINTS = 13
     EXPERIENCE_WORTH = 3
-
-
-class CaptainCaveman(CavemanUnit, LandUnit):
-    REQUIRES = (Barracks,)
-    COST = {Currency: 120}
-    BUILD_TURNS = 6
-    ATTACK = Dice(count=4, sides=6)
-    ARMOR_CLASS = 8
-    HIT_POINTS = 15
-    EXPERIENCE_WORTH = 4
 
 
 class Worker(CavemanUnit, LandUnit):

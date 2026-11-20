@@ -33,7 +33,7 @@ The units of PlanetWars:
 | colony ship     | space |     1 |             - |          10 |         10 |                1 |             1 |             50 | -          | yes          |
 | space transport | space |     1 |             - |          10 |         10 |                1 |             1 |             50 | -          | yes          |
 
-no unit of PlanetWars sets these, so their columns are left out: requires, cost, support, attack dice, extra dice, heals, heals in a city, bypasses walls, builds
+no unit of PlanetWars sets these, so their columns are left out: requires, cost, support, attack dice, extra dice, heals, heals in a city, bypasses walls, builds, obsoleted by
 
 PlanetWars has no buildings yet
 

@@ -23,7 +23,8 @@ from microsponge.engine.kinds.building import Wonder
 from microsponge.engine.kinds.category import Category
 from microsponge.engine.kinds.kind import shown_name
 from microsponge.engine.kinds.unit_kinds import UnitKind
-from microsponge.err_messages import ERR_ALREADY_BUILT, ERR_ALREADY_QUEUED, ERR_BUILD_NEEDS_WATER, ERR_BUILD_REQUIRES, ERR_NO_CITIZEN_TO_SPARE, ERR_WONDER_BUILT
+from microsponge.engine.units.upgrades import Upgrades
+from microsponge.err_messages import ERR_OBSOLETE, ERR_ALREADY_BUILT, ERR_ALREADY_QUEUED, ERR_BUILD_NEEDS_WATER, ERR_BUILD_REQUIRES, ERR_NO_CITIZEN_TO_SPARE, ERR_WONDER_BUILT
 
 WHOLE = 100
 
@@ -91,8 +92,9 @@ class Production:
 
         The civilization has to have what the kind requires, and a building that is required
         has to stand in the city itself. A unit that uses up citizens cannot be built by a city
-        it would leave with no citizen. A building like a harbor needs a water tile next to
-        the city center. A city has one of each building, so a building the city has is
+        it would leave with no citizen, and a unit that is obsolete in the city, because the city
+        can build the kind that made it obsolete, is refused. A building like a harbor needs a
+        water tile next to the city center. A city has one of each building, so a building the city has is
         refused, and so is a world wonder that already stands somewhere.
         """
         target = game.get_city(city)
@@ -103,6 +105,8 @@ class Production:
         if issubclass(kind, UnitKind):
             if kind.CITIZENS and target.get_citizens() <= kind.CITIZENS:
                 return ERR_NO_CITIZEN_TO_SPARE.format(unit=shown_name(kind), name=target.get_name(), citizens=target.get_citizens(), uses=kind.CITIZENS)
+            if Upgrades.is_obsolete_in(game=game, city=city, kind=kind, problem_building=Production.problem_building):
+                return ERR_OBSOLETE.format(unit=shown_name(kind), name=target.get_name(), newer=shown_name(kind.OBSOLETED_BY))
             return None
         if target.has_building(kind_id):
             return ERR_ALREADY_BUILT.format(name=target.get_name(), building=shown_name(kind))

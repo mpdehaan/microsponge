@@ -77,6 +77,11 @@ class HelperAI:
         Orders.abandon_improvement(game=game, unit=unit)
 
     @staticmethod
+    def upgrade(*, game, unit, led=False):
+        """Upgrade an obsolete unit to the kind that made it obsolete."""
+        Orders.upgrade(game=game, unit=unit, led=led)
+
+    @staticmethod
     def prioritize(*, game, city, resource, citizens):
         """Set how many citizens of a city look for a resource other than food first."""
         Orders.prioritize(game=game, city=city, resource=resource, citizens=citizens)

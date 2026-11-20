@@ -240,7 +240,7 @@ def civilization_facts(*, game, civilization):
         civilization.get_policy_points(), civilization.get_bankrupt_turns(), civilization.get_wars(), civilization.has_lost(),
         [memory_facts(game=game, memory=memory) for memory in civilization.get_memories()],
         None if civilization.get_traits() is None else civilization.get_traits().get_values(),
-        {tally: {name_of(game=game, category=Category.UNITS, kind_id=kind): count for kind, count in civilization.get_tally(tally).items()} for tally in (Tally.ATTACKS, Tally.KILLS)},
+        {tally: {name_of(game=game, category=Category.UNITS, kind_id=kind): count for kind, count in civilization.get_tally(tally).items()} for tally in (Tally.ATTACKS, Tally.KILLS, Tally.CITY_ATTACKS, Tally.ATTACKS_ON_ITS_CITIES)},
     )
 
 

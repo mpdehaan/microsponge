@@ -66,6 +66,8 @@ class UnitKind(Kind):
     BYPASSES_WALLS = False
     # Whether a unit of this kind can take a city of another civilization.
     TAKES_CITIES = True
+    # The kind of unit that makes this kind obsolete, or None: a city that can build the newer kind cannot build this one, and a unit of this kind can be upgraded to it.
+    OBSOLETED_BY = None
     # How far a unit of this kind sees, in tiles in each direction: 5 is the 11 by 11 tiles with the unit in the middle.
     VISION = 5
     # The tiles a unit of this kind can be on.

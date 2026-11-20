@@ -35,7 +35,7 @@ from microsponge.engine.civilizations.research import Research
 from microsponge.engine.civilizations.sight import Sight
 from microsponge.engine.kinds.catalog import NOTHING
 from microsponge.engine.kinds.category import Category
-from microsponge.engine.orders.order import BuildOrder, BuildTargetOrder, ExpandOrder, GarrisonOrder, ImproveOrder, MarchOrder, RaiseOrder, ResearchOrder, ResourcesPolicyOrder, RetireOrder, SettlerOrder, WorkOrder
+from microsponge.engine.orders.order import BuildOrder, BuildTargetOrder, ExpandOrder, GarrisonOrder, ImproveOrder, MarchOrder, RaiseOrder, ResearchOrder, ResourcesPolicyOrder, RetireOrder, SettlerOrder, UpgradeOrder, WorkOrder
 from microsponge.engine.orders.order_control import OrderControl
 from microsponge.engine.orders.referee import Referee
 from microsponge.engine.orders.thing import ThingType, city_thing, unit_thing
@@ -46,6 +46,7 @@ from microsponge.engine.players.knowledge import Knowledge
 from microsponge.engine.turns.orders import Orders
 from microsponge.engine.units.unit_column import UnitColumn
 from microsponge.engine.units.unit_control import UnitControl
+from microsponge.engine.units.upgrades import Upgrades
 from microsponge.engine.units.work_control import WorkControl
 from microsponge.engine.world.land import NEIGHBORS, Land
 from microsponge.engine.world.layer import Layer
@@ -81,6 +82,7 @@ class Hand:
         Referee.review(game=game, civilization=civilization)
         cls.muster(game=game, civilization=civilization)
         cls.retire(game=game, civilization=civilization)
+        cls.upgrade(game=game, civilization=civilization)
         cls.research(game=game, civilization=civilization)
         cls.direct_priorities(game=game, civilization=civilization)
         cls.direct_cities(game=game, civilization=civilization)
@@ -103,6 +105,18 @@ class Hand:
         if thing.type is ThingType.ARMY:
             return [unit for division in forces.get_divisions() if division.get_army() == thing.id for unit in division.get_units()]
         return []
+
+    @classmethod
+    def upgrade(cls, *, game, civilization):
+        """Upgrade every unit of each active order to upgrade that can be upgraded now, and complete an order none of whose units has a kind with a newer kind left."""
+        for order in cls.table_of(game=game, civilization=civilization).active(UpgradeOrder):
+            alive = Knowledge.units_of(game=game, civilization=civilization)
+            units = [unit for unit in cls.units_of_thing(game=game, civilization=civilization, thing=order.get_receiver()) if unit in alive]
+            for unit in units:
+                if Upgrades.problem_upgrading(game=game, unit=unit, problem_building=Production.problem_building) is None:
+                    try_order(lambda: HelperAI.upgrade(game=game, unit=unit, led=True))
+            if not any(Upgrades.newer_of(UnitControl.kind_of(game=game, unit=unit)) for unit in units):
+                order.complete()
 
     @classmethod
     def retire(cls, *, game, civilization):

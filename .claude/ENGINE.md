@@ -99,6 +99,14 @@ says where things are and how the parts fit, and is kept true with every change 
   citizen and empties the store when the store reaches `store_size()`, the city spec's
   `STORE_FOOD` times the citizens, less the `GROWS_SOONER` of the city's buildings and the
   civilization's technologies for each citizen.
+- Obsolete units. A kind's `OBSOLETED_BY` names the kind that makes it obsolete;
+  `units/upgrades.py` is `Upgrades`: `newer_of()` (None when the newer kind requires a
+  strategic resource), `is_obsolete_in()`, which `Production.problem_building()` asks,
+  `price()` (the theme's `UPGRADE_PERCENT`), `is_within_borders()`, `problem_upgrading()` and
+  `upgrade()`, which keeps the level, the experience and the share of hit points.
+  `Orders.upgrade()`, `HelperAI.upgrade()`, the free `UpgradeOrder`, `Hand.upgrade()` and the
+  main AI's `plan_upgrades()` carry it out. `Tally.CITY_ATTACKS` and
+  `Tally.ATTACKS_ON_ITS_CITIES` count attacks on cities for both sides.
 - `TurnControl.end_turn()` does, for the civilization playing and in this order: building units
   go on building, the cities collect, the citizens eat, the units and buildings are paid for,
   the cities go on with what they build, the cities grow, the units heal, research goes on, and

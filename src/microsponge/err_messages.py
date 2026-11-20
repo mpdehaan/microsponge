@@ -99,6 +99,7 @@ ERR_NO_SUCH_TRAIT = 'there is no trait called {trait!r}'
 ERR_TRAIT_VALUE = 'a trait is a whole number from {least} to {most}, got {value!r}'
 
 # production.py
+ERR_OBSOLETE = 'a {unit} is obsolete in {name}, which can build a {newer} instead'
 ERR_ALREADY_BUILT = '{name} already has a {building}'
 ERR_ALREADY_QUEUED = '{name} is already going to build a {building}'
 ERR_BUILD_NEEDS_WATER = 'a {building} requires a water tile next to the {city} center'
@@ -129,6 +130,12 @@ ERR_GAME_NOT_STARTED = 'the game has not started'
 ERR_GAME_OVER = 'the game is over'
 ERR_GAME_STARTED = 'the game has already started'
 ERR_NO_CIVILIZATIONS = 'a game needs at least one civilization to start'
+
+# upgrades.py
+ERR_NOT_OBSOLETE = 'a {unit} cannot be upgraded: nothing makes it obsolete'
+ERR_UPGRADE_NOT_BUILDABLE = 'a {unit} cannot be upgraded to a {newer}, which no city of its civilization can build'
+ERR_UPGRADE_OUTSIDE_BORDERS = 'a {unit} can be upgraded only within the borders of its civilization'
+ERR_UPGRADE_PRICE = 'upgrading a {unit} to a {newer} costs more than its civilization holds'
 
 # unit_control.py
 ERR_CANNOT_BE_ON = 'a {unit} cannot be on {terrain}'

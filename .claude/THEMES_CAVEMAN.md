@@ -95,6 +95,15 @@ file, so it's in force in every session. `.claude/TESTING.md` says what caveman 
   eat no food: each city stores its own food and grows a citizen when the store is full.
 - The user wants to know which buildings and world wonders give no benefit, with suggestions
   of what each should do.
+- The wild clubber was never made, so the wild clubber costs less, 60 currency instead of 90,
+  and ranks above captain caveman where both can be built. The user also decided poppies are to
+  be more common, which Claude has not done, because poppies are already on a tenth of the
+  grassland, and asks the user about.
+- The clubber is made obsolete by captain caveman, and no other caveman unit is made obsolete.
+- Captain caveman comes late: discipline takes 180 research points instead of 90, and captain
+  caveman costs 180 currency, with 5d6 and 20 hit points, worth 5, so that he is much stronger
+  than before, which the user suggested to make the clubber worth building for longer.
+- A working citizen earns 3 currency, because banks ended near nothing.
 - Caveman has a resource called poppies, and a unit called the wild clubber, which can be
   built after learning church of the cave bear, and is about twice as good as the clubber.
   Captain caveman is half again better than the wild clubber.
