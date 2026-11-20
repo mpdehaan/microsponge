@@ -70,7 +70,7 @@ def changes_table(*, theme, values, markdown):
 def report_lines(*, theme, found, markdown=False):
     """Return the optimizer's report on what a search found, as lines."""
     result = found.result
-    lines = [MSG_OPTIMIZER_SUMMARY.format(theme=shown_name(theme), steps=len(result.steps), restarts=result.restarts, games=found.games, minutes=round(found.seconds / SECONDS_A_MINUTE)), '']
+    lines = [MSG_OPTIMIZER_SUMMARY.format(theme=shown_name(theme), steps=len(result.steps), restarts=result.restarts, games=found.games, minutes=round(found.seconds / SECONDS_A_MINUTE), seed=found.random_seed), '']
     lines += criteria_table(found=found, markdown=markdown) + ['']
     lines += numbers_table(start=result.start, best=result.best, markdown=markdown) + ['']
     lines += changes_table(theme=theme, values=result.best, markdown=markdown)

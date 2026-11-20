@@ -178,7 +178,11 @@ make optimize THEME=caveman MINUTES=60
 ```
 
 The numbers after the theme are how many minutes to search, how many seeds to search with,
-how many seeds to hold out, how many civilizations play and how many turns a game may run.
+how many seeds to hold out, how many civilizations play, how many turns a game may run and,
+last, the search seed. With no search seed the tool picks one at random, so two runs on an
+unchanged theme try different numbers; the report names the seed, and giving it again
+(`SEARCH_SEED=` with `make`) repeats a run. Repeated short runs are the usual way to use it:
+apply the suggestions worth keeping, and the next run starts from the theme as it now is.
 The optimizer prints each set of numbers it tries with its score as it goes, then its report,
 which it also writes to `logs/caveman_optimizer.md` as Markdown. It never changes a theme: the
 report is a list of suggestions, which Claude reads with the user before anything is changed.

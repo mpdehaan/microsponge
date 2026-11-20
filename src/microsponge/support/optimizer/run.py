@@ -40,6 +40,7 @@ class Found:
     best_held_out: dict
     games: int
     seconds: float
+    random_seed: int
 
 
 def seeds(*, searched, held_out):
@@ -62,4 +63,4 @@ def optimize(*, theme, seconds, searched, held_out, civilizations, turns, proces
         games = judge.get_played_games()
     finally:
         judge.close()
-    return Found(result=result, now_searched=now_searched, best_searched=best_searched, now_held_out=now_held_out, best_held_out=best_held_out, games=games, seconds=monotonic() - began)
+    return Found(result=result, now_searched=now_searched, best_searched=best_searched, now_held_out=now_held_out, best_held_out=best_held_out, games=games, seconds=monotonic() - began, random_seed=random_seed)

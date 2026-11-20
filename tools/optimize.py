@@ -22,6 +22,10 @@ turns a game may run:
 
     .venv/bin/python tools/optimize.py caveman
     .venv/bin/python tools/optimize.py caveman 60 6 3 3 200
+    .venv/bin/python tools/optimize.py caveman 60 6 3 3 200 12345
+
+With no search seed, the tool picks one at random, so each run tries different numbers; the
+report names the seed, and giving it again repeats the run on an unchanged theme.
 
 The report is printed and written to logs/<theme>_optimizer.md. `DEV_TOOLS.md` says how to read it.
 """
@@ -29,6 +33,7 @@ The report is printed and written to logs/<theme>_optimizer.md. `DEV_TOOLS.md` s
 import os
 import sys
 from pathlib import Path
+from random import SystemRandom
 
 from microsponge.engine.kinds.kind import shown_name
 from microsponge.support.optimizer.report import report_lines, shown_decimal
@@ -42,13 +47,15 @@ SEARCHED_ARGUMENT = 2
 HELD_OUT_ARGUMENT = 3
 CIVILIZATIONS_ARGUMENT = 4
 TURNS_ARGUMENT = 5
+SEED_ARGUMENT = 6
 DEFAULT_MINUTES = 10
 DEFAULT_SEARCHED = 6
 DEFAULT_HELD_OUT = 3
 DEFAULT_CIVILIZATIONS = 3
 DEFAULT_TURNS = 200
 SECONDS_A_MINUTE = 60
-RANDOM_SEED = 1
+# The search seeds picked at random are below this.
+MOST_SEEDS = 1000000
 LEAST_PROCESSES = 1
 REPORT_FOLDER = Path('logs')
 REPORT_NAME = '{theme}_optimizer.md'
@@ -65,13 +72,14 @@ def main(arguments):
     numbers = [number_at(arguments=arguments, place=place, default=default) for place, default in (
         (MINUTES_ARGUMENT, DEFAULT_MINUTES), (SEARCHED_ARGUMENT, DEFAULT_SEARCHED), (HELD_OUT_ARGUMENT, DEFAULT_HELD_OUT),
         (CIVILIZATIONS_ARGUMENT, DEFAULT_CIVILIZATIONS), (TURNS_ARGUMENT, DEFAULT_TURNS))]
-    if theme is None or not all(numbers) or len(arguments) > TURNS_ARGUMENT + 1:
+    random_seed = number_at(arguments=arguments, place=SEED_ARGUMENT, default=SystemRandom().randrange(MOST_SEEDS))
+    if theme is None or not all(numbers) or random_seed is None or len(arguments) > SEED_ARGUMENT + 1:
         print(MSG_OPTIMIZER_USAGE.format(themes=theme_names()))
         return FAILED
     minutes, searched, held_out, civilizations, turns = numbers
     processes = max(min(os.cpu_count() or LEAST_PROCESSES, searched), LEAST_PROCESSES)
     try:
-        found = optimize(theme=theme, seconds=minutes * SECONDS_A_MINUTE, searched=searched, held_out=held_out, civilizations=civilizations, turns=turns, processes=processes, random_seed=RANDOM_SEED, on_step=show_step)
+        found = optimize(theme=theme, seconds=minutes * SECONDS_A_MINUTE, searched=searched, held_out=held_out, civilizations=civilizations, turns=turns, processes=processes, random_seed=random_seed, on_step=show_step)
     except ValueError as problem:
         print(problem)
         return FAILED

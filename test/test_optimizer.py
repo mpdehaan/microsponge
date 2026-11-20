@@ -174,12 +174,17 @@ class TestRunning(unittest.TestCase):
         self.assertEqual(found.result.best, Tuning.start(Caveman))
         self.assertEqual(found.games, GAMES_WITH_NO_TIME)
         lines = report_lines(theme=Caveman, found=found)
+        self.assertEqual(found.random_seed, RANDOM_SEED)
+        self.assertIn(str(RANDOM_SEED), lines[0])
         for title in (MSG_OPTIMIZER_CRITERIA_TITLE, MSG_OPTIMIZER_NUMBERS_TITLE, MSG_OPTIMIZER_CHANGES_TITLE):
             self.assertIn(title, lines)
         for kind, name, now, value in changed_constants(theme=Caveman, values=found.result.best):
             self.assertEqual(getattr(kind, name), now)
             self.assertNotEqual(now, value)
 
-    def test_the_tool_refuses_a_command_line_it_cannot_read(self):
+    def test_the_tool_refuses_a_command_line_it_cannot_read_and_a_search_seed_that_is_not_a_number(self):
         run = subprocess.run([sys.executable, str(TOOL), Caveman.__name__.lower(), NOT_A_NUMBER], capture_output=True, text=True, cwd=ROOT, check=False)
+        self.assertEqual(run.returncode, FAILED)
+        numbers = [str(number) for number in (ONE_PROCESS, ONE_PROCESS, ONE_PROCESS, TWO_CIVILIZATIONS, SHORT_TURNS)]
+        run = subprocess.run([sys.executable, str(TOOL), Caveman.__name__.lower(), *numbers, NOT_A_NUMBER], capture_output=True, text=True, cwd=ROOT, check=False)
         self.assertEqual(run.returncode, FAILED)

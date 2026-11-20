@@ -42,7 +42,7 @@ help:
 	@echo "make game-report    the timelines and tables of a log: THEME=caveman SEED=1, or LOG=logs/caveman_seed1.json; add FORMAT=--markdown"
 	@echo "make game-page      play a game, write its log and open the page with the charts in the browser: THEME=caveman SEED=1 CIVILIZATIONS=3 TURNS=100"
 	@echo "make effectiveness  what in a theme does nothing or too little, from its logs in logs/: THEME=caveman; add FORMAT=--markdown"
-	@echo "make optimize       search for better numbers for a theme and print suggestions: THEME=caveman MINUTES=10 SEEDS=6 HELD_OUT=3 CIVILIZATIONS=3 TURNS=200"
+	@echo "make optimize       search for better numbers for a theme and print suggestions: THEME=caveman MINUTES=10 SEEDS=6 HELD_OUT=3 CIVILIZATIONS=3 TURNS=200, and SEARCH_SEED= to repeat a run"
 	@echo "make game           have the computer players play a game and print its story: THEME=caveman SEED=1 CIVILIZATIONS=3 TURNS=100"
 	@echo "make map            preview a world the map generator makes: THEME=caveman SEED=1 CIVILIZATIONS=3"
 	@echo "make hooks          install the git pre-commit hook, which runs every test before a commit goes in"
@@ -122,9 +122,10 @@ clean:
 MINUTES ?= 10
 SEEDS ?= 6
 HELD_OUT ?= 3
+SEARCH_SEED ?=
 
 optimize:
-	$(PYTHON) tools/optimize.py $(THEME) $(MINUTES) $(SEEDS) $(HELD_OUT) $(CIVILIZATIONS) $(TURNS)
+	$(PYTHON) tools/optimize.py $(THEME) $(MINUTES) $(SEEDS) $(HELD_OUT) $(CIVILIZATIONS) $(TURNS) $(SEARCH_SEED)
 
 effectiveness:
 	$(PYTHON) tools/effectiveness_report.py $(THEME) $(FORMAT)

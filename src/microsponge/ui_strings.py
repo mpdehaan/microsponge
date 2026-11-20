@@ -252,7 +252,7 @@ MSG_NOTHING_TO_PLAY = '{title}: there is nothing to play yet'
 MSG_TITLE = 'microsponge {version}'
 
 # optimizer/report.py and tools/optimize.py
-MSG_OPTIMIZER_SUMMARY = 'The optimizer searched the numbers of {theme} for {minutes} minutes: {steps} sets of numbers tried, {restarts} restarts from the best, {games} games played. A badness is 0 when a criterion is met and 1 when it is as far off as it gets, and the score is their weighted sum, smaller being better.'
+MSG_OPTIMIZER_SUMMARY = 'The optimizer searched the numbers of {theme} for {minutes} minutes: {steps} sets of numbers tried, {restarts} restarts from the best, {games} games played, with the search seed {seed}, which repeats this run when given to the tool. A badness is 0 when a criterion is met and 1 when it is as far off as it gets, and the score is their weighted sum, smaller being better.'
 MSG_OPTIMIZER_CRITERIA_TITLE = 'Each criterion, for the theme as it is and for the best numbers found, on the seeds searched and on seeds the search never saw:'
 MSG_OPTIMIZER_CRITERIA_HEADING = ['criterion', 'weight', 'now, searched', 'best, searched', 'now, held out', 'best, held out']
 MSG_OPTIMIZER_SCORE = 'score'
@@ -262,7 +262,7 @@ MSG_OPTIMIZER_CHANGES_TITLE = 'The constants of the theme the best numbers would
 MSG_OPTIMIZER_CHANGES_HEADING = ['kind', 'constant', 'now', 'suggested']
 MSG_OPTIMIZER_STEP = 'step {number}: score {score}{mark}'
 MSG_OPTIMIZER_BEST_MARK = ', the best so far'
-MSG_OPTIMIZER_USAGE = 'name one theme, then how many minutes to search, how many seeds to search with, how many seeds to hold out, how many civilizations play and how many turns at most if you like, like: caveman 60 6 3 3 200. The report is printed, and written to logs/ as Markdown. The themes: {themes}'
+MSG_OPTIMIZER_USAGE = 'name one theme, then how many minutes to search, how many seeds to search with, how many seeds to hold out, how many civilizations play, how many turns at most and the search seed if you like, like: caveman 60 6 3 3 200 12345; with no search seed, each run searches differently. The report is printed, and written to logs/ as Markdown. The themes: {themes}'
 
 # effectiveness.py and tools/effectiveness_report.py
 MSG_EFFECTIVENESS_SUMMARY = 'What in {theme} does nothing or too little, from the theme and from {games} games the computer players played. The buildings include {wonders} world wonders.'
